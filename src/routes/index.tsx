@@ -7,13 +7,13 @@ import { Camera, LineChart, ShieldAlert, Users } from "lucide-react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "FC Career Companion — assistent til FC 26 Career Mode" },
+      { title: "Career Chronicles — assistent til FC 26 Career Mode" },
       {
         name: "description",
         content:
           "Upload screenshots fra din FC 26 karriere, få truppen læst automatisk af AI og hold styr på udvikling, kontrakter og huller i truppen.",
       },
-      { property: "og:title", content: "FC Career Companion — assistent til FC 26 Career Mode" },
+      { property: "og:title", content: "Career Chronicles — assistent til FC 26 Career Mode" },
       {
         property: "og:description",
         content:
@@ -67,7 +67,7 @@ function Landing() {
       <header className="border-b border-border/60">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
           <span className="font-display text-lg font-semibold tracking-tight">
-            FC Career Companion
+            Career Chronicles
           </span>
           <Button asChild size="sm" variant={signedIn ? "default" : "outline"}>
             <Link to={signedIn ? "/karrierer" : "/auth"}>

@@ -16,13 +16,13 @@ import { POSITION_GROUPS, formatMoney, formatWage, ovrTone } from "@/lib/footbal
 export const Route = createFileRoute("/_authenticated/karrierer/$id/trup")({
   head: () => ({
     meta: [
-      { title: "Trup — FC Career Companion" },
+      { title: "Trup — Career Chronicles" },
       {
         name: "description",
         content:
           "Hele din FC 26 trup i én tabel: overall, potentiale, alder, markedsværdi, løn og kontraktudløb.",
       },
-      { property: "og:title", content: "Trup — FC Career Companion" },
+      { property: "og:title", content: "Trup — Career Chronicles" },
       {
         property: "og:description",
         content: "Sortér og filtrér din FC 26 trup på position, alder, potentiale og værdi.",

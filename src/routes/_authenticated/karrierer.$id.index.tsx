@@ -16,13 +16,13 @@ import { AlertTriangle, CheckCircle2, Info, TrendingDown, TrendingUp, Upload } f
 export const Route = createFileRoute("/_authenticated/karrierer/$id/")({
   head: () => ({
     meta: [
-      { title: "Karriereoverblik — FC Career Companion" },
+      { title: "Karriereoverblik — Career Chronicles" },
       {
         name: "description",
         content:
           "Nøgletal, advarsler og udvikling for din FC 26 trup: gennemsnitsalder, overall, kontraktudløb og positioner der mangler.",
       },
-      { property: "og:title", content: "Karriereoverblik — FC Career Companion" },
+      { property: "og:title", content: "Karriereoverblik — Career Chronicles" },
       {
         property: "og:description",
         content: "Se trupstyrke, advarsler og hvem der udvikler sig i din FC 26 karriere.",

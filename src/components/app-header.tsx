@@ -15,7 +15,7 @@ export function AppHeader({ children }: { children?: React.ReactNode }) {
     <header className="border-b border-border/60 bg-card/40">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-5 py-3">
         <Link to="/karrierer" className="font-display text-sm font-semibold tracking-tight">
-          FC Career Companion
+          Career Chronicles
         </Link>
         <div className="flex-1">{children}</div>
         <Button variant="ghost" size="sm" onClick={() => void signOut()}>
