@@ -224,7 +224,7 @@ function ImportPage() {
   );
 
   return (
-    <div className="space-y-8">
+    <div className={`space-y-8 ${drafts && drafts.length > 0 ? "pb-24" : ""}`}>
       <section className="rounded-xl border border-border/60 bg-card p-6">
         <h2 className="font-display text-lg font-semibold">
           Upload screenshots {activeSeason ? `til ${activeSeason.label}` : ""}
@@ -384,6 +384,19 @@ function ImportPage() {
             ))}
           </ul>
         </section>
+      )}
+
+      {drafts && drafts.length > 0 && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/60 bg-card/95 px-4 py-3 backdrop-blur">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
+            <span className="text-sm text-muted-foreground">
+              {drafts.length} spillere klar — ikke gemt endnu
+            </span>
+            <Button disabled={saveMutation.isPending} onClick={() => saveMutation.mutate()}>
+              {saveMutation.isPending ? "Gemmer…" : "Gem i truppen"}
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );
