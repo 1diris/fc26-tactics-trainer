@@ -14,7 +14,7 @@ export type ExtractedPlayer = {
   nationality: string | null;
   shirt_number: number | null;
   form: number | null;
-  stats: Record<string, unknown>;
+  stats: Record<string, string | number | boolean | null>;
   uncertain_fields: string[];
 };
 
@@ -141,6 +141,18 @@ function toText(value: unknown): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+function normalizeStats(value: unknown): Record<string, string | number | boolean | null> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const result: Record<string, string | number | boolean | null> = {};
+  for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
+    if (raw === null) result[key] = null;
+    else if (typeof raw === "number" || typeof raw === "string" || typeof raw === "boolean") {
+      result[key] = raw;
+    }
+  }
+  return result;
+}
+
 function normalizeExtracted(entry: Record<string, unknown>): ExtractedPlayer | null {
   const name = toText(entry["name"]);
   if (!name) return null;
@@ -160,10 +172,7 @@ function normalizeExtracted(entry: Record<string, unknown>): ExtractedPlayer | n
     nationality: toText(entry["nationality"]),
     shirt_number: toInt(entry["shirt_number"], 1, 99),
     form: toInt(entry["form"], 1, 10),
-    stats:
-      entry["stats"] && typeof entry["stats"] === "object" && !Array.isArray(entry["stats"])
-        ? (entry["stats"] as Record<string, unknown>)
-        : {},
+    stats: normalizeStats(entry["stats"]),
     uncertain_fields: uncertain,
   };
 }
