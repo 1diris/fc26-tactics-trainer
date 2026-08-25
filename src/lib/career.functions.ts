@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import type { Json } from "@/integrations/supabase/types";
-import { playerKey } from "@/lib/football";
+import { findMatchingPlayerIndex } from "@/lib/player-matching";
 
 const playerInput = z.object({
   name: z.string().min(1),
@@ -281,24 +281,23 @@ export const savePlayers = createServerFn({ method: "POST" })
       .eq("career_id", data.careerId);
     if (existingError) throw new Error(existingError.message);
 
-    const byName = new Map<string, string>();
-    for (const player of existing ?? []) byName.set(playerKey(player.name), player.id);
-
     // Collapse duplicates within the submitted batch so the same player is
     // never inserted twice; later rows patch earlier ones.
-    const deduped = new Map<string, (typeof data.players)[number]>();
+    const deduped: (typeof data.players)[number][] = [];
     for (const input of data.players) {
-      const key = playerKey(input.name);
-      if (!key) continue;
-      const previous = deduped.get(key);
-      deduped.set(key, previous ? { ...previous, ...input } : input);
+      if (!input.name.trim()) continue;
+      const duplicateIndex = findMatchingPlayerIndex(deduped, input);
+      const previous = duplicateIndex >= 0 ? deduped[duplicateIndex] : undefined;
+      if (previous) deduped[duplicateIndex] = { ...previous, ...input };
+      else deduped.push(input);
     }
 
     let created = 0;
     let updated = 0;
 
-    for (const [key, input] of deduped) {
-      let playerId = byName.get(key);
+    for (const input of deduped) {
+      const existingIndex = findMatchingPlayerIndex(existing ?? [], input);
+      let playerId = existingIndex >= 0 ? existing?.[existingIndex]?.id : undefined;
 
       if (!playerId) {
         const { data: inserted, error } = await supabase
@@ -316,7 +315,7 @@ export const savePlayers = createServerFn({ method: "POST" })
           .single();
         if (error || !inserted) throw new Error(error?.message ?? "Kunne ikke gemme spiller.");
         playerId = inserted.id;
-        byName.set(key, playerId);
+        existing?.push({ id: playerId, name: input.name.trim() });
         created += 1;
       } else {
         const patch: {
