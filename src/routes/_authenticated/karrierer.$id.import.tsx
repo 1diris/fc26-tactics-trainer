@@ -60,16 +60,22 @@ function ImportPage() {
   const mergeDrafts = (current: Draft[], incoming: Draft[]) => {
     const merged = [...current];
     const indexByName = new Map(
-      merged.map((draft, index) => [draft.name.trim().toLowerCase(), index] as const),
+      merged.map((draft, index) => [playerKey(draft.name), index] as const),
     );
     for (const player of incoming) {
-      const key = player.name.trim().toLowerCase();
+      const key = playerKey(player.name);
+      if (!key) continue;
       const existing = indexByName.get(key);
       if (existing === undefined) {
         indexByName.set(key, merged.length);
         merged.push(player);
       } else {
-        merged[existing] = { ...merged[existing], ...player };
+        // Same player seen again — behold felter og udfyld kun det nye.
+        const previous = merged[existing]!;
+        const patch = Object.fromEntries(
+          Object.entries(player).filter(([, value]) => value !== null && value !== undefined),
+        ) as Partial<Draft>;
+        merged[existing] = { ...previous, ...patch };
       }
     }
     return merged;
