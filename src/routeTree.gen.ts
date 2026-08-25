@@ -16,6 +16,7 @@ import { Route as AuthenticatedKarriererIndexRouteImport } from './routes/_authe
 import { Route as AuthenticatedKarriererIdRouteImport } from './routes/_authenticated/karrierer.$id'
 import { Route as AuthenticatedKarriererIdIndexRouteImport } from './routes/_authenticated/karrierer.$id.index'
 import { Route as AuthenticatedKarriererIdImportRouteImport } from './routes/_authenticated/karrierer.$id.import'
+import { Route as AuthenticatedKarriererIdTaktikRouteImport } from './routes/_authenticated/karrierer.$id.taktik'
 import { Route as AuthenticatedKarriererIdTrupRouteImport } from './routes/_authenticated/karrierer.$id.trup'
 import { Route as AuthenticatedKarriererIdSpillerPlayerIdRouteImport } from './routes/_authenticated/karrierer.$id.spiller.$playerId'
 
@@ -57,6 +58,12 @@ const AuthenticatedKarriererIdImportRoute =
     path: '/import',
     getParentRoute: () => AuthenticatedKarriererIdRoute,
   } as any)
+const AuthenticatedKarriererIdTaktikRoute =
+  AuthenticatedKarriererIdTaktikRouteImport.update({
+    id: '/taktik',
+    path: '/taktik',
+    getParentRoute: () => AuthenticatedKarriererIdRoute,
+  } as any)
 const AuthenticatedKarriererIdTrupRoute =
   AuthenticatedKarriererIdTrupRouteImport.update({
     id: '/trup',
@@ -76,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/karrierer/$id': typeof AuthenticatedKarriererIdRouteWithChildren
   '/karrierer/': typeof AuthenticatedKarriererIndexRoute
   '/karrierer/$id/import': typeof AuthenticatedKarriererIdImportRoute
+  '/karrierer/$id/taktik': typeof AuthenticatedKarriererIdTaktikRoute
   '/karrierer/$id/trup': typeof AuthenticatedKarriererIdTrupRoute
   '/karrierer/$id/': typeof AuthenticatedKarriererIdIndexRoute
   '/karrierer/$id/spiller/$playerId': typeof AuthenticatedKarriererIdSpillerPlayerIdRoute
@@ -85,6 +93,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/karrierer': typeof AuthenticatedKarriererIndexRoute
   '/karrierer/$id/import': typeof AuthenticatedKarriererIdImportRoute
+  '/karrierer/$id/taktik': typeof AuthenticatedKarriererIdTaktikRoute
   '/karrierer/$id/trup': typeof AuthenticatedKarriererIdTrupRoute
   '/karrierer/$id': typeof AuthenticatedKarriererIdIndexRoute
   '/karrierer/$id/spiller/$playerId': typeof AuthenticatedKarriererIdSpillerPlayerIdRoute
@@ -97,6 +106,7 @@ export interface FileRoutesById {
   '/_authenticated/karrierer/$id': typeof AuthenticatedKarriererIdRouteWithChildren
   '/_authenticated/karrierer/': typeof AuthenticatedKarriererIndexRoute
   '/_authenticated/karrierer/$id/import': typeof AuthenticatedKarriererIdImportRoute
+  '/_authenticated/karrierer/$id/taktik': typeof AuthenticatedKarriererIdTaktikRoute
   '/_authenticated/karrierer/$id/trup': typeof AuthenticatedKarriererIdTrupRoute
   '/_authenticated/karrierer/$id/': typeof AuthenticatedKarriererIdIndexRoute
   '/_authenticated/karrierer/$id/spiller/$playerId': typeof AuthenticatedKarriererIdSpillerPlayerIdRoute
@@ -109,6 +119,7 @@ export interface FileRouteTypes {
     | '/karrierer/$id'
     | '/karrierer/'
     | '/karrierer/$id/import'
+    | '/karrierer/$id/taktik'
     | '/karrierer/$id/trup'
     | '/karrierer/$id/'
     | '/karrierer/$id/spiller/$playerId'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/karrierer'
     | '/karrierer/$id/import'
+    | '/karrierer/$id/taktik'
     | '/karrierer/$id/trup'
     | '/karrierer/$id'
     | '/karrierer/$id/spiller/$playerId'
@@ -129,6 +141,7 @@ export interface FileRouteTypes {
     | '/_authenticated/karrierer/$id'
     | '/_authenticated/karrierer/'
     | '/_authenticated/karrierer/$id/import'
+    | '/_authenticated/karrierer/$id/taktik'
     | '/_authenticated/karrierer/$id/trup'
     | '/_authenticated/karrierer/$id/'
     | '/_authenticated/karrierer/$id/spiller/$playerId'
@@ -191,6 +204,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedKarriererIdImportRouteImport
       parentRoute: typeof AuthenticatedKarriererIdRoute
     }
+    '/_authenticated/karrierer/$id/taktik': {
+      id: '/_authenticated/karrierer/$id/taktik'
+      path: '/taktik'
+      fullPath: '/karrierer/$id/taktik'
+      preLoaderRoute: typeof AuthenticatedKarriererIdTaktikRouteImport
+      parentRoute: typeof AuthenticatedKarriererIdRoute
+    }
     '/_authenticated/karrierer/$id/trup': {
       id: '/_authenticated/karrierer/$id/trup'
       path: '/trup'
@@ -210,6 +230,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedKarriererIdRouteChildren {
   AuthenticatedKarriererIdImportRoute: typeof AuthenticatedKarriererIdImportRoute
+  AuthenticatedKarriererIdTaktikRoute: typeof AuthenticatedKarriererIdTaktikRoute
   AuthenticatedKarriererIdTrupRoute: typeof AuthenticatedKarriererIdTrupRoute
   AuthenticatedKarriererIdIndexRoute: typeof AuthenticatedKarriererIdIndexRoute
   AuthenticatedKarriererIdSpillerPlayerIdRoute: typeof AuthenticatedKarriererIdSpillerPlayerIdRoute
@@ -218,6 +239,7 @@ interface AuthenticatedKarriererIdRouteChildren {
 const AuthenticatedKarriererIdRouteChildren: AuthenticatedKarriererIdRouteChildren =
   {
     AuthenticatedKarriererIdImportRoute: AuthenticatedKarriererIdImportRoute,
+    AuthenticatedKarriererIdTaktikRoute: AuthenticatedKarriererIdTaktikRoute,
     AuthenticatedKarriererIdTrupRoute: AuthenticatedKarriererIdTrupRoute,
     AuthenticatedKarriererIdIndexRoute: AuthenticatedKarriererIdIndexRoute,
     AuthenticatedKarriererIdSpillerPlayerIdRoute:
