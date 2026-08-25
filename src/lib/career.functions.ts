@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import type { Json } from "@/integrations/supabase/types";
+import { playerKey } from "@/lib/football";
 
 const playerInput = z.object({
   name: z.string().min(1),
@@ -281,13 +282,22 @@ export const savePlayers = createServerFn({ method: "POST" })
     if (existingError) throw new Error(existingError.message);
 
     const byName = new Map<string, string>();
-    for (const player of existing ?? []) byName.set(player.name.trim().toLowerCase(), player.id);
+    for (const player of existing ?? []) byName.set(playerKey(player.name), player.id);
+
+    // Collapse duplicates within the submitted batch so the same player is
+    // never inserted twice; later rows patch earlier ones.
+    const deduped = new Map<string, (typeof data.players)[number]>();
+    for (const input of data.players) {
+      const key = playerKey(input.name);
+      if (!key) continue;
+      const previous = deduped.get(key);
+      deduped.set(key, previous ? { ...previous, ...input } : input);
+    }
 
     let created = 0;
     let updated = 0;
 
-    for (const input of data.players) {
-      const key = input.name.trim().toLowerCase();
+    for (const [key, input] of deduped) {
       let playerId = byName.get(key);
 
       if (!playerId) {
