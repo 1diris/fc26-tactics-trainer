@@ -49,48 +49,96 @@ function ImportPage() {
   const [drafts, setDrafts] = useState<Draft[] | null>(null);
   const [importId, setImportId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
 
   const seasons = sortedSeasons(data.seasons);
   const activeSeason =
     seasons.find((season) => season.id === data.career.current_season_id) ?? seasons[0];
 
-  const handleFiles = async (files: FileList | null) => {
-    const file = files?.[0];
-    if (!file || !activeSeason) return;
+  const MAX_FILES = 10;
+
+  const mergeDrafts = (current: Draft[], incoming: Draft[]) => {
+    const merged = [...current];
+    const indexByName = new Map(
+      merged.map((draft, index) => [draft.name.trim().toLowerCase(), index] as const),
+    );
+    for (const player of incoming) {
+      const key = player.name.trim().toLowerCase();
+      const existing = indexByName.get(key);
+      if (existing === undefined) {
+        indexByName.set(key, merged.length);
+        merged.push(player);
+      } else {
+        merged[existing] = { ...merged[existing], ...player };
+      }
+    }
+    return merged;
+  };
+
+  const handleFiles = async (fileList: FileList | null) => {
+    const files = Array.from(fileList ?? []);
+    if (files.length === 0 || !activeSeason) return;
+
+    const selected = files.slice(0, MAX_FILES);
+    if (files.length > MAX_FILES) {
+      toast.error(`Der kan analyseres ${MAX_FILES} screenshots ad gangen — de første ${MAX_FILES} bruges.`);
+    }
+
     setUploading(true);
+    setProgress({ done: 0, total: selected.length });
+    let collected: Draft[] = drafts ?? [];
+    let lastImportId = importId;
+    let failures = 0;
+
     try {
       const { data: session } = await supabase.auth.getUser();
       const userId = session.user?.id;
       if (!userId) throw new Error("Du er ikke logget ind.");
 
-      const extension = file.name.split(".").pop() ?? "png";
-      const path = `${userId}/${id}/${Date.now()}.${extension}`;
-      const { error: uploadError } = await supabase.storage
-        .from("career-screenshots")
-        .upload(path, file, { contentType: file.type, upsert: false });
-      if (uploadError) throw new Error(uploadError.message);
+      for (const [index, file] of selected.entries()) {
+        try {
+          const extension = file.name.split(".").pop() ?? "png";
+          const path = `${userId}/${id}/${Date.now()}-${index}.${extension}`;
+          const { error: uploadError } = await supabase.storage
+            .from("career-screenshots")
+            .upload(path, file, { contentType: file.type, upsert: false });
+          if (uploadError) throw new Error(uploadError.message);
 
-      const result = await analyze({
-        data: {
-          careerId: id,
-          seasonId: activeSeason.id,
-          storagePath: path,
-          mimeType: file.type || "image/png",
-        },
-      });
-
-      if (result.players.length === 0) {
-        toast.error("AI kunne ikke finde spillere i billedet. Prøv et tydeligere screenshot.");
-      } else {
-        toast.success(`${result.players.length} spillere fundet. Tjek dem igennem og gem.`);
+          const result = await analyze({
+            data: {
+              careerId: id,
+              seasonId: activeSeason.id,
+              storagePath: path,
+              mimeType: file.type || "image/png",
+            },
+          });
+          lastImportId = result.importId;
+          collected = mergeDrafts(collected, result.players);
+          setDrafts(collected);
+        } catch (error) {
+          failures += 1;
+          toast.error(
+            `${file.name}: ${error instanceof Error ? error.message : "analysen mislykkedes"}`,
+          );
+        } finally {
+          setProgress({ done: index + 1, total: selected.length });
+        }
       }
-      setImportId(result.importId);
-      setDrafts(result.players);
+
+      setImportId(lastImportId);
+      if (collected.length === 0) {
+        toast.error("AI kunne ikke finde spillere. Prøv tydeligere screenshots.");
+      } else {
+        toast.success(
+          `${collected.length} spillere i listen${failures > 0 ? ` (${failures} billeder fejlede)` : ""}. Tjek dem igennem og gem.`,
+        );
+      }
       void imports.refetch();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Analysen mislykkedes.");
     } finally {
       setUploading(false);
+      setProgress(null);
       if (fileRef.current) fileRef.current.value = "";
     }
   };
