@@ -14,7 +14,292 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      careers: {
+        Row: {
+          club: string
+          created_at: string
+          current_season_id: string | null
+          id: string
+          league: string | null
+          name: string
+          transfer_budget: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          club: string
+          created_at?: string
+          current_season_id?: string | null
+          id?: string
+          league?: string | null
+          name: string
+          transfer_budget?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          club?: string
+          created_at?: string
+          current_season_id?: string | null
+          id?: string
+          league?: string | null
+          name?: string
+          transfer_budget?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "careers_current_season_fk"
+            columns: ["current_season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      player_snapshots: {
+        Row: {
+          age: number | null
+          career_id: string
+          contract_until: string | null
+          created_at: string
+          form: number | null
+          id: string
+          market_value: number | null
+          overall: number | null
+          player_id: string
+          position: string | null
+          potential: number | null
+          season_id: string
+          stats: Json
+          updated_at: string
+          user_id: string
+          wage: number | null
+        }
+        Insert: {
+          age?: number | null
+          career_id: string
+          contract_until?: string | null
+          created_at?: string
+          form?: number | null
+          id?: string
+          market_value?: number | null
+          overall?: number | null
+          player_id: string
+          position?: string | null
+          potential?: number | null
+          season_id: string
+          stats?: Json
+          updated_at?: string
+          user_id: string
+          wage?: number | null
+        }
+        Update: {
+          age?: number | null
+          career_id?: string
+          contract_until?: string | null
+          created_at?: string
+          form?: number | null
+          id?: string
+          market_value?: number | null
+          overall?: number | null
+          player_id?: string
+          position?: string | null
+          potential?: number | null
+          season_id?: string
+          stats?: Json
+          updated_at?: string
+          user_id?: string
+          wage?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_snapshots_career_id_fkey"
+            columns: ["career_id"]
+            isOneToOne: false
+            referencedRelation: "careers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_snapshots_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_snapshots_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      players: {
+        Row: {
+          career_id: string
+          created_at: string
+          id: string
+          name: string
+          nationality: string | null
+          preferred_foot: string | null
+          primary_position: string | null
+          shirt_number: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          career_id: string
+          created_at?: string
+          id?: string
+          name: string
+          nationality?: string | null
+          preferred_foot?: string | null
+          primary_position?: string | null
+          shirt_number?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          career_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          nationality?: string | null
+          preferred_foot?: string | null
+          primary_position?: string | null
+          shirt_number?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "players_career_id_fkey"
+            columns: ["career_id"]
+            isOneToOne: false
+            referencedRelation: "careers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      screenshot_imports: {
+        Row: {
+          career_id: string
+          created_at: string
+          error_message: string | null
+          id: string
+          player_count: number | null
+          raw_result: Json | null
+          season_id: string | null
+          status: string
+          storage_path: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          career_id: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          player_count?: number | null
+          raw_result?: Json | null
+          season_id?: string | null
+          status?: string
+          storage_path: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          career_id?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          player_count?: number | null
+          raw_result?: Json | null
+          season_id?: string | null
+          status?: string
+          storage_path?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "screenshot_imports_career_id_fkey"
+            columns: ["career_id"]
+            isOneToOne: false
+            referencedRelation: "careers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "screenshot_imports_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seasons: {
+        Row: {
+          career_id: string
+          created_at: string
+          id: string
+          label: string
+          notes: string | null
+          sort_order: number
+          user_id: string
+        }
+        Insert: {
+          career_id: string
+          created_at?: string
+          id?: string
+          label: string
+          notes?: string | null
+          sort_order?: number
+          user_id: string
+        }
+        Update: {
+          career_id?: string
+          created_at?: string
+          id?: string
+          label?: string
+          notes?: string | null
+          sort_order?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seasons_career_id_fkey"
+            columns: ["career_id"]
+            isOneToOne: false
+            referencedRelation: "careers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
