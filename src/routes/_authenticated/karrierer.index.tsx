@@ -22,12 +22,12 @@ import { Plus, Trash2, Users } from "lucide-react";
 export const Route = createFileRoute("/_authenticated/karrierer/")({
   head: () => ({
     meta: [
-      { title: "Mine karrierer — FC Career Companion" },
+      { title: "Mine karrierer — Career Chronicles" },
       {
         name: "description",
         content: "Overblik over dine FC 26 karrierer, klubber og trupstørrelser.",
       },
-      { property: "og:title", content: "Mine karrierer — FC Career Companion" },
+      { property: "og:title", content: "Mine karrierer — Career Chronicles" },
       { property: "og:description", content: "Alle dine FC 26 karrierer på ét sted." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

@@ -10,13 +10,13 @@ import { lovable } from "@/integrations/lovable/index";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Log ind — FC Career Companion" },
+      { title: "Log ind — Career Chronicles" },
       {
         name: "description",
         content:
           "Log ind eller opret en konto for at gemme dine FC 26 karrierer, trupdata og udvikling i skyen.",
       },
-      { property: "og:title", content: "Log ind — FC Career Companion" },
+      { property: "og:title", content: "Log ind — Career Chronicles" },
       {
         property: "og:description",
         content: "Adgang til dine FC 26 karrierer, trupper og sæsonhistorik.",
@@ -88,7 +88,7 @@ function AuthPage() {
           to="/"
           className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground"
         >
-          FC Career Companion
+          Career Chronicles
         </Link>
         <h1 className="mt-4 font-display text-2xl font-bold tracking-tight">
           {mode === "login" ? "Log ind" : "Opret konto"}

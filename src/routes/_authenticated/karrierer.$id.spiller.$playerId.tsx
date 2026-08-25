@@ -15,13 +15,13 @@ import { ArrowLeft, Trash2 } from "lucide-react";
 export const Route = createFileRoute("/_authenticated/karrierer/$id/spiller/$playerId")({
   head: () => ({
     meta: [
-      { title: "Spillerprofil — FC Career Companion" },
+      { title: "Spillerprofil — Career Chronicles" },
       {
         name: "description",
         content:
           "Følg en enkelt spillers udvikling gennem sæsoner: overall, potentiale, værdi, løn og kontrakt.",
       },
-      { property: "og:title", content: "Spillerprofil — FC Career Companion" },
+      { property: "og:title", content: "Spillerprofil — Career Chronicles" },
       {
         property: "og:description",
         content: "Sæson-for-sæson udvikling for din FC 26 spiller.",

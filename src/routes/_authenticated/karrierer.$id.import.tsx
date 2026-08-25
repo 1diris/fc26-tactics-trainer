@@ -15,13 +15,13 @@ import { Loader2, Trash2, Upload } from "lucide-react";
 export const Route = createFileRoute("/_authenticated/karrierer/$id/import")({
   head: () => ({
     meta: [
-      { title: "Importér screenshot — FC Career Companion" },
+      { title: "Importér screenshot — Career Chronicles" },
       {
         name: "description",
         content:
           "Upload et screenshot af FC 26 trupskærmen og få spillerdata læst automatisk, som du kan rette inden det gemmes.",
       },
-      { property: "og:title", content: "Importér screenshot — FC Career Companion" },
+      { property: "og:title", content: "Importér screenshot — Career Chronicles" },
       {
         property: "og:description",
         content: "Screenshot ind, spillerdata ud — med mulighed for at rette før du gemmer.",
