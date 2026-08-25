@@ -47,9 +47,22 @@ export const saveTactic = createServerFn({ method: "POST" })
       notes: data.notes ?? null,
     };
 
+    let existing = supabase.from("tactics").select("id").eq("career_id", data.careerId);
+    existing = data.seasonId
+      ? existing.eq("season_id", data.seasonId)
+      : existing.is("season_id", null);
+    const { data: current, error: findError } = await existing.maybeSingle();
+    if (findError) throw new Error(findError.message);
+
+    if (current) {
+      const { error } = await supabase.from("tactics").update(payload).eq("id", current.id);
+      if (error) throw new Error(error.message);
+      return { id: current.id };
+    }
+
     const { data: saved, error } = await supabase
       .from("tactics")
-      .upsert(payload, { onConflict: "career_id,season_id" })
+      .insert(payload)
       .select("id")
       .maybeSingle();
     if (error) throw new Error(error.message);
