@@ -101,3 +101,17 @@ export function ovrTone(overall: number | null | undefined): string {
   if (overall >= 68) return "text-muted-foreground";
   return "text-muted-foreground";
 }
+
+/**
+ * Normalised key used to recognise the same player across screenshots and
+ * imports (case, accents, punctuation and extra spacing are ignored).
+ */
+export function playerKey(name: string): string {
+  return name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[.'’`-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
