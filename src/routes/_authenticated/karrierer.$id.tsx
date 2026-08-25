@@ -20,6 +20,7 @@ export const Route = createFileRoute("/_authenticated/karrierer/$id")({
 const tabs = [
   { to: "/karrierer/$id", label: "Overblik", exact: true },
   { to: "/karrierer/$id/trup", label: "Trup", exact: false },
+  { to: "/karrierer/$id/taktik", label: "Taktik", exact: false },
   { to: "/karrierer/$id/import", label: "Import", exact: false },
 ] as const;
 
