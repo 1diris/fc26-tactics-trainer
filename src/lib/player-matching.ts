@@ -2,7 +2,7 @@ import { playerKey } from "@/lib/football";
 
 type MatchablePlayer = {
   name: string;
-  shirt_number?: number | null;
+  shirt_number?: number | null | undefined;
 };
 
 function comparableName(name: string): string {
