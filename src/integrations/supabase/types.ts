@@ -300,6 +300,63 @@ export type Database = {
           },
         ]
       }
+      tactics: {
+        Row: {
+          career_id: string
+          created_at: string
+          formation: string
+          id: string
+          lineup: Json
+          name: string
+          notes: string | null
+          season_id: string | null
+          settings: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          career_id: string
+          created_at?: string
+          formation?: string
+          id?: string
+          lineup?: Json
+          name?: string
+          notes?: string | null
+          season_id?: string | null
+          settings?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          career_id?: string
+          created_at?: string
+          formation?: string
+          id?: string
+          lineup?: Json
+          name?: string
+          notes?: string | null
+          season_id?: string | null
+          settings?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tactics_career_id_fkey"
+            columns: ["career_id"]
+            isOneToOne: false
+            referencedRelation: "careers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tactics_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
