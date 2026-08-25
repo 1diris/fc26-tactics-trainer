@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +57,33 @@ function ImportPage() {
     seasons.find((season) => season.id === data.career.current_season_id) ?? seasons[0];
 
   const MAX_FILES = 10;
+  const storageKey = `import-drafts-${id}`;
+
+  // Genskab en ikke-gemt godkendelsesliste, så den ikke forsvinder hvis siden
+  // genindlæses eller man skifter fane midt i gennemgangen.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored = window.sessionStorage.getItem(storageKey);
+    if (!stored) return;
+    try {
+      const parsed = JSON.parse(stored) as { drafts?: Draft[]; importId?: string | null };
+      if (Array.isArray(parsed.drafts) && parsed.drafts.length > 0) {
+        setDrafts(parsed.drafts);
+        setImportId(parsed.importId ?? null);
+      }
+    } catch {
+      window.sessionStorage.removeItem(storageKey);
+    }
+  }, [storageKey]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (drafts && drafts.length > 0) {
+      window.sessionStorage.setItem(storageKey, JSON.stringify({ drafts, importId }));
+    } else {
+      window.sessionStorage.removeItem(storageKey);
+    }
+  }, [drafts, importId, storageKey]);
 
   const mergeDrafts = (current: Draft[], incoming: Draft[]) => {
     const merged = [...current];
@@ -197,7 +224,7 @@ function ImportPage() {
   );
 
   return (
-    <div className="space-y-8">
+    <div className={`space-y-8 ${drafts && drafts.length > 0 ? "pb-24" : ""}`}>
       <section className="rounded-xl border border-border/60 bg-card p-6">
         <h2 className="font-display text-lg font-semibold">
           Upload screenshots {activeSeason ? `til ${activeSeason.label}` : ""}
@@ -357,6 +384,19 @@ function ImportPage() {
             ))}
           </ul>
         </section>
+      )}
+
+      {drafts && drafts.length > 0 && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/60 bg-card/95 px-4 py-3 backdrop-blur">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
+            <span className="text-sm text-muted-foreground">
+              {drafts.length} spillere klar — ikke gemt endnu
+            </span>
+            <Button disabled={saveMutation.isPending} onClick={() => saveMutation.mutate()}>
+              {saveMutation.isPending ? "Gemmer…" : "Gem i truppen"}
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );
