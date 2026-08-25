@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import type { Json } from "@/integrations/supabase/types";
 
 const playerInput = z.object({
   name: z.string().min(1),
@@ -235,7 +236,12 @@ export const updateCareerSettings = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const patch: Record<string, unknown> = {};
+    const patch: {
+      name?: string;
+      club?: string;
+      league?: string | null;
+      transfer_budget?: number | null;
+    } = {};
     if (data.name !== undefined) patch["name"] = data.name;
     if (data.club !== undefined) patch["club"] = data.club;
     if (data.league !== undefined) patch["league"] = data.league;
@@ -303,7 +309,12 @@ export const savePlayers = createServerFn({ method: "POST" })
         byName.set(key, playerId);
         created += 1;
       } else {
-        const patch: Record<string, unknown> = {};
+        const patch: {
+          primary_position?: string;
+          preferred_foot?: string;
+          nationality?: string;
+          shirt_number?: number;
+        } = {};
         if (input.position) patch["primary_position"] = input.position;
         if (input.preferred_foot) patch["preferred_foot"] = input.preferred_foot;
         if (input.nationality) patch["nationality"] = input.nationality;
@@ -330,7 +341,7 @@ export const savePlayers = createServerFn({ method: "POST" })
           wage: input.wage ?? null,
           contract_until: input.contract_until ?? null,
           form: input.form ?? null,
-          stats: input.stats ?? {},
+          stats: (input.stats ?? {}) as Json,
         },
         { onConflict: "player_id,season_id" },
       );
@@ -389,7 +400,7 @@ export const updatePlayer = createServerFn({ method: "POST" })
         wage: values.wage ?? null,
         contract_until: values.contract_until ?? null,
         form: values.form ?? null,
-        stats: values.stats ?? {},
+        stats: (values.stats ?? {}) as Json,
       },
       { onConflict: "player_id,season_id" },
     );
