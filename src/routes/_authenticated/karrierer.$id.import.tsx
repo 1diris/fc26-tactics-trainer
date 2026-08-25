@@ -193,17 +193,18 @@ function ImportPage() {
     <div className="space-y-8">
       <section className="rounded-xl border border-border/60 bg-card p-6">
         <h2 className="font-display text-lg font-semibold">
-          Upload screenshot {activeSeason ? `til ${activeSeason.label}` : ""}
+          Upload screenshots {activeSeason ? `til ${activeSeason.label}` : ""}
         </h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Brug trupskærmen i FC 26, hvor navn, position, OVR, potentiale, alder, værdi, løn og
-          kontrakt er synlige. Upload gerne flere screenshots efter hinanden — spillere med samme
-          navn opdateres i stedet for at blive oprettet igen.
+          kontrakt er synlige. Du kan vælge op til {MAX_FILES} screenshots ad gangen — de analyseres
+          i kø og samles i én godkendelsesliste, hvor spillere med samme navn flettes.
         </p>
         <div className="mt-5 flex flex-wrap items-center gap-3">
           <input
             ref={fileRef}
             type="file"
+            multiple
             accept="image/png,image/jpeg,image/webp"
             className="hidden"
             onChange={(event) => void handleFiles(event.target.files)}
@@ -214,11 +215,13 @@ function ImportPage() {
             ) : (
               <Upload className="mr-2 h-4 w-4" />
             )}
-            {uploading ? "Analyserer…" : "Vælg screenshot"}
+            {uploading ? "Analyserer…" : "Vælg screenshots"}
           </Button>
           {uploading && (
             <span className="text-sm text-muted-foreground">
-              AI læser billedet — det kan tage op til et minut.
+              {progress
+                ? `Analyserer billede ${Math.min(progress.done + 1, progress.total)} af ${progress.total} — det kan tage et minut pr. billede.`
+                : "AI læser billederne…"}
             </span>
           )}
         </div>
