@@ -10,7 +10,7 @@ import { careerDataQuery, importsQuery } from "@/lib/career-queries";
 import { analyzeScreenshot } from "@/lib/import.functions";
 import { savePlayers, type PlayerInput } from "@/lib/career.functions";
 import { sortedSeasons } from "@/lib/squad";
-import { playerKey } from "@/lib/football";
+import { findMatchingPlayerIndex } from "@/lib/player-matching";
 import { Loader2, Trash2, Upload } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/import")({
@@ -86,20 +86,16 @@ function ImportPage() {
   }, [drafts, importId, storageKey]);
 
   const mergeDrafts = (current: Draft[], incoming: Draft[]) => {
-    const merged = [...current];
-    const indexByName = new Map(
-      merged.map((draft, index) => [playerKey(draft.name), index] as const),
-    );
-    for (const player of incoming) {
-      const key = playerKey(player.name);
-      if (!key) continue;
-      const existing = indexByName.get(key);
-      if (existing === undefined) {
-        indexByName.set(key, merged.length);
+    const merged: Draft[] = [];
+    for (const player of [...current, ...incoming]) {
+      if (!player.name.trim()) continue;
+      const existing = findMatchingPlayerIndex(merged, player);
+      if (existing === -1) {
         merged.push(player);
       } else {
         // Same player seen again — behold felter og udfyld kun det nye.
-        const previous = merged[existing]!;
+        const previous = merged[existing];
+        if (!previous) continue;
         const patch = Object.fromEntries(
           Object.entries(player).filter(([, value]) => value !== null && value !== undefined),
         ) as Partial<Draft>;
