@@ -10,6 +10,7 @@ import { careerDataQuery, importsQuery } from "@/lib/career-queries";
 import { analyzeScreenshot } from "@/lib/import.functions";
 import { savePlayers, type PlayerInput } from "@/lib/career.functions";
 import { sortedSeasons } from "@/lib/squad";
+import { playerKey } from "@/lib/football";
 import { Loader2, Trash2, Upload } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/import")({
