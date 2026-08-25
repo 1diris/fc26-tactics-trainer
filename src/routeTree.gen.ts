@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedKarriererIndexRouteImport } from './routes/_authenticated/karrierer.index'
+import { Route as AuthenticatedKarriererIdRouteImport } from './routes/_authenticated/karrierer.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,15 +35,23 @@ const AuthenticatedKarriererIndexRoute =
     path: '/karrierer/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedKarriererIdRoute =
+  AuthenticatedKarriererIdRouteImport.update({
+    id: '/karrierer/$id',
+    path: '/karrierer/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/karrierer/$id': typeof AuthenticatedKarriererIdRoute
   '/karrierer/': typeof AuthenticatedKarriererIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/karrierer/$id': typeof AuthenticatedKarriererIdRoute
   '/karrierer': typeof AuthenticatedKarriererIndexRoute
 }
 export interface FileRoutesById {
@@ -50,18 +59,20 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/karrierer/$id': typeof AuthenticatedKarriererIdRoute
   '/_authenticated/karrierer/': typeof AuthenticatedKarriererIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/karrierer/'
+  fullPaths: '/' | '/auth' | '/karrierer/$id' | '/karrierer/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/karrierer'
+  to: '/' | '/auth' | '/karrierer/$id' | '/karrierer'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/karrierer/$id'
     | '/_authenticated/karrierer/'
   fileRoutesById: FileRoutesById
 }
@@ -101,14 +112,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedKarriererIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/karrierer/$id': {
+      id: '/_authenticated/karrierer/$id'
+      path: '/karrierer/$id'
+      fullPath: '/karrierer/$id'
+      preLoaderRoute: typeof AuthenticatedKarriererIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedKarriererIdRoute: typeof AuthenticatedKarriererIdRoute
   AuthenticatedKarriererIndexRoute: typeof AuthenticatedKarriererIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedKarriererIdRoute: AuthenticatedKarriererIdRoute,
   AuthenticatedKarriererIndexRoute: AuthenticatedKarriererIndexRoute,
 }
 
