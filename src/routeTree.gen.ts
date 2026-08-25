@@ -10,33 +10,134 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedKarriererIndexRouteImport } from './routes/_authenticated/karrierer.index'
+import { Route as AuthenticatedKarriererIdRouteImport } from './routes/_authenticated/karrierer.$id'
+import { Route as AuthenticatedKarriererIdIndexRouteImport } from './routes/_authenticated/karrierer.$id.index'
+import { Route as AuthenticatedKarriererIdImportRouteImport } from './routes/_authenticated/karrierer.$id.import'
+import { Route as AuthenticatedKarriererIdTrupRouteImport } from './routes/_authenticated/karrierer.$id.trup'
+import { Route as AuthenticatedKarriererIdSpillerPlayerIdRouteImport } from './routes/_authenticated/karrierer.$id.spiller.$playerId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedKarriererIndexRoute =
+  AuthenticatedKarriererIndexRouteImport.update({
+    id: '/karrierer/',
+    path: '/karrierer/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedKarriererIdRoute =
+  AuthenticatedKarriererIdRouteImport.update({
+    id: '/karrierer/$id',
+    path: '/karrierer/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedKarriererIdIndexRoute =
+  AuthenticatedKarriererIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedKarriererIdRoute,
+  } as any)
+const AuthenticatedKarriererIdImportRoute =
+  AuthenticatedKarriererIdImportRouteImport.update({
+    id: '/import',
+    path: '/import',
+    getParentRoute: () => AuthenticatedKarriererIdRoute,
+  } as any)
+const AuthenticatedKarriererIdTrupRoute =
+  AuthenticatedKarriererIdTrupRouteImport.update({
+    id: '/trup',
+    path: '/trup',
+    getParentRoute: () => AuthenticatedKarriererIdRoute,
+  } as any)
+const AuthenticatedKarriererIdSpillerPlayerIdRoute =
+  AuthenticatedKarriererIdSpillerPlayerIdRouteImport.update({
+    id: '/spiller/$playerId',
+    path: '/spiller/$playerId',
+    getParentRoute: () => AuthenticatedKarriererIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/karrierer/$id': typeof AuthenticatedKarriererIdRouteWithChildren
+  '/karrierer/': typeof AuthenticatedKarriererIndexRoute
+  '/karrierer/$id/import': typeof AuthenticatedKarriererIdImportRoute
+  '/karrierer/$id/trup': typeof AuthenticatedKarriererIdTrupRoute
+  '/karrierer/$id/': typeof AuthenticatedKarriererIdIndexRoute
+  '/karrierer/$id/spiller/$playerId': typeof AuthenticatedKarriererIdSpillerPlayerIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/karrierer': typeof AuthenticatedKarriererIndexRoute
+  '/karrierer/$id/import': typeof AuthenticatedKarriererIdImportRoute
+  '/karrierer/$id/trup': typeof AuthenticatedKarriererIdTrupRoute
+  '/karrierer/$id': typeof AuthenticatedKarriererIdIndexRoute
+  '/karrierer/$id/spiller/$playerId': typeof AuthenticatedKarriererIdSpillerPlayerIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/karrierer/$id': typeof AuthenticatedKarriererIdRouteWithChildren
+  '/_authenticated/karrierer/': typeof AuthenticatedKarriererIndexRoute
+  '/_authenticated/karrierer/$id/import': typeof AuthenticatedKarriererIdImportRoute
+  '/_authenticated/karrierer/$id/trup': typeof AuthenticatedKarriererIdTrupRoute
+  '/_authenticated/karrierer/$id/': typeof AuthenticatedKarriererIdIndexRoute
+  '/_authenticated/karrierer/$id/spiller/$playerId': typeof AuthenticatedKarriererIdSpillerPlayerIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/karrierer/$id'
+    | '/karrierer/'
+    | '/karrierer/$id/import'
+    | '/karrierer/$id/trup'
+    | '/karrierer/$id/'
+    | '/karrierer/$id/spiller/$playerId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/karrierer'
+    | '/karrierer/$id/import'
+    | '/karrierer/$id/trup'
+    | '/karrierer/$id'
+    | '/karrierer/$id/spiller/$playerId'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/karrierer/$id'
+    | '/_authenticated/karrierer/'
+    | '/_authenticated/karrierer/$id/import'
+    | '/_authenticated/karrierer/$id/trup'
+    | '/_authenticated/karrierer/$id/'
+    | '/_authenticated/karrierer/$id/spiller/$playerId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +149,103 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/karrierer/': {
+      id: '/_authenticated/karrierer/'
+      path: '/karrierer'
+      fullPath: '/karrierer/'
+      preLoaderRoute: typeof AuthenticatedKarriererIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/karrierer/$id': {
+      id: '/_authenticated/karrierer/$id'
+      path: '/karrierer/$id'
+      fullPath: '/karrierer/$id'
+      preLoaderRoute: typeof AuthenticatedKarriererIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/karrierer/$id/': {
+      id: '/_authenticated/karrierer/$id/'
+      path: '/'
+      fullPath: '/karrierer/$id/'
+      preLoaderRoute: typeof AuthenticatedKarriererIdIndexRouteImport
+      parentRoute: typeof AuthenticatedKarriererIdRoute
+    }
+    '/_authenticated/karrierer/$id/import': {
+      id: '/_authenticated/karrierer/$id/import'
+      path: '/import'
+      fullPath: '/karrierer/$id/import'
+      preLoaderRoute: typeof AuthenticatedKarriererIdImportRouteImport
+      parentRoute: typeof AuthenticatedKarriererIdRoute
+    }
+    '/_authenticated/karrierer/$id/trup': {
+      id: '/_authenticated/karrierer/$id/trup'
+      path: '/trup'
+      fullPath: '/karrierer/$id/trup'
+      preLoaderRoute: typeof AuthenticatedKarriererIdTrupRouteImport
+      parentRoute: typeof AuthenticatedKarriererIdRoute
+    }
+    '/_authenticated/karrierer/$id/spiller/$playerId': {
+      id: '/_authenticated/karrierer/$id/spiller/$playerId'
+      path: '/spiller/$playerId'
+      fullPath: '/karrierer/$id/spiller/$playerId'
+      preLoaderRoute: typeof AuthenticatedKarriererIdSpillerPlayerIdRouteImport
+      parentRoute: typeof AuthenticatedKarriererIdRoute
+    }
   }
 }
 
+interface AuthenticatedKarriererIdRouteChildren {
+  AuthenticatedKarriererIdImportRoute: typeof AuthenticatedKarriererIdImportRoute
+  AuthenticatedKarriererIdTrupRoute: typeof AuthenticatedKarriererIdTrupRoute
+  AuthenticatedKarriererIdIndexRoute: typeof AuthenticatedKarriererIdIndexRoute
+  AuthenticatedKarriererIdSpillerPlayerIdRoute: typeof AuthenticatedKarriererIdSpillerPlayerIdRoute
+}
+
+const AuthenticatedKarriererIdRouteChildren: AuthenticatedKarriererIdRouteChildren =
+  {
+    AuthenticatedKarriererIdImportRoute: AuthenticatedKarriererIdImportRoute,
+    AuthenticatedKarriererIdTrupRoute: AuthenticatedKarriererIdTrupRoute,
+    AuthenticatedKarriererIdIndexRoute: AuthenticatedKarriererIdIndexRoute,
+    AuthenticatedKarriererIdSpillerPlayerIdRoute:
+      AuthenticatedKarriererIdSpillerPlayerIdRoute,
+  }
+
+const AuthenticatedKarriererIdRouteWithChildren =
+  AuthenticatedKarriererIdRoute._addFileChildren(
+    AuthenticatedKarriererIdRouteChildren,
+  )
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedKarriererIdRoute: typeof AuthenticatedKarriererIdRouteWithChildren
+  AuthenticatedKarriererIndexRoute: typeof AuthenticatedKarriererIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedKarriererIdRoute: AuthenticatedKarriererIdRouteWithChildren,
+  AuthenticatedKarriererIndexRoute: AuthenticatedKarriererIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
