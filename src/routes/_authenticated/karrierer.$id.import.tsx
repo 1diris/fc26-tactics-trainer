@@ -49,48 +49,96 @@ function ImportPage() {
   const [drafts, setDrafts] = useState<Draft[] | null>(null);
   const [importId, setImportId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
 
   const seasons = sortedSeasons(data.seasons);
   const activeSeason =
     seasons.find((season) => season.id === data.career.current_season_id) ?? seasons[0];
 
-  const handleFiles = async (files: FileList | null) => {
-    const file = files?.[0];
-    if (!file || !activeSeason) return;
+  const MAX_FILES = 10;
+
+  const mergeDrafts = (current: Draft[], incoming: Draft[]) => {
+    const merged = [...current];
+    const indexByName = new Map(
+      merged.map((draft, index) => [draft.name.trim().toLowerCase(), index] as const),
+    );
+    for (const player of incoming) {
+      const key = player.name.trim().toLowerCase();
+      const existing = indexByName.get(key);
+      if (existing === undefined) {
+        indexByName.set(key, merged.length);
+        merged.push(player);
+      } else {
+        merged[existing] = { ...merged[existing], ...player };
+      }
+    }
+    return merged;
+  };
+
+  const handleFiles = async (fileList: FileList | null) => {
+    const files = Array.from(fileList ?? []);
+    if (files.length === 0 || !activeSeason) return;
+
+    const selected = files.slice(0, MAX_FILES);
+    if (files.length > MAX_FILES) {
+      toast.error(`Der kan analyseres ${MAX_FILES} screenshots ad gangen — de første ${MAX_FILES} bruges.`);
+    }
+
     setUploading(true);
+    setProgress({ done: 0, total: selected.length });
+    let collected: Draft[] = drafts ?? [];
+    let lastImportId = importId;
+    let failures = 0;
+
     try {
       const { data: session } = await supabase.auth.getUser();
       const userId = session.user?.id;
       if (!userId) throw new Error("Du er ikke logget ind.");
 
-      const extension = file.name.split(".").pop() ?? "png";
-      const path = `${userId}/${id}/${Date.now()}.${extension}`;
-      const { error: uploadError } = await supabase.storage
-        .from("career-screenshots")
-        .upload(path, file, { contentType: file.type, upsert: false });
-      if (uploadError) throw new Error(uploadError.message);
+      for (const [index, file] of selected.entries()) {
+        try {
+          const extension = file.name.split(".").pop() ?? "png";
+          const path = `${userId}/${id}/${Date.now()}-${index}.${extension}`;
+          const { error: uploadError } = await supabase.storage
+            .from("career-screenshots")
+            .upload(path, file, { contentType: file.type, upsert: false });
+          if (uploadError) throw new Error(uploadError.message);
 
-      const result = await analyze({
-        data: {
-          careerId: id,
-          seasonId: activeSeason.id,
-          storagePath: path,
-          mimeType: file.type || "image/png",
-        },
-      });
-
-      if (result.players.length === 0) {
-        toast.error("AI kunne ikke finde spillere i billedet. Prøv et tydeligere screenshot.");
-      } else {
-        toast.success(`${result.players.length} spillere fundet. Tjek dem igennem og gem.`);
+          const result = await analyze({
+            data: {
+              careerId: id,
+              seasonId: activeSeason.id,
+              storagePath: path,
+              mimeType: file.type || "image/png",
+            },
+          });
+          lastImportId = result.importId;
+          collected = mergeDrafts(collected, result.players);
+          setDrafts(collected);
+        } catch (error) {
+          failures += 1;
+          toast.error(
+            `${file.name}: ${error instanceof Error ? error.message : "analysen mislykkedes"}`,
+          );
+        } finally {
+          setProgress({ done: index + 1, total: selected.length });
+        }
       }
-      setImportId(result.importId);
-      setDrafts(result.players);
+
+      setImportId(lastImportId);
+      if (collected.length === 0) {
+        toast.error("AI kunne ikke finde spillere. Prøv tydeligere screenshots.");
+      } else {
+        toast.success(
+          `${collected.length} spillere i listen${failures > 0 ? ` (${failures} billeder fejlede)` : ""}. Tjek dem igennem og gem.`,
+        );
+      }
       void imports.refetch();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Analysen mislykkedes.");
     } finally {
       setUploading(false);
+      setProgress(null);
       if (fileRef.current) fileRef.current.value = "";
     }
   };
@@ -145,17 +193,18 @@ function ImportPage() {
     <div className="space-y-8">
       <section className="rounded-xl border border-border/60 bg-card p-6">
         <h2 className="font-display text-lg font-semibold">
-          Upload screenshot {activeSeason ? `til ${activeSeason.label}` : ""}
+          Upload screenshots {activeSeason ? `til ${activeSeason.label}` : ""}
         </h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Brug trupskærmen i FC 26, hvor navn, position, OVR, potentiale, alder, værdi, løn og
-          kontrakt er synlige. Upload gerne flere screenshots efter hinanden — spillere med samme
-          navn opdateres i stedet for at blive oprettet igen.
+          kontrakt er synlige. Du kan vælge op til {MAX_FILES} screenshots ad gangen — de analyseres
+          i kø og samles i én godkendelsesliste, hvor spillere med samme navn flettes.
         </p>
         <div className="mt-5 flex flex-wrap items-center gap-3">
           <input
             ref={fileRef}
             type="file"
+            multiple
             accept="image/png,image/jpeg,image/webp"
             className="hidden"
             onChange={(event) => void handleFiles(event.target.files)}
@@ -166,11 +215,13 @@ function ImportPage() {
             ) : (
               <Upload className="mr-2 h-4 w-4" />
             )}
-            {uploading ? "Analyserer…" : "Vælg screenshot"}
+            {uploading ? "Analyserer…" : "Vælg screenshots"}
           </Button>
           {uploading && (
             <span className="text-sm text-muted-foreground">
-              AI læser billedet — det kan tage op til et minut.
+              {progress
+                ? `Analyserer billede ${Math.min(progress.done + 1, progress.total)} af ${progress.total} — det kan tage et minut pr. billede.`
+                : "AI læser billederne…"}
             </span>
           )}
         </div>
