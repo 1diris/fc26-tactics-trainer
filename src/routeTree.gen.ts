@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedKarriererIndexRouteImport } from './routes/_authenticated/karrierer.index'
 import { Route as AuthenticatedKarriererIdRouteImport } from './routes/_authenticated/karrierer.$id'
+import { Route as AuthenticatedKarriererIdIndexRouteImport } from './routes/_authenticated/karrierer.$id.index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -41,32 +42,41 @@ const AuthenticatedKarriererIdRoute =
     path: '/karrierer/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedKarriererIdIndexRoute =
+  AuthenticatedKarriererIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedKarriererIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/karrierer/$id': typeof AuthenticatedKarriererIdRoute
+  '/karrierer/$id': typeof AuthenticatedKarriererIdRouteWithChildren
   '/karrierer/': typeof AuthenticatedKarriererIndexRoute
+  '/karrierer/$id/': typeof AuthenticatedKarriererIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/karrierer/$id': typeof AuthenticatedKarriererIdRoute
   '/karrierer': typeof AuthenticatedKarriererIndexRoute
+  '/karrierer/$id': typeof AuthenticatedKarriererIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/_authenticated/karrierer/$id': typeof AuthenticatedKarriererIdRoute
+  '/_authenticated/karrierer/$id': typeof AuthenticatedKarriererIdRouteWithChildren
   '/_authenticated/karrierer/': typeof AuthenticatedKarriererIndexRoute
+  '/_authenticated/karrierer/$id/': typeof AuthenticatedKarriererIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/karrierer/$id' | '/karrierer/'
+  fullPaths:
+    '/' | '/auth' | '/karrierer/$id' | '/karrierer/' | '/karrierer/$id/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/karrierer/$id' | '/karrierer'
+  to: '/' | '/auth' | '/karrierer' | '/karrierer/$id'
   id:
     | '__root__'
     | '/'
@@ -74,6 +84,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/karrierer/$id'
     | '/_authenticated/karrierer/'
+    | '/_authenticated/karrierer/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,16 +130,37 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedKarriererIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/karrierer/$id/': {
+      id: '/_authenticated/karrierer/$id/'
+      path: '/'
+      fullPath: '/karrierer/$id/'
+      preLoaderRoute: typeof AuthenticatedKarriererIdIndexRouteImport
+      parentRoute: typeof AuthenticatedKarriererIdRoute
+    }
   }
 }
 
+interface AuthenticatedKarriererIdRouteChildren {
+  AuthenticatedKarriererIdIndexRoute: typeof AuthenticatedKarriererIdIndexRoute
+}
+
+const AuthenticatedKarriererIdRouteChildren: AuthenticatedKarriererIdRouteChildren =
+  {
+    AuthenticatedKarriererIdIndexRoute: AuthenticatedKarriererIdIndexRoute,
+  }
+
+const AuthenticatedKarriererIdRouteWithChildren =
+  AuthenticatedKarriererIdRoute._addFileChildren(
+    AuthenticatedKarriererIdRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedKarriererIdRoute: typeof AuthenticatedKarriererIdRoute
+  AuthenticatedKarriererIdRoute: typeof AuthenticatedKarriererIdRouteWithChildren
   AuthenticatedKarriererIndexRoute: typeof AuthenticatedKarriererIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedKarriererIdRoute: AuthenticatedKarriererIdRoute,
+  AuthenticatedKarriererIdRoute: AuthenticatedKarriererIdRouteWithChildren,
   AuthenticatedKarriererIndexRoute: AuthenticatedKarriererIndexRoute,
 }
 
