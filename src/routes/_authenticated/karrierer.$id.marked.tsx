@@ -265,6 +265,7 @@ function MarketPage() {
 
   function togglePosition(position: string) {
     resetPage();
+    setFocusPosition(null);
     setPositions((current) =>
       current.includes(position)
         ? current.filter((value) => value !== position)
