@@ -1,27 +1,32 @@
-# Spillerdatabase til køb-søgning
+# Spillerdatabase: søg efter spillere du kan købe
 
-## Om kilden
+Din uploadede fil er komplet: 18.405 FC 26-spillere med `player_positions` (rigtige positioner, fx "CAM, CM"), OVR, potentiale, værdi i euro, løn, alder, klub, liga, nationalitet, foretrukket fod, svag fod, tricks, kontraktudløb, de seks hovedstats og spillerbillede. Positionen behøver derfor ikke gættes ud fra stats.
 
-Der findes ingen hjemmeside med et åbent API over alle FC 26-spillere. SoFIFA og FUTBIN tillader ikke automatisk hentning, og EA har intet offentligt endpoint. Den realistiske vej er det datasæt du allerede er i gang med: Kaggle "EAFC26 Player Database", som har præcis de kolonner din upload viste (ID, Rank, Name, GENDER, OVR, PAC, SHO, PAS, DRI, DEF, PHY + alle detaljerede attributter). Kaggle kræver login, så filen skal downloades af dig og uploades her én gang — derefter ligger hele databasen i appen og skal ikke hentes igen.
+## Sådan kommer det ind
 
-Din nuværende upload var tom (kun overskriftsrækken, 124 blanke rækker), så den skal hentes igen — vælg "men"-filen med alle kolonner, ikke en beskåret udgave.
+Hele datasættet lægges i databasen én gang som fælles opslagsdata — du skal ikke uploade noget i appen. Data er den samme for alle, så den ligger i sin egen tabel adskilt fra dine karrierer, og din trup og dine transfermål bliver ikke berørt.
 
-## Positioner
+Kolonner der tages med: navn (kort og langt), positioner, OVR, potentiale, værdi, løn, frikøbsklausul, alder, højde, vægt, klub, liga og ligaens niveau, nationalitet, fod, svag fod, tricks, kontraktudløb, PAC/SHO/PAS/DRI/DEF/PHY og billede-URL. Resten (de 100+ detailattributter og positionskarakterer) springes over for at holde det hurtigt — de kan tilføjes senere hvis du vil se fulde spillerkort.
 
-Datasættet har ikke en positionskolonne. Positionen udregnes derfor af appen ud fra attributterne og vises som **anslået** rolletype: Målmand, Midterforsvar, Back, Defensiv midt, Central midt, Offensiv midt, Kant, Angriber. Med de detaljerede attributter (Interceptions, Standing Tackle, Sliding Tackle, Positioning, Finishing, Crossing, GK-stats osv.) bliver gættet ret præcist, og du kan altid rette positionen manuelt på en spiller.
+## Ny side: Transfermarked
 
-## Sådan bliver det brugt
+Ligger som ny fane i karriere-navigationen ved siden af Trup og Taktik.
 
-1. **Ny side "Spillerdatabase"** i karriere-navigationen.
-2. **Engangs-import**: du uploader CSV'en, appen viser hvor mange spillere den læste, og gemmer dem. Ny upload opdaterer i stedet for at duplikere.
-3. **Søgning**: fritekst på navn, anslået position, OVR-interval og minimumskrav på hovedstats. Sortering på OVR og stats.
-4. **Sammenlign med din trup**: hver spiller vises med forskellen til din bedste spiller i samme positionsgruppe, så du ser om det er en opgradering.
-5. **Transfermål**: markér en spiller som mål for karrieren med prioritet og note; egen liste med dine mål.
+1. **Søgning** — fritekst på navn eller klub, med resultatet sorteret på OVR som standard.
+2. **Filtre** — position (multivalg, matcher alle spillerens positioner), OVR-interval, potentiale-minimum, aldersinterval, liga, maks. værdi, maks. løn, foretrukket fod.
+3. **Inden for budget** — én knap sætter maks. værdi til karrierens transferbudget, så du kun ser spillere du kan betale.
+4. **Dæk mine huller** — knap der forfilterer på de positioner dashboardet advarer om at du mangler.
+5. **Opgradering eller ej** — hver række viser forskellen i OVR til din bedste spiller på samme position, så en +6 opgradering er tydelig med det samme.
+6. **Transfermål** — stjerne-knap gemmer spilleren som mål for karrieren med prioritet, forventet pris og en note. Egen fane viser dine mål, samlet forventet udgift og hvor meget der er tilbage af budgettet.
+7. **Spillerkort** — klik på en spiller for detaljer: alle positioner, de seks stats som bjælker, kontrakt, klub, liga, værdi og løn.
+
+Alt på dansk, med samme mørke stil og mobilvenlige kortvisning som truptabellen.
 
 ## Teknisk
 
-- Ny tabel `player_pool`: ejer, ekstern id, navn, køn, rank, ovr, hovedstats, udvalgte detailattributter i JSONB, `derived_position`, `position_override`. RLS scoped til `auth.uid()`, GRANTs til `authenticated` og `service_role`, unikt indeks på (user_id, ekstern id).
-- Ny tabel `transfer_targets`: karriere, reference til pool-spiller, prioritet, forventet pris, note. Samme RLS-mønster.
-- CSV læses i browseren og sendes til en server function i batches (ca. 500 rækker) med upsert, så en fil med titusinder af rækker ikke timeouter. Fremdrift vises undervejs.
-- Positionsudledning som ren funktion i `src/lib/position-inference.ts`, brugt både ved import og visning, med enhedstest på kendte profiler.
-- Søgning og sortering kører serverside med filtre som parametre, så store datasæt forbliver hurtige.
+- Ny tabel `fc_players` (fælles opslagsdata, ikke brugerejet): `external_id` som unik nøgle plus kolonnerne ovenfor, `positions` som text[] med GIN-indeks, og indekser på overall, age, value_eur og navn. RLS slået til med læseadgang for `authenticated`, ingen skriveadgang fra klienten; GRANT SELECT til `authenticated` og ALL til `service_role`.
+- Ny tabel `transfer_targets`: karriere, `fc_player_id`, prioritet, forventet pris, note, ejer-scoped RLS på `auth.uid()` med sædvanlige GRANTs.
+- Data indlæses i databasen i batches fra den uploadede fil som ren dataindsættelse — ingen AI, ingen credits til udtræk, og ingen upload-flow i appen.
+- Søgning kører i en server function med `requireSupabaseAuth`, paginering på 50 rækker og filtrene som parametre, så 18.000 rækker forbliver hurtige. Ingen client-side hentning af hele datasættet.
+- Positionsmatch mod din trup genbruger `POSITION_GROUPS`/`normalizePosition` fra `src/lib/football.ts` og trup-beregningerne i `src/lib/squad.ts`, så "opgradering"-tallet er konsistent med dashboardet.
+- Ny rute `src/routes/_authenticated/karrierer.$id.marked.tsx` med egen `head()`-metadata, plus link i karriere-navigationen.
