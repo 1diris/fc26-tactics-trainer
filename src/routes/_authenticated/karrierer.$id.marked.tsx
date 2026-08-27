@@ -20,6 +20,7 @@ import {
   removeTransferTarget,
   type MarketPlayer,
   type MarketSearchInput,
+  type MarketPreset,
 } from "@/lib/market.functions";
 import { buildSquad, sortedSeasons } from "@/lib/squad";
 import { POSITIONS, formatMoney, formatWage, normalizePosition, ovrTone } from "@/lib/football";
@@ -52,6 +53,22 @@ const SORT_LABELS: Record<NonNullable<MarketSearchInput["sort"]>, string> = {
   value_desc: "Dyreste først",
   value_asc: "Billigste først",
   age: "Yngste først",
+};
+
+const PRESET_LABELS: Record<MarketPreset, string> = {
+  wonderkids: "Wonderkids",
+  gems: "Talenter",
+  bargains: "Bargains",
+  expiring: "Kontrakt udløber",
+  free_agents: "Free agents",
+};
+
+const PRESET_HINTS: Record<MarketPreset, string> = {
+  wonderkids: "Maks 21 år med mindst +10 i vækstpotentiale, rangeret efter potentiale pr. krone.",
+  gems: "22-26 år der stadig kan udvikle sig, og som er billige i forhold til deres potentiale.",
+  bargains: "OVR 70+ rangeret efter mest kvalitet pr. krone.",
+  expiring: "Kontrakt udløber i år — kan hentes billigt eller gratis.",
+  free_agents: "Spillere uden klub lige nu.",
 };
 
 const PRIORITY_LABELS: Record<number, string> = { 1: "Høj", 2: "Mellem", 3: "Lav" };
@@ -107,6 +124,7 @@ function MarketPage() {
     league: league === "all" ? null : league,
     maxValue: maxValue ? Number(maxValue) : null,
     foot: foot === "all" ? null : (foot as "Left" | "Right"),
+    preset,
     sort,
     page,
   };
@@ -201,6 +219,31 @@ function MarketPage() {
           <Button type="submit">Søg</Button>
         </form>
 
+        <div className="flex flex-wrap gap-1.5">
+          {(Object.keys(PRESET_LABELS) as MarketPreset[]).map((key) => {
+            const active = preset === key;
+            return (
+              <Button
+                key={key}
+                type="button"
+                variant={active ? "default" : "outline"}
+                size="sm"
+                onClick={() => {
+                  resetPage();
+                  setPreset(active ? null : key);
+                }}
+                aria-pressed={active}
+              >
+                {PRESET_LABELS[key]}
+              </Button>
+            );
+          })}
+        </div>
+
+        {preset && (
+          <p className="text-xs text-muted-foreground">{PRESET_HINTS[preset]}</p>
+        )}
+
         <div className="flex flex-wrap gap-2">
           {budget != null && (
             <Button
@@ -243,6 +286,7 @@ function MarketPage() {
               setFoot("all");
               setTerm("");
               setSubmittedTerm("");
+              setPreset(null);
             }}
           >
             Nulstil filtre
@@ -478,6 +522,16 @@ function MarketPage() {
   );
 }
 
+function growthOf(player: MarketPlayer): number {
+  return (player.potential ?? 0) - (player.overall ?? 0);
+}
+
+function pricePerPoint(player: MarketPlayer): string | null {
+  const value = Number(player.value_eur ?? 0);
+  if (!player.overall || value <= 0) return null;
+  return formatMoney(Math.round(value / player.overall));
+}
+
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-border/60 bg-card/40 p-4">
@@ -538,6 +592,13 @@ function PlayerRow({
             {player.preferred_foot === "Left" ? "Venstrebenet" : "Højrebenet"}
           </p>
           <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+            {growthOf(player) > 0 && (
+              <span className="font-semibold text-primary">+{growthOf(player)} vækst</span>
+            )}
+            {pricePerPoint(player) && <span>{pricePerPoint(player)} pr. OVR-point</span>}
+            {player.release_clause_eur != null && (
+              <span>Klausul {formatMoney(Number(player.release_clause_eur))}</span>
+            )}
             <span>PAC {player.pace ?? "–"}</span>
             <span>SHO {player.shooting ?? "–"}</span>
             <span>PAS {player.passing ?? "–"}</span>
