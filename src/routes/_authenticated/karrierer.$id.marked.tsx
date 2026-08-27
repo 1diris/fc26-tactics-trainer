@@ -82,10 +82,16 @@ function MarketPage() {
   const [submittedTerm, setSubmittedTerm] = useState("");
   const [positions, setPositions] = useState<string[]>([]);
   const [minOverall, setMinOverall] = useState("");
+  const [maxOverall, setMaxOverall] = useState("");
   const [minPotential, setMinPotential] = useState("");
+  const [maxPotential, setMaxPotential] = useState("");
+  const [minAge, setMinAge] = useState("");
   const [maxAge, setMaxAge] = useState("");
   const [league, setLeague] = useState("all");
+  const [minValue, setMinValue] = useState("");
   const [maxValue, setMaxValue] = useState("");
+  const [minWage, setMinWage] = useState("");
+  const [maxWage, setMaxWage] = useState("");
   const [foot, setFoot] = useState("all");
   const [sort, setSort] = useState<NonNullable<MarketSearchInput["sort"]>>("overall");
   const [preset, setPreset] = useState<MarketPreset | null>(null);
