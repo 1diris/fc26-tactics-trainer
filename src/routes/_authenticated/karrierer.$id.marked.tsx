@@ -23,6 +23,13 @@ import {
   type MarketPreset,
 } from "@/lib/market.functions";
 import { buildSquad, sortedSeasons } from "@/lib/squad";
+import {
+  PRIORITY_META,
+  analyseSquadNeeds,
+  clubLevel,
+  squadAge,
+  type PositionNeed,
+} from "@/lib/squad-needs";
 import { POSITIONS, formatMoney, formatWage, normalizePosition, ovrTone } from "@/lib/football";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/marked")({
