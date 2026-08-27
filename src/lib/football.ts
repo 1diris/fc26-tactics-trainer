@@ -28,23 +28,6 @@ export const POSITION_GROUPS: Record<string, readonly string[]> = {
 /** Positions we expect at least one natural player for. */
 export const KEY_POSITIONS: readonly string[] = ["GK", "RB", "CB", "LB", "CDM", "CM", "CAM", "ST"];
 
-export const POSITION_LABELS: Record<string, string> = {
-  GK: "Målmand",
-  RB: "Højre back",
-  RWB: "Højre wingback",
-  CB: "Midterforsvar",
-  LB: "Venstre back",
-  LWB: "Venstre wingback",
-  CDM: "Defensiv midt",
-  CM: "Central midt",
-  CAM: "Offensiv midt",
-  RM: "Højre midt",
-  LM: "Venstre midt",
-  RW: "Højre kant",
-  LW: "Venstre kant",
-  CF: "Hængende angriber",
-  ST: "Angriber",
-};
 
 export function normalizePosition(raw: string | null | undefined): string | null {
   if (!raw) return null;
