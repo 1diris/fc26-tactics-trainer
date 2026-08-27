@@ -181,10 +181,11 @@ function MarketPage() {
     return map;
   }, [squad]);
 
-  const missingPositions = useMemo(
-    () => POSITIONS.filter((position) => !bestByPosition.has(position)),
-    [bestByPosition],
-  );
+  const needs = useMemo(() => analyseSquadNeeds(squad), [squad]);
+  const level = useMemo(() => clubLevel(squad), [squad]);
+  const squadAvgAge = useMemo(() => squadAge(squad), [squad]);
+  const highNeeds = needs.filter((need) => need.priority === "high").length;
+
 
   // Only send a bound pair when it is valid; an inverted range is reported instead.
   const ovr = range(minOverall, maxOverall);
