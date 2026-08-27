@@ -58,6 +58,102 @@ export type Database = {
           },
         ]
       }
+      fc_players: {
+        Row: {
+          age: number | null
+          club_name: string | null
+          contract_until: number | null
+          created_at: string
+          defending: number | null
+          dribbling: number | null
+          external_id: number
+          face_url: string | null
+          height_cm: number | null
+          id: string
+          league_level: number | null
+          league_name: string | null
+          long_name: string | null
+          nationality_name: string | null
+          overall: number | null
+          pace: number | null
+          passing: number | null
+          physic: number | null
+          positions: string[]
+          potential: number | null
+          preferred_foot: string | null
+          release_clause_eur: number | null
+          shooting: number | null
+          short_name: string
+          skill_moves: number | null
+          value_eur: number | null
+          wage_eur: number | null
+          weak_foot: number | null
+          weight_kg: number | null
+        }
+        Insert: {
+          age?: number | null
+          club_name?: string | null
+          contract_until?: number | null
+          created_at?: string
+          defending?: number | null
+          dribbling?: number | null
+          external_id: number
+          face_url?: string | null
+          height_cm?: number | null
+          id?: string
+          league_level?: number | null
+          league_name?: string | null
+          long_name?: string | null
+          nationality_name?: string | null
+          overall?: number | null
+          pace?: number | null
+          passing?: number | null
+          physic?: number | null
+          positions?: string[]
+          potential?: number | null
+          preferred_foot?: string | null
+          release_clause_eur?: number | null
+          shooting?: number | null
+          short_name: string
+          skill_moves?: number | null
+          value_eur?: number | null
+          wage_eur?: number | null
+          weak_foot?: number | null
+          weight_kg?: number | null
+        }
+        Update: {
+          age?: number | null
+          club_name?: string | null
+          contract_until?: number | null
+          created_at?: string
+          defending?: number | null
+          dribbling?: number | null
+          external_id?: number
+          face_url?: string | null
+          height_cm?: number | null
+          id?: string
+          league_level?: number | null
+          league_name?: string | null
+          long_name?: string | null
+          nationality_name?: string | null
+          overall?: number | null
+          pace?: number | null
+          passing?: number | null
+          physic?: number | null
+          positions?: string[]
+          potential?: number | null
+          preferred_foot?: string | null
+          release_clause_eur?: number | null
+          shooting?: number | null
+          short_name?: string
+          skill_moves?: number | null
+          value_eur?: number | null
+          wage_eur?: number | null
+          weak_foot?: number | null
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
       player_snapshots: {
         Row: {
           age: number | null
@@ -353,6 +449,57 @@ export type Database = {
             columns: ["season_id"]
             isOneToOne: false
             referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transfer_targets: {
+        Row: {
+          career_id: string
+          created_at: string
+          expected_price: number | null
+          fc_player_id: string
+          id: string
+          note: string | null
+          priority: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          career_id: string
+          created_at?: string
+          expected_price?: number | null
+          fc_player_id: string
+          id?: string
+          note?: string | null
+          priority?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          career_id?: string
+          created_at?: string
+          expected_price?: number | null
+          fc_player_id?: string
+          id?: string
+          note?: string | null
+          priority?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transfer_targets_career_id_fkey"
+            columns: ["career_id"]
+            isOneToOne: false
+            referencedRelation: "careers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transfer_targets_fc_player_id_fkey"
+            columns: ["fc_player_id"]
+            isOneToOne: false
+            referencedRelation: "fc_players"
             referencedColumns: ["id"]
           },
         ]
