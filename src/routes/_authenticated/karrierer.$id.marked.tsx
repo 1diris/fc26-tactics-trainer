@@ -71,6 +71,7 @@ function MarketPage() {
   const [maxValue, setMaxValue] = useState("");
   const [foot, setFoot] = useState("all");
   const [sort, setSort] = useState<NonNullable<MarketSearchInput["sort"]>>("overall");
+  const [preset, setPreset] = useState<MarketPreset | null>(null);
   const [page, setPage] = useState(0);
 
   const seasons = sortedSeasons(career.seasons);
