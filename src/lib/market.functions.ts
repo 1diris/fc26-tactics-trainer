@@ -18,18 +18,49 @@ const searchInput = z.object({
   maxWage: z.number().min(0).nullable().optional(),
   foot: z.enum(["Left", "Right"]).nullable().optional(),
   sort: z.enum(["overall", "potential", "value_asc", "value_desc", "age"]).optional(),
+  preset: z
+    .enum(["wonderkids", "gems", "bargains", "expiring", "free_agents"])
+    .nullable()
+    .optional(),
   page: z.number().int().min(0).max(200).optional(),
 });
 
 export type MarketSearchInput = z.infer<typeof searchInput>;
+export type MarketPreset = NonNullable<NonNullable<MarketSearchInput["preset"]>>;
 
 const PAGE_SIZE = 50;
+/** Presets rank on a derived score, so we score a candidate pool server-side. */
+const RANKED_PRESETS = new Set<string>(["wonderkids", "gems", "bargains"]);
+const CANDIDATE_LIMIT = 1500;
+
+type Row = {
+  overall: number | null;
+  potential: number | null;
+  value_eur: number | string | null;
+  age: number | null;
+};
+
+function growth(row: Row): number {
+  return (row.potential ?? 0) - (row.overall ?? 0);
+}
+
+/** Higher is better: quality per million euros of market value. */
+function valueScore(row: Row, rating: number | null): number {
+  const value = Number(row.value_eur ?? 0);
+  if (!rating || value <= 0) return 0;
+  return rating / (value / 1_000_000);
+}
 
 export const searchMarketPlayers = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => searchInput.parse(input))
   .handler(async ({ data, context }) => {
-    let query = context.supabase.from("fc_players").select(FC_PLAYER_COLUMNS, { count: "exact" });
+    const preset = data.preset ?? null;
+    const ranked = preset != null && RANKED_PRESETS.has(preset);
+
+    let query = context.supabase
+      .from("fc_players")
+      .select(FC_PLAYER_COLUMNS, ranked ? undefined : { count: "exact" });
 
     const term = data.query?.trim();
     if (term) {
@@ -52,6 +83,68 @@ export const searchMarketPlayers = createServerFn({ method: "POST" })
     if (data.maxValue != null) query = query.lte("value_eur", data.maxValue);
     if (data.maxWage != null) query = query.lte("wage_eur", data.maxWage);
     if (data.foot) query = query.eq("preferred_foot", data.foot);
+
+    // Preset constraints that map straight onto indexed columns.
+    switch (preset) {
+      case "wonderkids":
+        query = query.lte("age", Math.min(21, data.maxAge ?? 21)).gt("value_eur", 0);
+        break;
+      case "gems":
+        query = query
+          .gte("age", Math.max(22, data.minAge ?? 22))
+          .lte("age", Math.min(26, data.maxAge ?? 26))
+          .gt("value_eur", 0);
+        break;
+      case "bargains":
+        query = query.gte("overall", Math.max(70, data.minOverall ?? 70)).gt("value_eur", 0);
+        break;
+      case "expiring":
+        query = query.lte("contract_until", new Date().getFullYear());
+        break;
+      case "free_agents":
+        query = query.is("club_name", null);
+        break;
+      default:
+        break;
+    }
+
+    if (ranked) {
+      // Pull a generous candidate pool, score it, then paginate the ranking.
+      query = query
+        .order(preset === "bargains" ? "overall" : "potential", {
+          ascending: false,
+          nullsFirst: false,
+        })
+        .order("external_id", { ascending: true })
+        .limit(CANDIDATE_LIMIT);
+
+      const { data: rows, error } = await query;
+      if (error) throw new Error(error.message);
+
+      const scored = (rows ?? [])
+        .filter((row) => {
+          if (preset === "wonderkids") return growth(row) >= 10;
+          if (preset === "gems") return growth(row) >= 4;
+          return true;
+        })
+        .map((row) => ({
+          row,
+          score:
+            preset === "bargains"
+              ? valueScore(row, row.overall)
+              : valueScore(row, row.potential) * (1 + growth(row) / 20),
+        }))
+        .sort((a, b) => b.score - a.score);
+
+      const page = data.page ?? 0;
+      const from = page * PAGE_SIZE;
+      return {
+        players: scored.slice(from, from + PAGE_SIZE).map((entry) => entry.row),
+        total: scored.length,
+        page,
+        pageSize: PAGE_SIZE,
+      };
+    }
 
     switch (data.sort ?? "overall") {
       case "potential":
