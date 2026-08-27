@@ -73,6 +73,71 @@ const PRESET_HINTS: Record<MarketPreset, string> = {
 
 const PRIORITY_LABELS: Record<number, string> = { 1: "Høj", 2: "Mellem", 3: "Lav" };
 
+/**
+ * Turns two optional numeric text inputs into filter bounds.
+ * An inverted range (min > max) is reported and applies no bounds.
+ */
+function range(
+  minText: string,
+  maxText: string,
+): { min: number | null; max: number | null; invalid: boolean } {
+  const min = minText.trim() === "" ? null : Number(minText);
+  const max = maxText.trim() === "" ? null : Number(maxText);
+  const invalid = min != null && max != null && min > max;
+  if (invalid) return { min: null, max: null, invalid: true };
+  return { min, max, invalid: false };
+}
+
+function RangeField({
+  label,
+  digits,
+  min,
+  max,
+  onMin,
+  onMax,
+  minPlaceholder,
+  maxPlaceholder,
+}: {
+  label: string;
+  digits: number;
+  min: string;
+  max: string;
+  onMin: (value: string) => void;
+  onMax: (value: string) => void;
+  minPlaceholder?: string;
+  maxPlaceholder?: string;
+}) {
+  const invalid = range(min, max).invalid;
+  const clean = (value: string) => value.replace(/\D/g, "").slice(0, digits);
+  return (
+    <div className="space-y-1">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <div className="flex items-center gap-2">
+        <Input
+          inputMode="numeric"
+          value={min}
+          onChange={(event) => onMin(clean(event.target.value))}
+          placeholder={minPlaceholder ?? "Min."}
+          aria-label={`${label} minimum`}
+          aria-invalid={invalid}
+        />
+        <span className="text-xs text-muted-foreground">–</span>
+        <Input
+          inputMode="numeric"
+          value={max}
+          onChange={(event) => onMax(clean(event.target.value))}
+          placeholder={maxPlaceholder ?? "Maks."}
+          aria-label={`${label} maksimum`}
+          aria-invalid={invalid}
+        />
+      </div>
+      {invalid && (
+        <p className="text-xs text-destructive">Minimum må ikke være større end maksimum.</p>
+      )}
+    </div>
+  );
+}
+
 function MarketPage() {
   const { id } = useParams({ from: "/_authenticated/karrierer/$id/marked" });
   const { data: career } = useSuspenseQuery(careerDataQuery(id));
@@ -82,10 +147,16 @@ function MarketPage() {
   const [submittedTerm, setSubmittedTerm] = useState("");
   const [positions, setPositions] = useState<string[]>([]);
   const [minOverall, setMinOverall] = useState("");
+  const [maxOverall, setMaxOverall] = useState("");
   const [minPotential, setMinPotential] = useState("");
+  const [maxPotential, setMaxPotential] = useState("");
+  const [minAge, setMinAge] = useState("");
   const [maxAge, setMaxAge] = useState("");
   const [league, setLeague] = useState("all");
+  const [minValue, setMinValue] = useState("");
   const [maxValue, setMaxValue] = useState("");
+  const [minWage, setMinWage] = useState("");
+  const [maxWage, setMaxWage] = useState("");
   const [foot, setFoot] = useState("all");
   const [sort, setSort] = useState<NonNullable<MarketSearchInput["sort"]>>("overall");
   const [preset, setPreset] = useState<MarketPreset | null>(null);
@@ -115,14 +186,34 @@ function MarketPage() {
     [bestByPosition],
   );
 
+  // Only send a bound pair when it is valid; an inverted range is reported instead.
+  const ovr = range(minOverall, maxOverall);
+  const pot = range(minPotential, maxPotential);
+  const age = range(minAge, maxAge);
+  const value = range(minValue, maxValue);
+  const wage = range(minWage, maxWage);
+  const invalidRanges = [
+    ovr.invalid ? "OVR" : null,
+    pot.invalid ? "Potentiale" : null,
+    age.invalid ? "Alder" : null,
+    value.invalid ? "Værdi" : null,
+    wage.invalid ? "Løn" : null,
+  ].filter((label): label is string => label != null);
+
   const filters: MarketSearchInput = {
     query: submittedTerm || undefined,
     positions: positions.length > 0 ? positions : undefined,
-    minOverall: minOverall ? Number(minOverall) : null,
-    minPotential: minPotential ? Number(minPotential) : null,
-    maxAge: maxAge ? Number(maxAge) : null,
+    minOverall: ovr.min,
+    maxOverall: ovr.max,
+    minPotential: pot.min,
+    maxPotential: pot.max,
+    minAge: age.min,
+    maxAge: age.max,
     league: league === "all" ? null : league,
-    maxValue: maxValue ? Number(maxValue) : null,
+    minValue: value.min,
+    maxValue: value.max,
+    minWage: wage.min,
+    maxWage: wage.max,
     foot: foot === "all" ? null : (foot as "Left" | "Right"),
     preset,
     sort,
@@ -279,9 +370,15 @@ function MarketPage() {
               resetPage();
               setPositions([]);
               setMinOverall("");
+              setMaxOverall("");
               setMinPotential("");
+              setMaxPotential("");
+              setMinAge("");
               setMaxAge("");
+              setMinValue("");
               setMaxValue("");
+              setMinWage("");
+              setMaxWage("");
               setLeague("all");
               setFoot("all");
               setTerm("");
@@ -314,55 +411,90 @@ function MarketPage() {
           })}
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          <label className="space-y-1 text-xs text-muted-foreground">
-            Min. OVR
-            <Input
-              inputMode="numeric"
-              value={minOverall}
-              onChange={(event) => {
-                resetPage();
-                setMinOverall(event.target.value.replace(/\D/g, "").slice(0, 2));
-              }}
-              placeholder="fx 78"
-            />
-          </label>
-          <label className="space-y-1 text-xs text-muted-foreground">
-            Min. potentiale
-            <Input
-              inputMode="numeric"
-              value={minPotential}
-              onChange={(event) => {
-                resetPage();
-                setMinPotential(event.target.value.replace(/\D/g, "").slice(0, 2));
-              }}
-              placeholder="fx 85"
-            />
-          </label>
-          <label className="space-y-1 text-xs text-muted-foreground">
-            Maks. alder
-            <Input
-              inputMode="numeric"
-              value={maxAge}
-              onChange={(event) => {
-                resetPage();
-                setMaxAge(event.target.value.replace(/\D/g, "").slice(0, 2));
-              }}
-              placeholder="fx 24"
-            />
-          </label>
-          <label className="space-y-1 text-xs text-muted-foreground">
-            Maks. værdi (€)
-            <Input
-              inputMode="numeric"
-              value={maxValue}
-              onChange={(event) => {
-                resetPage();
-                setMaxValue(event.target.value.replace(/\D/g, "").slice(0, 12));
-              }}
-              placeholder="fx 40000000"
-            />
-          </label>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <RangeField
+            label="OVR"
+            digits={2}
+            min={minOverall}
+            max={maxOverall}
+            onMin={(value) => {
+              resetPage();
+              setMinOverall(value);
+            }}
+            onMax={(value) => {
+              resetPage();
+              setMaxOverall(value);
+            }}
+            minPlaceholder="fx 70"
+            maxPlaceholder="fx 78"
+          />
+          <RangeField
+            label="Potentiale"
+            digits={2}
+            min={minPotential}
+            max={maxPotential}
+            onMin={(value) => {
+              resetPage();
+              setMinPotential(value);
+            }}
+            onMax={(value) => {
+              resetPage();
+              setMaxPotential(value);
+            }}
+            minPlaceholder="fx 80"
+            maxPlaceholder="fx 90"
+          />
+          <RangeField
+            label="Alder"
+            digits={2}
+            min={minAge}
+            max={maxAge}
+            onMin={(value) => {
+              resetPage();
+              setMinAge(value);
+            }}
+            onMax={(value) => {
+              resetPage();
+              setMaxAge(value);
+            }}
+            minPlaceholder="fx 16"
+            maxPlaceholder="fx 23"
+          />
+          <RangeField
+            label="Værdi (€)"
+            digits={12}
+            min={minValue}
+            max={maxValue}
+            onMin={(value) => {
+              resetPage();
+              setMinValue(value);
+            }}
+            onMax={(value) => {
+              resetPage();
+              setMaxValue(value);
+            }}
+            minPlaceholder="fx 0"
+            maxPlaceholder="fx 40000000"
+          />
+          <RangeField
+            label="Løn (€ pr. uge)"
+            digits={9}
+            min={minWage}
+            max={maxWage}
+            onMin={(value) => {
+              resetPage();
+              setMinWage(value);
+            }}
+            onMax={(value) => {
+              resetPage();
+              setMaxWage(value);
+            }}
+            minPlaceholder="fx 0"
+            maxPlaceholder="fx 100000"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <label className="space-y-1 text-xs text-muted-foreground">
             Fod
             <Select
@@ -426,6 +558,13 @@ function MarketPage() {
             </Select>
           </label>
         </div>
+
+        {invalidRanges.length > 0 && (
+          <p className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive">
+            Ugyldigt interval i: {invalidRanges.join(", ")}. Minimum må ikke være større end
+            maksimum — filteret er midlertidigt ignoreret.
+          </p>
+        )}
 
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>

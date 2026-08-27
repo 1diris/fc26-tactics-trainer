@@ -11,10 +11,13 @@ const searchInput = z.object({
   minOverall: z.number().int().min(0).max(99).nullable().optional(),
   maxOverall: z.number().int().min(0).max(99).nullable().optional(),
   minPotential: z.number().int().min(0).max(99).nullable().optional(),
-  minAge: z.number().int().min(14).max(50).nullable().optional(),
-  maxAge: z.number().int().min(14).max(50).nullable().optional(),
+  maxPotential: z.number().int().min(0).max(99).nullable().optional(),
+  minAge: z.number().int().min(14).max(80).nullable().optional(),
+  maxAge: z.number().int().min(14).max(80).nullable().optional(),
   league: z.string().max(80).nullable().optional(),
+  minValue: z.number().min(0).nullable().optional(),
   maxValue: z.number().min(0).nullable().optional(),
+  minWage: z.number().min(0).nullable().optional(),
   maxWage: z.number().min(0).nullable().optional(),
   foot: z.enum(["Left", "Right"]).nullable().optional(),
   sort: z.enum(["overall", "potential", "value_asc", "value_desc", "age"]).optional(),
@@ -77,10 +80,13 @@ export const searchMarketPlayers = createServerFn({ method: "POST" })
     if (data.minOverall != null) query = query.gte("overall", data.minOverall);
     if (data.maxOverall != null) query = query.lte("overall", data.maxOverall);
     if (data.minPotential != null) query = query.gte("potential", data.minPotential);
+    if (data.maxPotential != null) query = query.lte("potential", data.maxPotential);
     if (data.minAge != null) query = query.gte("age", data.minAge);
     if (data.maxAge != null) query = query.lte("age", data.maxAge);
     if (data.league) query = query.eq("league_name", data.league);
+    if (data.minValue != null) query = query.gte("value_eur", data.minValue);
     if (data.maxValue != null) query = query.lte("value_eur", data.maxValue);
+    if (data.minWage != null) query = query.gte("wage_eur", data.minWage);
     if (data.maxWage != null) query = query.lte("wage_eur", data.maxWage);
     if (data.foot) query = query.eq("preferred_foot", data.foot);
 
