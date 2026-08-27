@@ -64,6 +64,7 @@ function TacticsPage() {
   const [settings, setSettings] = useState<TacticSettings>(() => defaultSettings());
   const [notes, setNotes] = useState("");
   const [activeSlot, setActiveSlot] = useState<string | null>(null);
+  const [suggestion, setSuggestion] = useState<LineupSuggestion | null>(null);
 
   useEffect(() => {
     const tactic = tacticQuery.data;
