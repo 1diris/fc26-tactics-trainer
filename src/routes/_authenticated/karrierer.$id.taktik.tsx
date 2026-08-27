@@ -118,23 +118,11 @@ function TacticsPage() {
   }
 
   function autoFill() {
-    const taken = new Set<string>();
-    const next: Record<string, string | null> = {};
-    for (const slot of shape.slots) {
-      const candidates = rows
-        .filter((row) => !taken.has(row.player.id))
-        .map((row) => ({ row, fit: positionFit(slot.position, row.position) }))
-        .filter((entry) => entry.fit !== "out")
-        .sort((a, b) => {
-          if (a.fit !== b.fit) return a.fit === "natural" ? -1 : 1;
-          return (b.row.current?.overall ?? 0) - (a.row.current?.overall ?? 0);
-        });
-      const chosen = candidates[0]?.row;
-      next[slot.id] = chosen?.player.id ?? null;
-      if (chosen) taken.add(chosen.player.id);
-    }
-    setLineup(next);
-    toast.success("Bedste opstilling foreslået");
+    const result = suggestLineup(shape, rows);
+    setLineup(result.lineup);
+    setSuggestion(result);
+    setActiveSlot(null);
+    toast.success("Stærkeste opstilling foreslået");
   }
 
   const startersOvr = shape.slots
