@@ -73,6 +73,71 @@ const PRESET_HINTS: Record<MarketPreset, string> = {
 
 const PRIORITY_LABELS: Record<number, string> = { 1: "Høj", 2: "Mellem", 3: "Lav" };
 
+/**
+ * Turns two optional numeric text inputs into filter bounds.
+ * An inverted range (min > max) is reported and applies no bounds.
+ */
+function range(
+  minText: string,
+  maxText: string,
+): { min: number | null; max: number | null; invalid: boolean } {
+  const min = minText.trim() === "" ? null : Number(minText);
+  const max = maxText.trim() === "" ? null : Number(maxText);
+  const invalid = min != null && max != null && min > max;
+  if (invalid) return { min: null, max: null, invalid: true };
+  return { min, max, invalid: false };
+}
+
+function RangeField({
+  label,
+  digits,
+  min,
+  max,
+  onMin,
+  onMax,
+  minPlaceholder,
+  maxPlaceholder,
+}: {
+  label: string;
+  digits: number;
+  min: string;
+  max: string;
+  onMin: (value: string) => void;
+  onMax: (value: string) => void;
+  minPlaceholder?: string;
+  maxPlaceholder?: string;
+}) {
+  const invalid = range(min, max).invalid;
+  const clean = (value: string) => value.replace(/\D/g, "").slice(0, digits);
+  return (
+    <div className="space-y-1">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <div className="flex items-center gap-2">
+        <Input
+          inputMode="numeric"
+          value={min}
+          onChange={(event) => onMin(clean(event.target.value))}
+          placeholder={minPlaceholder ?? "Min."}
+          aria-label={`${label} minimum`}
+          aria-invalid={invalid}
+        />
+        <span className="text-xs text-muted-foreground">–</span>
+        <Input
+          inputMode="numeric"
+          value={max}
+          onChange={(event) => onMax(clean(event.target.value))}
+          placeholder={maxPlaceholder ?? "Maks."}
+          aria-label={`${label} maksimum`}
+          aria-invalid={invalid}
+        />
+      </div>
+      {invalid && (
+        <p className="text-xs text-destructive">Minimum må ikke være større end maksimum.</p>
+      )}
+    </div>
+  );
+}
+
 function MarketPage() {
   const { id } = useParams({ from: "/_authenticated/karrierer/$id/marked" });
   const { data: career } = useSuspenseQuery(careerDataQuery(id));
