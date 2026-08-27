@@ -392,6 +392,64 @@ function MarketPage() {
           </Button>
         </div>
 
+        {needsOpen && (
+          <section className="space-y-2 rounded-lg border border-border/60 bg-card/40 p-3">
+            <header className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="font-display text-sm font-bold uppercase tracking-[0.15em]">
+                Trupanalyse
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Klubniveau {level ?? "–"} OVR
+                {squadAvgAge != null ? ` · gennemsnitsalder ${squadAvgAge} år` : ""}
+              </p>
+            </header>
+            <p className="text-xs text-muted-foreground">
+              Tryk på en position for automatisk at filtrere markedet til relevante,
+              realistiske spillere til netop den rolle.
+            </p>
+            <ul className="space-y-2">
+              {needs.map((need) => {
+                const meta = PRIORITY_META[need.priority];
+                const active = focusPosition === need.position;
+                return (
+                  <li key={need.position}>
+                    <button
+                      type="button"
+                      onClick={() => applyNeed(need)}
+                      aria-pressed={active}
+                      className={`w-full rounded-md border p-2.5 text-left transition-colors ${
+                        active
+                          ? "border-primary bg-primary/10"
+                          : "border-border/60 bg-background/40 hover:border-primary/60"
+                      }`}
+                    >
+                      <span className="flex flex-wrap items-center gap-2">
+                        <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${meta.tone} border`}>
+                          {meta.dot} {meta.label}
+                        </span>
+                        <span className="font-semibold">
+                          {need.position} · {need.label}
+                        </span>
+                      </span>
+                      <span className="mt-1 block text-xs text-muted-foreground">{need.reason}</span>
+                      <span className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+                        <span>{need.naturalCount} naturlige</span>
+                        <span>{need.capableCount} kan dække</span>
+                        <span>Bedste {need.bestOverall ?? "–"} OVR</span>
+                        <span>Snit {need.averageOverall ?? "–"} OVR</span>
+                        <span>
+                          Dybde {need.depth} / {need.required}
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+
+
         <div className="flex flex-wrap gap-1.5">
           {POSITIONS.map((position) => {
             const active = positions.includes(position);
