@@ -349,19 +349,21 @@ function MarketPage() {
               Inden for budget ({formatMoney(budget)})
             </Button>
           )}
-          {missingPositions.length > 0 && (
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => {
-                resetPage();
-                setPositions(missingPositions.slice(0, 8));
-              }}
-            >
-              Dæk mine huller
-            </Button>
-          )}
+          <Button
+            type="button"
+            variant={needsOpen ? "default" : "secondary"}
+            size="sm"
+            onClick={() => setNeedsOpen((open) => !open)}
+            aria-expanded={needsOpen}
+          >
+            Dæk mine huller
+            {highNeeds > 0 && (
+              <span className="ml-1.5 rounded bg-destructive/20 px-1 text-[10px] font-semibold text-destructive">
+                {highNeeds}
+              </span>
+            )}
+          </Button>
+
           <Button
             type="button"
             variant="ghost"
