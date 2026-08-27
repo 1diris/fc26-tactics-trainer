@@ -559,6 +559,13 @@ function MarketPage() {
           </label>
         </div>
 
+        {invalidRanges.length > 0 && (
+          <p className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive">
+            Ugyldigt interval i: {invalidRanges.join(", ")}. Minimum må ikke være større end
+            maksimum — filteret er midlertidigt ignoreret.
+          </p>
+        )}
+
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>
             {results.isFetching ? (
