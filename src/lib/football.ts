@@ -34,8 +34,8 @@ export function normalizePosition(raw: string | null | undefined): string | null
   const value = raw.trim().toUpperCase().replace(/\s+/g, "");
   const first = value.split(/[,/|-]/)[0] ?? value;
   const map: Record<string, string> = {
+    // English / FC variants
     GOALKEEPER: "GK",
-    MV: "GK",
     SW: "CB",
     RCB: "CB",
     LCB: "CB",
@@ -48,7 +48,38 @@ export function normalizePosition(raw: string | null | undefined): string | null
     SS: "CF",
     RF: "RW",
     LF: "LW",
+    // Danish abbreviations (FC in Danish)
+    MV: "GK",
+    MÅLMAND: "GK",
+    MALMAND: "GK",
+    HB: "RB",
+    VB: "LB",
+    HWB: "RWB",
+    VWB: "LWB",
+    HFB: "RB",
+    VFB: "LB",
+    MB: "CB",
+    CMB: "CB",
+    DM: "CDM",
+    DMF: "CDM",
+    CMF: "CM",
+    MC: "CM",
+    OM: "CAM",
+    COM: "CAM",
+    OMF: "CAM",
+    HM: "RM",
+    VM: "LM",
+    HW: "RW",
+    VW: "LW",
+    HK: "RW",
+    VK: "LW",
+    HA: "CF",
+    HÆNGENDE: "CF",
+    ANG: "ST",
+    ANGRIBER: "ST",
+    A: "ST",
   };
+
   if (map[first]) return map[first]!;
   return (POSITIONS as readonly string[]).includes(first) ? first : first || null;
 }
