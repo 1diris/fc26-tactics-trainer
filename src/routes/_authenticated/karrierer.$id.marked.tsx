@@ -314,55 +314,90 @@ function MarketPage() {
           })}
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          <label className="space-y-1 text-xs text-muted-foreground">
-            Min. OVR
-            <Input
-              inputMode="numeric"
-              value={minOverall}
-              onChange={(event) => {
-                resetPage();
-                setMinOverall(event.target.value.replace(/\D/g, "").slice(0, 2));
-              }}
-              placeholder="fx 78"
-            />
-          </label>
-          <label className="space-y-1 text-xs text-muted-foreground">
-            Min. potentiale
-            <Input
-              inputMode="numeric"
-              value={minPotential}
-              onChange={(event) => {
-                resetPage();
-                setMinPotential(event.target.value.replace(/\D/g, "").slice(0, 2));
-              }}
-              placeholder="fx 85"
-            />
-          </label>
-          <label className="space-y-1 text-xs text-muted-foreground">
-            Maks. alder
-            <Input
-              inputMode="numeric"
-              value={maxAge}
-              onChange={(event) => {
-                resetPage();
-                setMaxAge(event.target.value.replace(/\D/g, "").slice(0, 2));
-              }}
-              placeholder="fx 24"
-            />
-          </label>
-          <label className="space-y-1 text-xs text-muted-foreground">
-            Maks. værdi (€)
-            <Input
-              inputMode="numeric"
-              value={maxValue}
-              onChange={(event) => {
-                resetPage();
-                setMaxValue(event.target.value.replace(/\D/g, "").slice(0, 12));
-              }}
-              placeholder="fx 40000000"
-            />
-          </label>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <RangeField
+            label="OVR"
+            digits={2}
+            min={minOverall}
+            max={maxOverall}
+            onMin={(value) => {
+              resetPage();
+              setMinOverall(value);
+            }}
+            onMax={(value) => {
+              resetPage();
+              setMaxOverall(value);
+            }}
+            minPlaceholder="fx 70"
+            maxPlaceholder="fx 78"
+          />
+          <RangeField
+            label="Potentiale"
+            digits={2}
+            min={minPotential}
+            max={maxPotential}
+            onMin={(value) => {
+              resetPage();
+              setMinPotential(value);
+            }}
+            onMax={(value) => {
+              resetPage();
+              setMaxPotential(value);
+            }}
+            minPlaceholder="fx 80"
+            maxPlaceholder="fx 90"
+          />
+          <RangeField
+            label="Alder"
+            digits={2}
+            min={minAge}
+            max={maxAge}
+            onMin={(value) => {
+              resetPage();
+              setMinAge(value);
+            }}
+            onMax={(value) => {
+              resetPage();
+              setMaxAge(value);
+            }}
+            minPlaceholder="fx 16"
+            maxPlaceholder="fx 23"
+          />
+          <RangeField
+            label="Værdi (€)"
+            digits={12}
+            min={minValue}
+            max={maxValue}
+            onMin={(value) => {
+              resetPage();
+              setMinValue(value);
+            }}
+            onMax={(value) => {
+              resetPage();
+              setMaxValue(value);
+            }}
+            minPlaceholder="fx 0"
+            maxPlaceholder="fx 40000000"
+          />
+          <RangeField
+            label="Løn (€ pr. uge)"
+            digits={9}
+            min={minWage}
+            max={maxWage}
+            onMin={(value) => {
+              resetPage();
+              setMinWage(value);
+            }}
+            onMax={(value) => {
+              resetPage();
+              setMaxWage(value);
+            }}
+            minPlaceholder="fx 0"
+            maxPlaceholder="fx 100000"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <label className="space-y-1 text-xs text-muted-foreground">
             Fod
             <Select
