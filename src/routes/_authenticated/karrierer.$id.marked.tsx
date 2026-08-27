@@ -418,6 +418,7 @@ function MarketPage() {
             onClick={() => {
               resetPage();
               setPositions([]);
+              setFocusPosition(null);
               setMinOverall("");
               setMaxOverall("");
               setMinPotential("");
