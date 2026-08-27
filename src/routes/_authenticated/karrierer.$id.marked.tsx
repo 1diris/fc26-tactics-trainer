@@ -121,14 +121,34 @@ function MarketPage() {
     [bestByPosition],
   );
 
+  // Only send a bound pair when it is valid; an inverted range is reported instead.
+  const ovr = range(minOverall, maxOverall);
+  const pot = range(minPotential, maxPotential);
+  const age = range(minAge, maxAge);
+  const value = range(minValue, maxValue);
+  const wage = range(minWage, maxWage);
+  const invalidRanges = [
+    ovr.invalid ? "OVR" : null,
+    pot.invalid ? "Potentiale" : null,
+    age.invalid ? "Alder" : null,
+    value.invalid ? "Værdi" : null,
+    wage.invalid ? "Løn" : null,
+  ].filter((label): label is string => label != null);
+
   const filters: MarketSearchInput = {
     query: submittedTerm || undefined,
     positions: positions.length > 0 ? positions : undefined,
-    minOverall: minOverall ? Number(minOverall) : null,
-    minPotential: minPotential ? Number(minPotential) : null,
-    maxAge: maxAge ? Number(maxAge) : null,
+    minOverall: ovr.min,
+    maxOverall: ovr.max,
+    minPotential: pot.min,
+    maxPotential: pot.max,
+    minAge: age.min,
+    maxAge: age.max,
     league: league === "all" ? null : league,
-    maxValue: maxValue ? Number(maxValue) : null,
+    minValue: value.min,
+    maxValue: value.max,
+    minWage: wage.min,
+    maxWage: wage.max,
     foot: foot === "all" ? null : (foot as "Left" | "Right"),
     preset,
     sort,
