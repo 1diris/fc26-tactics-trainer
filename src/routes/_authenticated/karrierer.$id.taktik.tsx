@@ -178,6 +178,95 @@ function TacticsPage() {
         </Card>
       )}
 
+      {suggestion && (
+        <Card className="space-y-3 p-4">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <h3 className="font-display text-sm font-semibold">
+                Anbefalet start-11 ({shape.name})
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Dette er din stærkeste opstilling baseret på din nuværende trup.
+              </p>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => setSuggestion(null)}>
+              Skjul
+            </Button>
+          </div>
+
+          <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+            <span>
+              Samlet OVR: <strong className="text-foreground">{suggestion.totalOvr}</strong>
+            </span>
+            <span>
+              Snit OVR: <strong className="text-foreground">{suggestion.avgOvr ?? "–"}</strong>
+            </span>
+            <span>
+              Naturlig position:{" "}
+              <strong className="text-primary">{suggestion.naturalCount}</strong>
+            </span>
+            <span>
+              Sekundær position: <strong className="text-amber-400">{suggestion.okCount}</strong>
+            </span>
+            <span>
+              Ude af position:{" "}
+              <strong className="text-destructive">{suggestion.outCount}</strong>
+            </span>
+          </div>
+
+          <ul className="divide-y divide-border/50 text-sm">
+            {suggestion.entries.map((entry) => (
+              <li key={entry.slotId} className="flex items-center justify-between gap-2 py-1.5">
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="w-10 shrink-0 font-semibold">{entry.slotPosition}</span>
+                  <span className="truncate">{entry.row?.player.name ?? "Ingen spiller"}</span>
+                </span>
+                <span className="flex shrink-0 items-center gap-2 text-xs">
+                  <span className="text-muted-foreground">{entry.row?.position ?? "–"}</span>
+                  <span className="font-semibold text-foreground">
+                    {entry.row?.current?.overall ?? "–"}
+                  </span>
+                  {entry.fit && (
+                    <span
+                      className={
+                        entry.fit === "natural"
+                          ? "text-primary"
+                          : entry.fit === "ok"
+                            ? "text-amber-400"
+                            : "text-destructive"
+                      }
+                    >
+                      {entry.fit === "natural"
+                        ? "naturlig"
+                        : entry.fit === "ok"
+                          ? "sekundær"
+                          : "ude af pos."}
+                    </span>
+                  )}
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          {suggestion.reasons.length > 0 ? (
+            <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-xs">
+              <p className="mb-1 font-medium text-foreground">
+                Det er ikke muligt at stille en 11'er uden spillere ude af position:
+              </p>
+              <ul className="list-disc space-y-1 pl-4 text-muted-foreground">
+                {suggestion.reasons.map((reason) => (
+                  <li key={reason}>{reason}</li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Alle 11 pladser er dækket af spillere, der kan spille positionen.
+            </p>
+          )}
+        </Card>
+      )}
+
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <Card className="overflow-hidden p-4">
           <div className="mb-3 flex flex-wrap gap-4 text-xs text-muted-foreground">
