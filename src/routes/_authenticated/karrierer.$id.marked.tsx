@@ -23,6 +23,13 @@ import {
   type MarketPreset,
 } from "@/lib/market.functions";
 import { buildSquad, sortedSeasons } from "@/lib/squad";
+import {
+  PRIORITY_META,
+  analyseSquadNeeds,
+  clubLevel,
+  squadAge,
+  type PositionNeed,
+} from "@/lib/squad-needs";
 import { POSITIONS, formatMoney, formatWage, normalizePosition, ovrTone } from "@/lib/football";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/marked")({
@@ -161,6 +168,9 @@ function MarketPage() {
   const [sort, setSort] = useState<NonNullable<MarketSearchInput["sort"]>>("overall");
   const [preset, setPreset] = useState<MarketPreset | null>(null);
   const [page, setPage] = useState(0);
+  const [needsOpen, setNeedsOpen] = useState(false);
+  const [focusPosition, setFocusPosition] = useState<string | null>(null);
+
 
   const seasons = sortedSeasons(career.seasons);
   const activeSeasonId = career.career.current_season_id ?? seasons[0]?.id ?? null;
@@ -181,10 +191,11 @@ function MarketPage() {
     return map;
   }, [squad]);
 
-  const missingPositions = useMemo(
-    () => POSITIONS.filter((position) => !bestByPosition.has(position)),
-    [bestByPosition],
-  );
+  const needs = useMemo(() => analyseSquadNeeds(squad), [squad]);
+  const level = useMemo(() => clubLevel(squad), [squad]);
+  const squadAvgAge = useMemo(() => squadAge(squad), [squad]);
+  const highNeeds = needs.filter((need) => need.priority === "high").length;
+
 
   // Only send a bound pair when it is valid; an inverted range is reported instead.
   const ovr = range(minOverall, maxOverall);
@@ -254,6 +265,7 @@ function MarketPage() {
 
   function togglePosition(position: string) {
     resetPage();
+    setFocusPosition(null);
     setPositions((current) =>
       current.includes(position)
         ? current.filter((value) => value !== position)
@@ -281,7 +293,43 @@ function MarketPage() {
     return player.overall - Math.max(...values);
   }
 
+  /** Applies the market filters that fit a squad need. */
+  function applyNeed(need: PositionNeed) {
+    resetPage();
+    setPreset(null);
+    setFocusPosition(need.position);
+    setPositions([need.position]);
+    setMinOverall(String(need.suggestion.minOverall));
+    setMaxOverall(String(need.suggestion.maxOverall));
+    setMinPotential(need.suggestion.minPotential == null ? "" : String(need.suggestion.minPotential));
+    setMaxPotential("");
+    setMinAge("");
+    setMaxAge(need.suggestion.maxAge == null ? "" : String(need.suggestion.maxAge));
+    setMinValue("");
+    setMaxValue(budget != null && budget > 0 ? String(Math.round(budget)) : "");
+    setSort("overall");
+    setTerm("");
+    setSubmittedTerm("");
+  }
+
+  /**
+   * When a squad need is in focus we surface natural fits for that position
+   * first, then rank on quality and remaining growth.
+   */
+  const visiblePlayers = useMemo(() => {
+    const rows = results.data?.players ?? [];
+    if (!focusPosition) return rows;
+    const score = (player: MarketPlayer) => {
+      const list = player.positions.map((position) => normalizePosition(position) ?? position);
+      const natural = list[0] === focusPosition ? 200 : list.includes(focusPosition) ? 100 : 0;
+      const growth = Math.max(0, (player.potential ?? 0) - (player.overall ?? 0));
+      return natural + (player.overall ?? 0) + growth / 2;
+    };
+    return [...rows].sort((a, b) => score(b) - score(a));
+  }, [results.data, focusPosition]);
+
   return (
+
     <Tabs defaultValue="search" className="space-y-6">
       <TabsList>
         <TabsTrigger value="search">Søg spillere</TabsTrigger>
@@ -349,19 +397,21 @@ function MarketPage() {
               Inden for budget ({formatMoney(budget)})
             </Button>
           )}
-          {missingPositions.length > 0 && (
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => {
-                resetPage();
-                setPositions(missingPositions.slice(0, 8));
-              }}
-            >
-              Dæk mine huller
-            </Button>
-          )}
+          <Button
+            type="button"
+            variant={needsOpen ? "default" : "secondary"}
+            size="sm"
+            onClick={() => setNeedsOpen((open) => !open)}
+            aria-expanded={needsOpen}
+          >
+            Dæk mine huller
+            {highNeeds > 0 && (
+              <span className="ml-1.5 rounded bg-destructive/20 px-1 text-[10px] font-semibold text-destructive">
+                {highNeeds}
+              </span>
+            )}
+          </Button>
+
           <Button
             type="button"
             variant="ghost"
@@ -369,6 +419,7 @@ function MarketPage() {
             onClick={() => {
               resetPage();
               setPositions([]);
+              setFocusPosition(null);
               setMinOverall("");
               setMaxOverall("");
               setMinPotential("");
@@ -389,6 +440,64 @@ function MarketPage() {
             Nulstil filtre
           </Button>
         </div>
+
+        {needsOpen && (
+          <section className="space-y-2 rounded-lg border border-border/60 bg-card/40 p-3">
+            <header className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="font-display text-sm font-bold uppercase tracking-[0.15em]">
+                Trupanalyse
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Klubniveau {level ?? "–"} OVR
+                {squadAvgAge != null ? ` · gennemsnitsalder ${squadAvgAge} år` : ""}
+              </p>
+            </header>
+            <p className="text-xs text-muted-foreground">
+              Tryk på en position for automatisk at filtrere markedet til relevante,
+              realistiske spillere til netop den rolle.
+            </p>
+            <ul className="space-y-2">
+              {needs.map((need) => {
+                const meta = PRIORITY_META[need.priority];
+                const active = focusPosition === need.position;
+                return (
+                  <li key={need.position}>
+                    <button
+                      type="button"
+                      onClick={() => applyNeed(need)}
+                      aria-pressed={active}
+                      className={`w-full rounded-md border p-2.5 text-left transition-colors ${
+                        active
+                          ? "border-primary bg-primary/10"
+                          : "border-border/60 bg-background/40 hover:border-primary/60"
+                      }`}
+                    >
+                      <span className="flex flex-wrap items-center gap-2">
+                        <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${meta.tone} border`}>
+                          {meta.dot} {meta.label}
+                        </span>
+                        <span className="font-semibold">
+                          {need.position} · {need.label}
+                        </span>
+                      </span>
+                      <span className="mt-1 block text-xs text-muted-foreground">{need.reason}</span>
+                      <span className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+                        <span>{need.naturalCount} naturlige</span>
+                        <span>{need.capableCount} kan dække</span>
+                        <span>Bedste {need.bestOverall ?? "–"} OVR</span>
+                        <span>Snit {need.averageOverall ?? "–"} OVR</span>
+                        <span>
+                          Dybde {need.depth} / {need.required}
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+
 
         <div className="flex flex-wrap gap-1.5">
           {POSITIONS.map((position) => {
@@ -604,7 +713,7 @@ function MarketPage() {
         </div>
 
         <div className="space-y-2">
-          {(results.data?.players ?? []).map((player) => (
+          {visiblePlayers.map((player) => (
             <PlayerRow
               key={player.id}
               player={player}
