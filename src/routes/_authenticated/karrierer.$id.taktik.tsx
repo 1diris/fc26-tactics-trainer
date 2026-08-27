@@ -26,6 +26,7 @@ import {
   type TacticSettings,
 } from "@/lib/formations";
 import { POSITION_LABELS } from "@/lib/football";
+import { suggestLineup, type LineupSuggestion } from "@/lib/lineup";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/taktik")({
   component: TacticsPage,
