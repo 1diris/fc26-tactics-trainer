@@ -281,7 +281,43 @@ function MarketPage() {
     return player.overall - Math.max(...values);
   }
 
+  /** Applies the market filters that fit a squad need. */
+  function applyNeed(need: PositionNeed) {
+    resetPage();
+    setPreset(null);
+    setFocusPosition(need.position);
+    setPositions([need.position]);
+    setMinOverall(String(need.suggestion.minOverall));
+    setMaxOverall(String(need.suggestion.maxOverall));
+    setMinPotential(need.suggestion.minPotential == null ? "" : String(need.suggestion.minPotential));
+    setMaxPotential("");
+    setMinAge("");
+    setMaxAge(need.suggestion.maxAge == null ? "" : String(need.suggestion.maxAge));
+    setMinValue("");
+    setMaxValue(budget != null && budget > 0 ? String(Math.round(budget)) : "");
+    setSort("overall");
+    setTerm("");
+    setSubmittedTerm("");
+  }
+
+  /**
+   * When a squad need is in focus we surface natural fits for that position
+   * first, then rank on quality and remaining growth.
+   */
+  const visiblePlayers = useMemo(() => {
+    const rows = results.data?.players ?? [];
+    if (!focusPosition) return rows;
+    const score = (player: MarketPlayer) => {
+      const list = player.positions.map((position) => normalizePosition(position) ?? position);
+      const natural = list[0] === focusPosition ? 200 : list.includes(focusPosition) ? 100 : 0;
+      const growth = Math.max(0, (player.potential ?? 0) - (player.overall ?? 0));
+      return natural + (player.overall ?? 0) + growth / 2;
+    };
+    return [...rows].sort((a, b) => score(b) - score(a));
+  }, [results.data, focusPosition]);
+
   return (
+
     <Tabs defaultValue="search" className="space-y-6">
       <TabsList>
         <TabsTrigger value="search">Søg spillere</TabsTrigger>
