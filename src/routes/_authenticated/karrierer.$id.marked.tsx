@@ -285,9 +285,15 @@ function MarketPage() {
               resetPage();
               setPositions([]);
               setMinOverall("");
+              setMaxOverall("");
               setMinPotential("");
+              setMaxPotential("");
+              setMinAge("");
               setMaxAge("");
+              setMinValue("");
               setMaxValue("");
+              setMinWage("");
+              setMaxWage("");
               setLeague("all");
               setFoot("all");
               setTerm("");
