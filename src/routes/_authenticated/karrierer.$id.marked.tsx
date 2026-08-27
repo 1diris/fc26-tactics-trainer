@@ -606,7 +606,7 @@ function MarketPage() {
         </div>
 
         <div className="space-y-2">
-          {(results.data?.players ?? []).map((player) => (
+          {visiblePlayers.map((player) => (
             <PlayerRow
               key={player.id}
               player={player}
