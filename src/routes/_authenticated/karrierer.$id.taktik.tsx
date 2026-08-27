@@ -151,7 +151,13 @@ function TacticsPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Select value={formation} onValueChange={setFormation}>
+          <Select
+            value={formation}
+            onValueChange={(value) => {
+              setFormation(value);
+              setSuggestion(null);
+            }}
+          >
             <SelectTrigger className="w-[130px]" aria-label="Vælg formation">
               <SelectValue />
             </SelectTrigger>
