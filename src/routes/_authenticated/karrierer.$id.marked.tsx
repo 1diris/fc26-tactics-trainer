@@ -161,6 +161,9 @@ function MarketPage() {
   const [sort, setSort] = useState<NonNullable<MarketSearchInput["sort"]>>("overall");
   const [preset, setPreset] = useState<MarketPreset | null>(null);
   const [page, setPage] = useState(0);
+  const [needsOpen, setNeedsOpen] = useState(false);
+  const [focusPosition, setFocusPosition] = useState<string | null>(null);
+
 
   const seasons = sortedSeasons(career.seasons);
   const activeSeasonId = career.career.current_season_id ?? seasons[0]?.id ?? null;
