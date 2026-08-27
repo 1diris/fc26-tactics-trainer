@@ -1,4 +1,4 @@
-import { KEY_POSITIONS, POSITION_LABELS, normalizePosition } from "./football";
+import { KEY_POSITIONS, normalizePosition } from "./football";
 
 export type Season = { id: string; label: string; sort_order: number; notes: string | null };
 
@@ -111,7 +111,7 @@ export function buildWarnings(rows: SquadRow[], seasonLabel: string | null): War
     warnings.push({
       tone: "danger",
       title: "Position mangler",
-      message: `Du har ingen naturlig spiller på ${POSITION_LABELS[position] ?? position} (${position}).`,
+      message: `Du har ingen naturlig spiller på ${position}.`,
     });
   }
 
@@ -122,7 +122,7 @@ export function buildWarnings(rows: SquadRow[], seasonLabel: string | null): War
     warnings.push({
       tone: "warn",
       title: "Ingen backup",
-      message: `Kun én naturlig ${POSITION_LABELS[position] ?? position} (${position}) i truppen.`,
+      message: `Kun én naturlig ${position} i truppen.`,
     });
   }
 

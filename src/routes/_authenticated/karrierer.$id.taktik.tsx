@@ -25,7 +25,6 @@ import {
   type Fit,
   type TacticSettings,
 } from "@/lib/formations";
-import { POSITION_LABELS } from "@/lib/football";
 import { suggestLineup, type LineupSuggestion } from "@/lib/lineup";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/taktik")({
@@ -301,7 +300,7 @@ function TacticsPage() {
                   key={slot.id}
                   type="button"
                   onClick={() => setActiveSlot(activeSlot === slot.id ? null : slot.id)}
-                  title={fit ? fitLabels[fit] : POSITION_LABELS[slot.position]}
+                  title={fit ? fitLabels[fit] : slot.position}
                   className={`absolute w-[64px] -translate-x-1/2 translate-y-1/2 rounded-lg border px-1 py-1 text-center text-[10px] leading-tight transition-colors ${
                     fit ? fitStyles[fit] : "border-border/70 bg-card/80 text-muted-foreground"
                   } ${activeSlot === slot.id ? "ring-2 ring-primary" : ""}`}
@@ -432,7 +431,7 @@ function SlotPicker({
     <div className="mt-4 rounded-lg border border-border/60 bg-card/40 p-3">
       <div className="mb-2 flex items-center justify-between">
         <p className="text-sm font-medium">
-          Vælg spiller til {POSITION_LABELS[slotPosition] ?? slotPosition} ({slotPosition})
+          Vælg spiller til {slotPosition}
         </p>
         {selectedId && (
           <Button variant="ghost" size="sm" onClick={() => onPick(null)}>

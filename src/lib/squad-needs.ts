@@ -1,4 +1,4 @@
-import { POSITION_LABELS, normalizePosition } from "./football";
+import { normalizePosition } from "./football";
 import type { SquadRow } from "./squad";
 
 /** Positions we analyse depth for, with the number of bodies a squad wants. */
@@ -145,7 +145,7 @@ export function analyseSquadNeeds(rows: SquadRow[]): PositionNeed[] {
 
     return {
       position,
-      label: POSITION_LABELS[position] ?? position,
+      label: position,
       required,
       naturalCount: natural.length,
       capableCount: capable.length,

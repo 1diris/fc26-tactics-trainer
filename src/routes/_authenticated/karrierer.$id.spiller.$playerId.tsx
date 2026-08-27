@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { careerDataQuery } from "@/lib/career-queries";
 import { deletePlayer, updatePlayer } from "@/lib/career.functions";
 import { sortedSeasons } from "@/lib/squad";
-import { POSITION_LABELS, formatMoney, formatWage, positionGroup } from "@/lib/football";
+import { formatMoney, formatWage, positionGroup } from "@/lib/football";
 import { ArrowLeft, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/spiller/$playerId")({
@@ -168,7 +168,7 @@ function PlayerPage() {
           <p className="mt-1 text-sm text-muted-foreground">
             {current?.position ?? player.primary_position ?? "Ukendt position"}
             {current?.position || player.primary_position
-              ? ` · ${POSITION_LABELS[(current?.position ?? player.primary_position) as string] ?? positionGroup(current?.position ?? player.primary_position)}`
+              ? ` · ${positionGroup(current?.position ?? player.primary_position)}`
               : ""}
             {player.nationality ? ` · ${player.nationality}` : ""}
           </p>
