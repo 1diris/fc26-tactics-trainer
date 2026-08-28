@@ -125,7 +125,9 @@ export const getCareerData = createServerFn({ method: "GET" })
         .order("sort_order", { ascending: true }),
       supabase
         .from("players")
-        .select("id, name, primary_position, preferred_foot, nationality, shirt_number")
+        .select(
+          "id, name, primary_position, preferred_foot, nationality, shirt_number, fc_player_id, fc_match_source",
+        )
         .eq("career_id", career.id)
         .order("name", { ascending: true }),
       supabase
