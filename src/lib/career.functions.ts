@@ -3,6 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import type { Json } from "@/integrations/supabase/types";
 import { findMatchingPlayerIndex } from "@/lib/player-matching";
+import type { FcOriginal } from "@/lib/valuation";
 
 const playerInput = z.object({
   name: z.string().min(1),
@@ -149,7 +150,7 @@ export const getCareerData = createServerFn({ method: "GET" })
           .filter((value): value is string => !!value),
       ),
     ];
-    let fcPlayers: Record<string, unknown>[] = [];
+    let fcPlayers: FcOriginal[] = [];
     if (fcIds.length > 0) {
       const { data: fcRows } = await supabase
         .from("fc_players")
@@ -157,7 +158,7 @@ export const getCareerData = createServerFn({ method: "GET" })
           "id, external_id, short_name, long_name, positions, overall, potential, value_eur, wage_eur, age, club_name, league_name, face_url",
         )
         .in("id", fcIds);
-      fcPlayers = fcRows ?? [];
+      fcPlayers = (fcRows ?? []) as FcOriginal[];
     }
 
     return {
