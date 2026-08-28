@@ -139,7 +139,7 @@ function SquadPage() {
 
   const all = useMemo(
     () =>
-      buildSquad(data.seasons, data.players, data.snapshots, activeSeason?.id ?? null).filter(
+      buildSquad(data.seasons, data.players, data.snapshots, activeSeason?.id ?? null, data.fcPlayers).filter(
         (row) => row.current !== null,
       ),
     [data, activeSeason?.id],

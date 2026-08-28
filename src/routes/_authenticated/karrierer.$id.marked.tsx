@@ -175,7 +175,7 @@ function MarketPage() {
   const seasons = sortedSeasons(career.seasons);
   const activeSeasonId = career.career.current_season_id ?? seasons[0]?.id ?? null;
   const squad = useMemo(
-    () => buildSquad(career.seasons, career.players, career.snapshots, activeSeasonId),
+    () => buildSquad(career.seasons, career.players, career.snapshots, activeSeasonId, career.fcPlayers),
     [career, activeSeasonId],
   );
 
