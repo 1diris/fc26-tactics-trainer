@@ -10,6 +10,8 @@ import { careerDataQuery } from "@/lib/career-queries";
 import { deletePlayer, updatePlayer } from "@/lib/career.functions";
 import { sortedSeasons } from "@/lib/squad";
 import { formatMoney, formatWage, positionGroup } from "@/lib/football";
+import { estimateCareerValue, originalPotential, type FcOriginal } from "@/lib/valuation";
+import { FcMatchDialog } from "@/components/fc-match-dialog";
 import { ArrowLeft, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/spiller/$playerId")({
@@ -43,6 +45,7 @@ function PlayerPage() {
   const update = useServerFn(updatePlayer);
   const remove = useServerFn(deletePlayer);
   const [editing, setEditing] = useState(false);
+  const [matching, setMatching] = useState(false);
 
   const player = data.players.find((entry) => entry.id === playerId);
   const seasons = sortedSeasons(data.seasons);
@@ -76,6 +79,19 @@ function PlayerPage() {
     data.snapshots.find(
       (entry) => entry.player_id === playerId && entry.season_id === activeSeason?.id,
     ) ?? null;
+
+  const fc: FcOriginal | null = player.fc_player_id
+    ? ((data.fcPlayers.find((entry) => entry.id === player.fc_player_id) as FcOriginal | undefined) ??
+      null)
+    : null;
+  const potential = originalPotential(fc, current?.potential);
+  const estimatedValue = estimateCareerValue({
+    currentOverall: current?.overall,
+    currentAge: current?.age,
+    snapshotValue: current?.market_value,
+    position: current?.position ?? player.primary_position,
+    fc,
+  });
 
   const overalls = history
     .map((entry) => entry.snapshot?.overall)
@@ -192,9 +208,9 @@ function PlayerPage() {
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {[
           { label: "Overall", value: current?.overall ?? "–" },
-          { label: "Potentiale", value: current?.potential ?? "–" },
+          { label: "Potentiale (FC 26)", value: potential ?? "–" },
           { label: "Alder", value: current?.age ?? "–" },
-          { label: "Værdi", value: formatMoney(current?.market_value) },
+          { label: "Værdi (est.)", value: formatMoney(estimatedValue) },
           { label: "Løn", value: formatWage(current?.wage) },
           { label: "Kontrakt", value: current?.contract_until ?? "–" },
         ].map((stat) => (
@@ -204,6 +220,71 @@ function PlayerPage() {
           </div>
         ))}
       </section>
+
+      <section className="rounded-xl border border-border/60 bg-card p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-display text-lg font-semibold">FC 26-data</h2>
+          <Button variant="outline" size="sm" onClick={() => setMatching(true)}>
+            {fc ? "Skift match" : "Match spiller"}
+          </Button>
+        </div>
+        {fc ? (
+          <>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Matchet med {fc.long_name ?? fc.short_name}
+              {player.fc_match_source === "manual" ? " (manuelt valgt)" : " (automatisk match)"}
+            </p>
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border/60 text-xs uppercase tracking-wider text-muted-foreground">
+                    <th className="px-3 py-2 text-left font-medium">Nøgletal</th>
+                    <th className="px-3 py-2 text-right font-medium">FC 26 (original)</th>
+                    <th className="px-3 py-2 text-right font-medium">Din karriere</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { label: "OVR", original: fc.overall ?? "–", now: current?.overall ?? "–" },
+                    { label: "POT", original: fc.potential ?? "–", now: potential ?? "–" },
+                    { label: "Alder", original: fc.age ?? "–", now: current?.age ?? "–" },
+                    {
+                      label: "Værdi",
+                      original: formatMoney(fc.value_eur),
+                      now: formatMoney(estimatedValue),
+                    },
+                    {
+                      label: "Klub",
+                      original: fc.club_name ?? "–",
+                      now: data.career.club,
+                    },
+                  ].map((entry) => (
+                    <tr key={entry.label} className="border-b border-border/40 last:border-0">
+                      <td className="px-3 py-2 text-muted-foreground">{entry.label}</td>
+                      <td className="px-3 py-2 text-right tabular-nums">{entry.original}</td>
+                      <td className="px-3 py-2 text-right font-medium tabular-nums">{entry.now}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        ) : (
+          <p className="mt-1 text-sm text-muted-foreground">
+            Spilleren er ikke koblet til FC 26-databasen endnu. Match den for at se original
+            potentiale og en estimeret karriereværdi.
+          </p>
+        )}
+      </section>
+
+      <FcMatchDialog
+        careerId={id}
+        playerId={playerId}
+        playerName={player.name}
+        currentMatch={fc}
+        open={matching}
+        onOpenChange={setMatching}
+      />
 
       {editing && (
         <section className="rounded-xl border border-border/60 bg-card p-5">
