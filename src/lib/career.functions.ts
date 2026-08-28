@@ -142,11 +142,30 @@ export const getCareerData = createServerFn({ method: "GET" })
     if (playersRes.error) throw new Error(playersRes.error.message);
     if (snapshotsRes.error) throw new Error(snapshotsRes.error.message);
 
+    const fcIds = [
+      ...new Set(
+        (playersRes.data ?? [])
+          .map((player) => player.fc_player_id)
+          .filter((value): value is string => !!value),
+      ),
+    ];
+    let fcPlayers: Record<string, unknown>[] = [];
+    if (fcIds.length > 0) {
+      const { data: fcRows } = await supabase
+        .from("fc_players")
+        .select(
+          "id, external_id, short_name, long_name, positions, overall, potential, value_eur, wage_eur, age, club_name, league_name, face_url",
+        )
+        .in("id", fcIds);
+      fcPlayers = fcRows ?? [];
+    }
+
     return {
       career,
       seasons: seasonsRes.data ?? [],
       players: playersRes.data ?? [],
       snapshots: snapshotsRes.data ?? [],
+      fcPlayers,
     };
   });
 
