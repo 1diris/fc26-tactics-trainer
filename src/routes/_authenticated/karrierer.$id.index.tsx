@@ -49,11 +49,11 @@ function CareerOverview() {
   const seasons = sortedSeasons(data.seasons);
   const activeSeason =
     seasons.find((season) => season.id === data.career.current_season_id) ?? seasons[0];
-  const rows = buildSquad(data.seasons, data.players, data.snapshots, activeSeason?.id ?? null).filter(
+  const rows = buildSquad(data.seasons, data.players, data.snapshots, activeSeason?.id ?? null, data.fcPlayers).filter(
     (row) => row.current !== null,
   );
   const warnings = buildWarnings(
-    buildSquad(data.seasons, data.players, data.snapshots, activeSeason?.id ?? null),
+    buildSquad(data.seasons, data.players, data.snapshots, activeSeason?.id ?? null, data.fcPlayers),
     activeSeason?.label ?? null,
   );
 

@@ -3,6 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import type { Json } from "@/integrations/supabase/types";
 import { findMatchingPlayerIndex } from "@/lib/player-matching";
+import type { FcOriginal } from "@/lib/valuation";
 
 const playerInput = z.object({
   name: z.string().min(1),
@@ -125,7 +126,9 @@ export const getCareerData = createServerFn({ method: "GET" })
         .order("sort_order", { ascending: true }),
       supabase
         .from("players")
-        .select("id, name, primary_position, preferred_foot, nationality, shirt_number")
+        .select(
+          "id, name, primary_position, preferred_foot, nationality, shirt_number, fc_player_id, fc_match_source",
+        )
         .eq("career_id", career.id)
         .order("name", { ascending: true }),
       supabase
@@ -140,11 +143,30 @@ export const getCareerData = createServerFn({ method: "GET" })
     if (playersRes.error) throw new Error(playersRes.error.message);
     if (snapshotsRes.error) throw new Error(snapshotsRes.error.message);
 
+    const fcIds = [
+      ...new Set(
+        (playersRes.data ?? [])
+          .map((player) => player.fc_player_id)
+          .filter((value): value is string => !!value),
+      ),
+    ];
+    let fcPlayers: FcOriginal[] = [];
+    if (fcIds.length > 0) {
+      const { data: fcRows } = await supabase
+        .from("fc_players")
+        .select(
+          "id, external_id, short_name, long_name, positions, overall, potential, value_eur, wage_eur, age, club_name, league_name, face_url",
+        )
+        .in("id", fcIds);
+      fcPlayers = (fcRows ?? []) as FcOriginal[];
+    }
+
     return {
       career,
       seasons: seasonsRes.data ?? [],
       players: playersRes.data ?? [],
       snapshots: snapshotsRes.data ?? [],
+      fcPlayers,
     };
   });
 

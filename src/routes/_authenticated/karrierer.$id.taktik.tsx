@@ -75,7 +75,7 @@ function TacticsPage() {
   }, [tacticQuery.data]);
 
   const rows = useMemo(
-    () => buildSquad(data.seasons, data.players, data.snapshots, seasonId),
+    () => buildSquad(data.seasons, data.players, data.snapshots, seasonId, data.fcPlayers),
     [data, seasonId],
   );
   const rowById = useMemo(() => new Map(rows.map((row) => [row.player.id, row])), [rows]);

@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,6 +21,8 @@ import {
   type SquadRow,
 } from "@/lib/squad";
 import { POSITION_GROUPS, formatMoney, formatWage, ovrTone } from "@/lib/football";
+import { autoMatchSquad } from "@/lib/fc-match.functions";
+import { FcMatchDialog } from "@/components/fc-match-dialog";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/trup")({
   head: () => ({
@@ -50,7 +54,8 @@ type SortKey =
   | "market_value"
   | "wage"
   | "contract"
-  | "role";
+  | "role"
+  | "fc";
 
 const columns: { key: SortKey; label: string; numeric?: boolean }[] = [
   { key: "name", label: "Spiller" },
@@ -62,6 +67,7 @@ const columns: { key: SortKey; label: string; numeric?: boolean }[] = [
   { key: "wage", label: "Løn", numeric: true },
   { key: "contract", label: "Kontrakt", numeric: true },
   { key: "role", label: "Rolle" },
+  { key: "fc", label: "FC 26" },
 ];
 
 const ROLE_KEYS = ["rolle", "role", "squad_role", "truprolle", "position_role"];
@@ -109,6 +115,12 @@ function sortValue(row: SquadRow, key: SortKey): string | number | null {
       return roleOf(row)?.toLowerCase() ?? null;
     case "contract":
       return contractYear(row.current?.contract_until);
+    case "potential":
+      return row.potential;
+    case "market_value":
+      return row.estimatedValue;
+    case "fc":
+      return row.fc ? row.fc.short_name.toLowerCase() : null;
     default:
       return row.current?.[key] ?? null;
   }
@@ -132,6 +144,23 @@ function SquadPage() {
   const [ovrMax, setOvrMax] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("overall");
   const [asc, setAsc] = useState(false);
+  const [matchTarget, setMatchTarget] = useState<SquadRow | null>(null);
+  const queryClient = useQueryClient();
+  const runAutoMatch = useServerFn(autoMatchSquad);
+
+  const autoMatch = useMutation({
+    mutationFn: () => runAutoMatch({ data: { careerId: id } }),
+    onSuccess: (result) => {
+      void queryClient.invalidateQueries({ queryKey: ["career", id] });
+      if (result.checked === 0) toast.success("Alle spillere er allerede matchet.");
+      else
+        toast.success(
+          `${result.matched} af ${result.checked} spillere matchet automatisk.` +
+            (result.remaining > 0 ? ` ${result.remaining} skal matches manuelt.` : ""),
+        );
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
 
   const seasons = sortedSeasons(data.seasons);
   const activeSeason =
@@ -139,7 +168,7 @@ function SquadPage() {
 
   const all = useMemo(
     () =>
-      buildSquad(data.seasons, data.players, data.snapshots, activeSeason?.id ?? null).filter(
+      buildSquad(data.seasons, data.players, data.snapshots, activeSeason?.id ?? null, data.fcPlayers).filter(
         (row) => row.current !== null,
       ),
     [data, activeSeason?.id],
@@ -306,9 +335,18 @@ function SquadPage() {
 
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
           <span>
-            {rows.length} af {all.length} spillere · {activeSeason?.label ?? "ingen sæson"}
+            {rows.length} af {all.length} spillere · {activeSeason?.label ?? "ingen sæson"} ·{" "}
+            {all.filter((row) => row.fc).length}/{all.length} matchet med FC 26
           </span>
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => autoMatch.mutate()}
+              disabled={autoMatch.isPending}
+            >
+              {autoMatch.isPending ? "Matcher…" : "Match trup automatisk"}
+            </Button>
             {(ageRangeInvalid || ovrRangeInvalid) && (
               <span className="text-xs text-destructive">Min må ikke være større end max.</span>
             )}
@@ -361,7 +399,7 @@ function SquadPage() {
                         </span>
                       )}
                       <p className="text-[11px] text-muted-foreground">
-                        POT {row.current?.potential ?? "–"}
+                        POT {row.potential ?? "–"}
                       </p>
                     </div>
                   </div>
@@ -371,8 +409,8 @@ function SquadPage() {
                       <dd className="tabular-nums">{row.current?.age ?? "–"}</dd>
                     </div>
                     <div className="flex justify-between gap-2">
-                      <dt className="text-muted-foreground">Værdi</dt>
-                      <dd className="tabular-nums">{formatMoney(row.current?.market_value)}</dd>
+                      <dt className="text-muted-foreground">Værdi (est.)</dt>
+                      <dd className="tabular-nums">{formatMoney(row.estimatedValue)}</dd>
                     </div>
                     <div className="flex justify-between gap-2">
                       <dt className="text-muted-foreground">Løn</dt>
@@ -385,6 +423,14 @@ function SquadPage() {
                       </dd>
                     </div>
                   </dl>
+                  <div className="mt-2 flex items-center justify-between gap-2 text-[11px]">
+                    <span className="truncate text-muted-foreground">
+                      {row.fc ? `FC 26: ${row.fc.short_name} (${row.fc.overall}/${row.fc.potential})` : "Ikke matchet med FC 26"}
+                    </span>
+                    <Button variant="ghost" size="sm" onClick={() => setMatchTarget(row)}>
+                      {row.fc ? "Skift" : "Match"}
+                    </Button>
+                  </div>
                 </li>
               );
             })}
@@ -443,13 +489,20 @@ function SquadPage() {
                         {row.current?.overall ?? "–"}
                       </td>
                       <td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
-                        {row.current?.potential ?? "–"}
+                        {row.potential ?? "–"}
                       </td>
                       <td className="px-4 py-2.5 text-right tabular-nums">
                         {row.current?.age ?? "–"}
                       </td>
-                      <td className="px-4 py-2.5 text-right tabular-nums">
-                        {formatMoney(row.current?.market_value)}
+                      <td
+                        className="px-4 py-2.5 text-right tabular-nums"
+                        title={
+                          row.fc
+                            ? `Original værdi: ${formatMoney(row.fc.value_eur)} ved OVR ${row.fc.overall}`
+                            : "Værdi fra dit screenshot — match spilleren for et estimat"
+                        }
+                      >
+                        {formatMoney(row.estimatedValue)}
                       </td>
                       <td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
                         {formatWage(row.current?.wage)}
@@ -460,6 +513,15 @@ function SquadPage() {
                         {contract?.label ?? row.current?.contract_until ?? "–"}
                       </td>
                       <td className="px-4 py-2.5 text-muted-foreground">{role ?? "–"}</td>
+                      <td className="px-4 py-2.5">
+                        <button
+                          type="button"
+                          onClick={() => setMatchTarget(row)}
+                          className={`text-xs hover:text-primary ${row.fc ? "text-muted-foreground" : "text-amber-400"}`}
+                        >
+                          {row.fc ? row.fc.short_name : "Match spiller"}
+                        </button>
+                      </td>
                     </tr>
                   );
                 })}
@@ -467,6 +529,19 @@ function SquadPage() {
             </table>
           </div>
         </>
+      )}
+
+      {matchTarget && (
+        <FcMatchDialog
+          careerId={id}
+          playerId={matchTarget.player.id}
+          playerName={matchTarget.player.name}
+          currentMatch={matchTarget.fc}
+          open
+          onOpenChange={(next) => {
+            if (!next) setMatchTarget(null);
+          }}
+        />
       )}
     </div>
   );
