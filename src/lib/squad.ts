@@ -1,4 +1,5 @@
 import { KEY_POSITIONS, normalizePosition } from "./football";
+import { estimateCareerValue, originalPotential, type FcOriginal } from "./valuation";
 
 export type Season = { id: string; label: string; sort_order: number; notes: string | null };
 
@@ -9,6 +10,8 @@ export type Player = {
   preferred_foot: string | null;
   nationality: string | null;
   shirt_number: number | null;
+  fc_player_id?: string | null;
+  fc_match_source?: string | null;
 };
 
 export type Snapshot = {
@@ -33,6 +36,12 @@ export type SquadRow = {
   position: string | null;
   ovrDelta: number | null;
   valueDelta: number | null;
+  /** Original FC 26 data, when the player is linked to the shared database. */
+  fc: FcOriginal | null;
+  /** Original potential from FC 26 (falls back to imported potential). */
+  potential: number | null;
+  /** Deterministic career valuation based on original value + current OVR/age. */
+  estimatedValue: number | null;
 };
 
 export function sortedSeasons(seasons: Season[]): Season[] {
@@ -44,7 +53,9 @@ export function buildSquad(
   players: Player[],
   snapshots: Snapshot[],
   seasonId: string | null,
+  fcPlayers: FcOriginal[] = [],
 ): SquadRow[] {
+  const fcById = new Map(fcPlayers.map((entry) => [entry.id, entry]));
   const ordered = sortedSeasons(seasons);
   const index = ordered.findIndex((season) => season.id === seasonId);
   const previousSeason = index > 0 ? ordered[index - 1] : undefined;
@@ -65,13 +76,24 @@ export function buildSquad(
         current?.market_value != null && previous?.market_value != null
           ? current.market_value - previous.market_value
           : null;
+      const position = normalizePosition(current?.position ?? player.primary_position);
+      const fc = player.fc_player_id ? (fcById.get(player.fc_player_id) ?? null) : null;
       return {
         player,
         current,
         previous,
-        position: normalizePosition(current?.position ?? player.primary_position),
+        position,
         ovrDelta,
         valueDelta,
+        fc,
+        potential: originalPotential(fc, current?.potential),
+        estimatedValue: estimateCareerValue({
+          currentOverall: current?.overall,
+          currentAge: current?.age,
+          snapshotValue: current?.market_value,
+          position,
+          fc,
+        }),
       };
     })
     .filter((row) => row.current !== null || row.previous !== null || true);
