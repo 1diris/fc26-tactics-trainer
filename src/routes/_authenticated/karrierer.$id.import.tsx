@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { careerDataQuery, importsQuery } from "@/lib/career-queries";
 import { analyzeScreenshot } from "@/lib/import.functions";
 import { savePlayers, type PlayerInput } from "@/lib/career.functions";
+import { autoMatchSquad } from "@/lib/fc-match.functions";
 import { sortedSeasons } from "@/lib/squad";
 import { findMatchingPlayerIndex } from "@/lib/player-matching";
 import { Loader2, Trash2, Upload } from "lucide-react";
@@ -45,6 +46,7 @@ function ImportPage() {
 
   const analyze = useServerFn(analyzeScreenshot);
   const save = useServerFn(savePlayers);
+  const runAutoMatch = useServerFn(autoMatchSquad);
 
   const fileRef = useRef<HTMLInputElement>(null);
   const [drafts, setDrafts] = useState<Draft[] | null>(null);
@@ -174,9 +176,9 @@ function ImportPage() {
   };
 
   const saveMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       if (!activeSeason || !drafts) throw new Error("Ingen data at gemme.");
-      return save({
+      const result = await save({
         data: {
           careerId: id,
           seasonId: activeSeason.id,
@@ -184,6 +186,13 @@ function ImportPage() {
           players: drafts.map(({ uncertain_fields: _ignored, ...player }) => player),
         },
       });
+      // Kobl nye spillere til FC 26-databasen med det samme.
+      try {
+        await runAutoMatch({ data: { careerId: id } });
+      } catch {
+        // Match kan altid køres manuelt fra Trup-siden.
+      }
+      return result;
     },
     onSuccess: (result) => {
       void queryClient.invalidateQueries({ queryKey: ["career", id] });
