@@ -237,6 +237,8 @@ export type Database = {
         Row: {
           career_id: string
           created_at: string
+          fc_match_source: string | null
+          fc_player_id: string | null
           id: string
           name: string
           nationality: string | null
@@ -249,6 +251,8 @@ export type Database = {
         Insert: {
           career_id: string
           created_at?: string
+          fc_match_source?: string | null
+          fc_player_id?: string | null
           id?: string
           name: string
           nationality?: string | null
@@ -261,6 +265,8 @@ export type Database = {
         Update: {
           career_id?: string
           created_at?: string
+          fc_match_source?: string | null
+          fc_player_id?: string | null
           id?: string
           name?: string
           nationality?: string | null
@@ -276,6 +282,13 @@ export type Database = {
             columns: ["career_id"]
             isOneToOne: false
             referencedRelation: "careers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "players_fc_player_id_fkey"
+            columns: ["fc_player_id"]
+            isOneToOne: false
+            referencedRelation: "fc_players"
             referencedColumns: ["id"]
           },
         ]
