@@ -71,12 +71,19 @@ export const autoMatchSquad = createServerFn({ method: "POST" })
       const lastName = playerKey(player.name).split(" ").filter(Boolean).at(-1);
       if (!lastName || lastName.length < 2) continue;
 
+      // Navne i FC-databasen kan have accenter (fx "Sánchez"), så vi gør
+      // søgemønsteret tolerant over for bogstaver der ofte har accent.
+      const pattern = [...lastName]
+        .map((char) => ("aeiouycnszo".includes(char) ? "_" : char))
+        .join("");
+
       const { data: candidates } = await supabase
         .from("fc_players")
         .select("id, short_name, long_name, overall, nationality_name")
-        .or(`short_name.ilike.%${lastName}%,long_name.ilike.%${lastName}%`)
-        .limit(80);
+        .or(`short_name.ilike.%${pattern}%,long_name.ilike.%${pattern}%`)
+        .limit(200);
       if (!candidates || candidates.length === 0) continue;
+
 
       const hits = candidates.filter((candidate) => {
         const byShort = findMatchingPlayerIndex([{ name: candidate.short_name }], {
