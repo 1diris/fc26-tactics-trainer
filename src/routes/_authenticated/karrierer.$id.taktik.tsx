@@ -605,3 +605,63 @@ function SlotPicker({
     </div>
   );
 }
+
+function RoleEditor({
+  slotPosition,
+  value,
+  onRoleChange,
+  onFocusChange,
+}: {
+  slotPosition: string;
+  value: SlotRole | null;
+  onRoleChange: (roleId: string) => void;
+  onFocusChange: (focus: RoleFocus) => void;
+}) {
+  const options = rolesFor(slotPosition);
+  const active = findRole(slotPosition, value?.role) ?? options[0] ?? null;
+  if (!active) return null;
+
+  return (
+    <div className="mt-4 space-y-3 rounded-xl border border-border/60 bg-card/60 p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Spillerrolle · {slotPosition}
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1">
+          <label className="text-xs text-muted-foreground">Rolle</label>
+          <Select value={active.id} onValueChange={onRoleChange}>
+            <SelectTrigger aria-label="Vælg rolle">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {options.map((option) => (
+                <SelectItem key={option.id} value={option.id}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs text-muted-foreground">Fokus</label>
+          <Select
+            value={value?.focus ?? active.focuses[0]!}
+            onValueChange={(next) => onFocusChange(next as RoleFocus)}
+          >
+            <SelectTrigger aria-label="Vælg fokus">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {active.focuses.map((focus) => (
+                <SelectItem key={focus} value={focus}>
+                  {focus}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground">{active.description}</p>
+    </div>
+  );
+}
