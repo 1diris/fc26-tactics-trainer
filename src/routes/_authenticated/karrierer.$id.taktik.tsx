@@ -376,6 +376,9 @@ function TacticsPage() {
                   {row?.current?.overall != null && (
                     <span className="block text-primary">{row.current.overall}</span>
                   )}
+                  <span className="block truncate text-[9px] text-muted-foreground">
+                    {findRole(slot.position, roles[slot.id]?.role)?.label ?? "—"}
+                  </span>
                 </button>
               );
             })}
@@ -393,44 +396,104 @@ function TacticsPage() {
             </span>
           </div>
 
+          {hints.length > 0 && (
+            <ul className="mt-3 space-y-1 rounded-lg border border-amber-400/40 bg-amber-400/10 p-3 text-[11px] text-muted-foreground">
+              {hints.map((hint) => (
+                <li key={hint}>{hint}</li>
+              ))}
+            </ul>
+          )}
+
           {activeSlot && (
-            <SlotPicker
-              slotPosition={shape.slots.find((slot) => slot.id === activeSlot)!.position}
-              rows={rows}
-              usedIds={usedIds}
-              selectedId={lineup[activeSlot] ?? null}
-              onPick={(playerId) => assign(activeSlot, playerId)}
-            />
+            <>
+              <RoleEditor
+                slotPosition={shape.slots.find((slot) => slot.id === activeSlot)!.position}
+                value={roles[activeSlot] ?? null}
+                onRoleChange={(roleId) =>
+                  setSlotRole(
+                    activeSlot,
+                    shape.slots.find((slot) => slot.id === activeSlot)!.position,
+                    roleId,
+                  )
+                }
+                onFocusChange={(focus) => setSlotFocus(activeSlot, focus)}
+              />
+              <SlotPicker
+                slotPosition={shape.slots.find((slot) => slot.id === activeSlot)!.position}
+                rows={rows}
+                usedIds={usedIds}
+                selectedId={lineup[activeSlot] ?? null}
+                onPick={(playerId) => assign(activeSlot, playerId)}
+              />
+            </>
           )}
         </Card>
 
         <div className="space-y-4">
           <Card className="space-y-3 p-4">
             <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              Taktikindstillinger
+              Holdtaktik
             </h3>
-            {TACTIC_SETTINGS.map((item) => (
-              <div key={item.key} className="space-y-1">
-                <label className="text-xs text-muted-foreground">{item.label}</label>
-                <Select
-                  value={settings[item.key] ?? item.options[0]!}
-                  onValueChange={(value) =>
-                    setSettings((prev) => ({ ...prev, [item.key]: value }))
-                  }
-                >
-                  <SelectTrigger aria-label={item.label}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {item.options.map((option) => (
-                      <SelectItem key={option} value={option}>
-                        {option}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ))}
+            <Tabs defaultValue="attack">
+              <TabsList className="w-full">
+                {TACTIC_SETTING_GROUPS.map((group) => (
+                  <TabsTrigger key={group.key} value={group.key} className="flex-1">
+                    {group.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              {TACTIC_SETTING_GROUPS.map((group) => (
+                <TabsContent key={group.key} value={group.key} className="space-y-3 pt-3">
+                  {group.settings.map((item) =>
+                    item.kind === "select" ? (
+                      <div key={item.key} className="space-y-1">
+                        <label className="text-xs text-muted-foreground">{item.label}</label>
+                        <Select
+                          value={String(settings[item.key] ?? item.options[0]!)}
+                          onValueChange={(value) =>
+                            setSettings((prev) => ({ ...prev, [item.key]: value }))
+                          }
+                        >
+                          <SelectTrigger aria-label={item.label}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {item.options.map((option) => (
+                              <SelectItem key={option} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ) : (
+                      <div key={item.key} className="space-y-1">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <label>{item.label}</label>
+                          <span className="font-semibold text-foreground">
+                            {Number(settings[item.key] ?? item.defaultValue)}
+                          </span>
+                        </div>
+                        <Slider
+                          aria-label={item.label}
+                          min={item.min}
+                          max={item.max}
+                          step={item.step}
+                          value={[Number(settings[item.key] ?? item.defaultValue)]}
+                          onValueChange={([value]) =>
+                            setSettings((prev) => ({ ...prev, [item.key]: value ?? item.defaultValue }))
+                          }
+                        />
+                        <div className="flex justify-between text-[10px] text-muted-foreground">
+                          <span>{item.minLabel}</span>
+                          <span>{item.maxLabel}</span>
+                        </div>
+                      </div>
+                    ),
+                  )}
+                </TabsContent>
+              ))}
+            </Tabs>
           </Card>
 
           <Card className="space-y-2 p-4">
