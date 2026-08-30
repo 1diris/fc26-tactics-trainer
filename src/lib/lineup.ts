@@ -165,6 +165,7 @@ export function suggestLineup(formation: Formation, rows: SquadRow[]): LineupSug
   return {
     entries,
     lineup,
+    roles,
     totalOvr,
     avgOvr: ovrValues.length > 0 ? Math.round(totalOvr / ovrValues.length) : null,
     naturalCount,
