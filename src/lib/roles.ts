@@ -15,7 +15,7 @@ const role = (
   focuses: RoleFocus[],
   description: string,
   wants?: readonly string[],
-): Role => ({ id, label, focuses, description, wants });
+): Role => (wants ? { id, label, focuses, description, wants } : { id, label, focuses, description });
 
 export const ROLES_BY_POSITION: Record<string, Role[]> = {
   GK: [
