@@ -13,18 +13,28 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Slider } from "@/components/ui/slider";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { careerDataQuery } from "@/lib/career-queries";
 import { getTactic, saveTactic } from "@/lib/tactics.functions";
 import { buildSquad, sortedSeasons, type SquadRow } from "@/lib/squad";
 import {
   FORMATIONS,
-  TACTIC_SETTINGS,
+  TACTIC_SETTING_GROUPS,
   defaultSettings,
   findFormation,
   positionFit,
   type Fit,
   type TacticSettings,
 } from "@/lib/formations";
+import {
+  findRole,
+  normalizeRoles,
+  roleHint,
+  rolesFor,
+  type RoleFocus,
+  type SlotRole,
+} from "@/lib/roles";
 import { suggestLineup, type LineupSuggestion } from "@/lib/lineup";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/taktik")({
@@ -61,6 +71,7 @@ function TacticsPage() {
   const [formation, setFormation] = useState("4-3-3");
   const [lineup, setLineup] = useState<Record<string, string | null>>({});
   const [settings, setSettings] = useState<TacticSettings>(() => defaultSettings());
+  const [roles, setRoles] = useState<Record<string, SlotRole>>({});
   const [notes, setNotes] = useState("");
   const [activeSlot, setActiveSlot] = useState<string | null>(null);
   const [suggestion, setSuggestion] = useState<LineupSuggestion | null>(null);
@@ -68,9 +79,17 @@ function TacticsPage() {
   useEffect(() => {
     const tactic = tacticQuery.data;
     if (!tactic) return;
+    const stored = (tactic.settings as (TacticSettings & { roles?: unknown }) | null) ?? {};
+    const { roles: storedRoles, ...rest } = stored as Record<string, unknown>;
     setFormation(tactic.formation);
     setLineup((tactic.lineup as Record<string, string | null>) ?? {});
-    setSettings({ ...defaultSettings(), ...((tactic.settings as TacticSettings) ?? {}) });
+    setSettings({ ...defaultSettings(), ...(rest as TacticSettings) });
+    setRoles(
+      normalizeRoles(
+        findFormation(tactic.formation).slots,
+        (storedRoles as Record<string, SlotRole> | undefined) ?? null,
+      ),
+    );
     setNotes(tactic.notes ?? "");
   }, [tacticQuery.data]);
 
@@ -83,6 +102,10 @@ function TacticsPage() {
   const shape = findFormation(formation);
   const usedIds = new Set(Object.values(lineup).filter(Boolean) as string[]);
 
+  useEffect(() => {
+    setRoles((prev) => normalizeRoles(shape.slots, prev));
+  }, [formation]);
+
   const saveMutation = useMutation({
     mutationFn: () =>
       persist({
@@ -92,6 +115,7 @@ function TacticsPage() {
           formation,
           lineup,
           settings,
+          roles,
           notes: notes.trim() ? notes.trim() : null,
         },
       }),
@@ -101,6 +125,23 @@ function TacticsPage() {
     },
     onError: (error: Error) => toast.error(error.message),
   });
+
+  function coveredPositions(row: SquadRow | null | undefined): string[] {
+    if (!row) return [];
+    const list = new Set<string>();
+    if (row.position) list.add(row.position);
+    for (const position of row.fc?.positions ?? []) list.add(position.trim().toUpperCase());
+    return [...list];
+  }
+
+  const hints = shape.slots
+    .map((slot) => {
+      const row = lineup[slot.id] ? rowById.get(lineup[slot.id]!) : null;
+      if (!row) return null;
+      const hint = roleHint(slot.position, roles[slot.id], coveredPositions(row));
+      return hint ? `${slot.position} – ${row.player.name}: ${hint}` : null;
+    })
+    .filter((value): value is string => Boolean(value));
 
   function assign(slotId: string, playerId: string | null) {
     setLineup((prev) => {
@@ -113,12 +154,34 @@ function TacticsPage() {
       next[slotId] = playerId;
       return next;
     });
-    setActiveSlot(null);
+  }
+
+  function setSlotRole(slotId: string, position: string, roleId: string) {
+    const found = findRole(position, roleId);
+    if (!found) return;
+    setRoles((prev) => ({
+      ...prev,
+      [slotId]: {
+        role: found.id,
+        focus: found.focuses.includes(prev[slotId]?.focus as RoleFocus)
+          ? prev[slotId]!.focus
+          : (found.focuses.includes("Balanceret") ? "Balanceret" : found.focuses[0]!),
+      },
+    }));
+  }
+
+  function setSlotFocus(slotId: string, focus: RoleFocus) {
+    setRoles((prev) => {
+      const current = prev[slotId];
+      if (!current) return prev;
+      return { ...prev, [slotId]: { ...current, focus } };
+    });
   }
 
   function autoFill() {
     const result = suggestLineup(shape, rows);
     setLineup(result.lineup);
+    setRoles((prev) => normalizeRoles(shape.slots, { ...result.roles, ...prev }));
     setSuggestion(result);
     setActiveSlot(null);
     toast.success("Stærkeste opstilling foreslået");
@@ -313,6 +376,9 @@ function TacticsPage() {
                   {row?.current?.overall != null && (
                     <span className="block text-primary">{row.current.overall}</span>
                   )}
+                  <span className="block truncate text-[9px] text-muted-foreground">
+                    {findRole(slot.position, roles[slot.id]?.role)?.label ?? "—"}
+                  </span>
                 </button>
               );
             })}
@@ -330,44 +396,104 @@ function TacticsPage() {
             </span>
           </div>
 
+          {hints.length > 0 && (
+            <ul className="mt-3 space-y-1 rounded-lg border border-amber-400/40 bg-amber-400/10 p-3 text-[11px] text-muted-foreground">
+              {hints.map((hint) => (
+                <li key={hint}>{hint}</li>
+              ))}
+            </ul>
+          )}
+
           {activeSlot && (
-            <SlotPicker
-              slotPosition={shape.slots.find((slot) => slot.id === activeSlot)!.position}
-              rows={rows}
-              usedIds={usedIds}
-              selectedId={lineup[activeSlot] ?? null}
-              onPick={(playerId) => assign(activeSlot, playerId)}
-            />
+            <>
+              <RoleEditor
+                slotPosition={shape.slots.find((slot) => slot.id === activeSlot)!.position}
+                value={roles[activeSlot] ?? null}
+                onRoleChange={(roleId) =>
+                  setSlotRole(
+                    activeSlot,
+                    shape.slots.find((slot) => slot.id === activeSlot)!.position,
+                    roleId,
+                  )
+                }
+                onFocusChange={(focus) => setSlotFocus(activeSlot, focus)}
+              />
+              <SlotPicker
+                slotPosition={shape.slots.find((slot) => slot.id === activeSlot)!.position}
+                rows={rows}
+                usedIds={usedIds}
+                selectedId={lineup[activeSlot] ?? null}
+                onPick={(playerId) => assign(activeSlot, playerId)}
+              />
+            </>
           )}
         </Card>
 
         <div className="space-y-4">
           <Card className="space-y-3 p-4">
             <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              Taktikindstillinger
+              Holdtaktik
             </h3>
-            {TACTIC_SETTINGS.map((item) => (
-              <div key={item.key} className="space-y-1">
-                <label className="text-xs text-muted-foreground">{item.label}</label>
-                <Select
-                  value={settings[item.key] ?? item.options[0]!}
-                  onValueChange={(value) =>
-                    setSettings((prev) => ({ ...prev, [item.key]: value }))
-                  }
-                >
-                  <SelectTrigger aria-label={item.label}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {item.options.map((option) => (
-                      <SelectItem key={option} value={option}>
-                        {option}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ))}
+            <Tabs defaultValue="attack">
+              <TabsList className="w-full">
+                {TACTIC_SETTING_GROUPS.map((group) => (
+                  <TabsTrigger key={group.key} value={group.key} className="flex-1">
+                    {group.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              {TACTIC_SETTING_GROUPS.map((group) => (
+                <TabsContent key={group.key} value={group.key} className="space-y-3 pt-3">
+                  {group.settings.map((item) =>
+                    item.kind === "select" ? (
+                      <div key={item.key} className="space-y-1">
+                        <label className="text-xs text-muted-foreground">{item.label}</label>
+                        <Select
+                          value={String(settings[item.key] ?? item.options[0]!)}
+                          onValueChange={(value) =>
+                            setSettings((prev) => ({ ...prev, [item.key]: value }))
+                          }
+                        >
+                          <SelectTrigger aria-label={item.label}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {item.options.map((option) => (
+                              <SelectItem key={option} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ) : (
+                      <div key={item.key} className="space-y-1">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <label>{item.label}</label>
+                          <span className="font-semibold text-foreground">
+                            {Number(settings[item.key] ?? item.defaultValue)}
+                          </span>
+                        </div>
+                        <Slider
+                          aria-label={item.label}
+                          min={item.min}
+                          max={item.max}
+                          step={item.step}
+                          value={[Number(settings[item.key] ?? item.defaultValue)]}
+                          onValueChange={([value]) =>
+                            setSettings((prev) => ({ ...prev, [item.key]: value ?? item.defaultValue }))
+                          }
+                        />
+                        <div className="flex justify-between text-[10px] text-muted-foreground">
+                          <span>{item.minLabel}</span>
+                          <span>{item.maxLabel}</span>
+                        </div>
+                      </div>
+                    ),
+                  )}
+                </TabsContent>
+              ))}
+            </Tabs>
           </Card>
 
           <Card className="space-y-2 p-4">
@@ -476,6 +602,66 @@ function SlotPicker({
           );
         })}
       </ul>
+    </div>
+  );
+}
+
+function RoleEditor({
+  slotPosition,
+  value,
+  onRoleChange,
+  onFocusChange,
+}: {
+  slotPosition: string;
+  value: SlotRole | null;
+  onRoleChange: (roleId: string) => void;
+  onFocusChange: (focus: RoleFocus) => void;
+}) {
+  const options = rolesFor(slotPosition);
+  const active = findRole(slotPosition, value?.role) ?? options[0] ?? null;
+  if (!active) return null;
+
+  return (
+    <div className="mt-4 space-y-3 rounded-xl border border-border/60 bg-card/60 p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Spillerrolle · {slotPosition}
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1">
+          <label className="text-xs text-muted-foreground">Rolle</label>
+          <Select value={active.id} onValueChange={onRoleChange}>
+            <SelectTrigger aria-label="Vælg rolle">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {options.map((option) => (
+                <SelectItem key={option.id} value={option.id}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs text-muted-foreground">Fokus</label>
+          <Select
+            value={value?.focus ?? active.focuses[0]!}
+            onValueChange={(next) => onFocusChange(next as RoleFocus)}
+          >
+            <SelectTrigger aria-label="Vælg fokus">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {active.focuses.map((focus) => (
+                <SelectItem key={focus} value={focus}>
+                  {focus}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground">{active.description}</p>
     </div>
   );
 }

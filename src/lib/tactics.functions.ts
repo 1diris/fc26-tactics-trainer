@@ -30,7 +30,8 @@ export const saveTactic = createServerFn({ method: "POST" })
         seasonId: z.string().uuid().nullable().optional(),
         formation: z.string().min(1),
         lineup: z.record(z.string().nullable()),
-        settings: z.record(z.string()),
+        settings: z.record(z.union([z.string(), z.number()])),
+        roles: z.record(z.object({ role: z.string(), focus: z.string() })).optional(),
         notes: z.string().nullable().optional(),
       })
       .parse(input),
@@ -43,7 +44,7 @@ export const saveTactic = createServerFn({ method: "POST" })
       user_id: userId,
       formation: data.formation,
       lineup: data.lineup as unknown as Json,
-      settings: data.settings as unknown as Json,
+      settings: { ...data.settings, roles: data.roles ?? {} } as unknown as Json,
       notes: data.notes ?? null,
     };
 

@@ -1,4 +1,5 @@
 import { positionFit, type Fit, type Formation } from "./formations";
+import { defaultRole, type SlotRole } from "./roles";
 import type { SquadRow } from "./squad";
 
 export type LineupEntry = {
@@ -11,6 +12,8 @@ export type LineupEntry = {
 export type LineupSuggestion = {
   entries: LineupEntry[];
   lineup: Record<string, string | null>;
+  /** Suggested default role/focus per slot. */
+  roles: Record<string, SlotRole>;
   totalOvr: number;
   avgOvr: number | null;
   naturalCount: number;
@@ -119,6 +122,9 @@ export function suggestLineup(formation: Formation, rows: SquadRow[]): LineupSug
   const lineup: Record<string, string | null> = {};
   for (const entry of entries) lineup[entry.slotId] = entry.row?.player.id ?? null;
 
+  const roles: Record<string, SlotRole> = {};
+  for (const slot of slots) roles[slot.id] = defaultRole(slot.position);
+
   const ovrValues = entries
     .map((entry) => entry.row?.current?.overall)
     .filter((value): value is number => typeof value === "number");
@@ -159,6 +165,7 @@ export function suggestLineup(formation: Formation, rows: SquadRow[]): LineupSug
   return {
     entries,
     lineup,
+    roles,
     totalOvr,
     avgOvr: ovrValues.length > 0 ? Math.round(totalOvr / ovrValues.length) : null,
     naturalCount,

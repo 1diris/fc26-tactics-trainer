@@ -160,29 +160,152 @@ export function positionFit(slot: string, playerPosition: string | null | undefi
   return (RELATED[slot] ?? []).includes(playerPosition) ? "ok" : "out";
 }
 
-export const TACTIC_SETTINGS = [
+export type SelectSetting = {
+  kind: "select";
+  key: string;
+  label: string;
+  options: readonly string[];
+  /** Index of the default option. */
+  defaultIndex: number;
+};
+
+export type SliderSetting = {
+  kind: "slider";
+  key: string;
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  defaultValue: number;
+  /** Labels shown at each end of the slider. */
+  minLabel: string;
+  maxLabel: string;
+};
+
+export type TacticSetting = SelectSetting | SliderSetting;
+
+export const ATTACK_SETTINGS: readonly TacticSetting[] = [
   {
+    kind: "select",
     key: "buildUp",
     label: "Opbygning",
     options: ["Balanceret", "Kort pasningsspil", "Langt spil", "Kontraangreb"],
+    defaultIndex: 0,
   },
   {
+    kind: "select",
     key: "chanceCreation",
     label: "Chanceskabelse",
     options: ["Balanceret", "Direkte", "Kombinationsspil", "Kant-fokus"],
+    defaultIndex: 0,
   },
   {
+    kind: "slider",
+    key: "width",
+    label: "Bredde",
+    min: 1,
+    max: 10,
+    step: 1,
+    defaultValue: 5,
+    minLabel: "Smal",
+    maxLabel: "Bred",
+  },
+  {
+    kind: "slider",
+    key: "playersInBox",
+    label: "Spillere i feltet",
+    min: 1,
+    max: 6,
+    step: 1,
+    defaultValue: 3,
+    minLabel: "Få",
+    maxLabel: "Mange",
+  },
+  {
+    kind: "slider",
+    key: "corners",
+    label: "Hjørnespark",
+    min: 1,
+    max: 5,
+    step: 1,
+    defaultValue: 2,
+    minLabel: "Få",
+    maxLabel: "Mange",
+  },
+  {
+    kind: "slider",
+    key: "freeKicks",
+    label: "Frispark",
+    min: 1,
+    max: 5,
+    step: 1,
+    defaultValue: 2,
+    minLabel: "Få",
+    maxLabel: "Mange",
+  },
+];
+
+export const DEFENCE_SETTINGS: readonly TacticSetting[] = [
+  {
+    kind: "select",
     key: "defensiveApproach",
     label: "Forsvarsstil",
-    options: ["Balanceret", "Højt pres", "Aggressivt pres", "Dyb blok"],
+    options: ["Balanceret", "Dybt", "Aggressivt pres", "Højt pres"],
+    defaultIndex: 0,
   },
-  { key: "width", label: "Bredde", options: ["Smal", "Balanceret", "Bred"] },
-  { key: "depth", label: "Forsvarslinje", options: ["Dyb", "Balanceret", "Høj"] },
-  { key: "tempo", label: "Tempo", options: ["Roligt", "Balanceret", "Højt"] },
+  {
+    kind: "slider",
+    key: "defensiveWidth",
+    label: "Bredde",
+    min: 1,
+    max: 10,
+    step: 1,
+    defaultValue: 5,
+    minLabel: "Smal",
+    maxLabel: "Bred",
+  },
+  {
+    kind: "slider",
+    key: "depth",
+    label: "Forsvarslinjens højde",
+    min: 1,
+    max: 10,
+    step: 1,
+    defaultValue: 5,
+    minLabel: "Dyb",
+    maxLabel: "Høj",
+  },
+  {
+    kind: "slider",
+    key: "aggression",
+    label: "Aggression i pres",
+    min: 1,
+    max: 10,
+    step: 1,
+    defaultValue: 5,
+    minLabel: "Passiv",
+    maxLabel: "Aggressiv",
+  },
+];
+
+export const TACTIC_SETTING_GROUPS = [
+  { key: "attack", label: "Angreb", settings: ATTACK_SETTINGS },
+  { key: "defence", label: "Forsvar", settings: DEFENCE_SETTINGS },
 ] as const;
 
-export type TacticSettings = Record<string, string>;
+export type TacticSettings = Record<string, string | number>;
 
 export function defaultSettings(): TacticSettings {
-  return Object.fromEntries(TACTIC_SETTINGS.map((item) => [item.key, item.options[1] ?? item.options[0]!]));
+  const entries: [string, string | number][] = [];
+  for (const group of TACTIC_SETTING_GROUPS) {
+    for (const setting of group.settings) {
+      entries.push([
+        setting.key,
+        setting.kind === "select"
+          ? (setting.options[setting.defaultIndex] ?? setting.options[0]!)
+          : setting.defaultValue,
+      ]);
+    }
+  }
+  return Object.fromEntries(entries);
 }
