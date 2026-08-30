@@ -44,7 +44,7 @@ export const saveTactic = createServerFn({ method: "POST" })
       user_id: userId,
       formation: data.formation,
       lineup: data.lineup as unknown as Json,
-      settings: data.settings as unknown as Json,
+      settings: { ...data.settings, roles: data.roles ?? {} } as unknown as Json,
       notes: data.notes ?? null,
     };
 
