@@ -122,6 +122,9 @@ export function suggestLineup(formation: Formation, rows: SquadRow[]): LineupSug
   const lineup: Record<string, string | null> = {};
   for (const entry of entries) lineup[entry.slotId] = entry.row?.player.id ?? null;
 
+  const roles: Record<string, SlotRole> = {};
+  for (const slot of slots) roles[slot.id] = defaultRole(slot.position);
+
   const ovrValues = entries
     .map((entry) => entry.row?.current?.overall)
     .filter((value): value is number => typeof value === "number");
