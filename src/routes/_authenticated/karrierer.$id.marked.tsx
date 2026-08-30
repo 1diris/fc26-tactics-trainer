@@ -2,7 +2,7 @@ import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
-import { Star, StarOff, Search, Loader2 } from "lucide-react";
+import { Star, StarOff, Search, Loader2, UserPlus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { careerDataQuery, leaguesQuery, marketSearchQuery, targetsQuery } from "@/lib/career-queries";
+import { SignPlayerDialog } from "@/components/sign-player-dialog";
 import {
   addTransferTarget,
   removeTransferTarget,
@@ -170,6 +171,7 @@ function MarketPage() {
   const [page, setPage] = useState(0);
   const [needsOpen, setNeedsOpen] = useState(false);
   const [focusPosition, setFocusPosition] = useState<string | null>(null);
+  const [signing, setSigning] = useState<MarketPlayer | null>(null);
 
 
   const seasons = sortedSeasons(career.seasons);
@@ -721,6 +723,7 @@ function MarketPage() {
               isTarget={targetIds.has(player.id)}
               pending={toggleTarget.isPending}
               onToggle={() => toggleTarget.mutate(player)}
+              onSign={() => setSigning(player)}
             />
           ))}
           {!results.isFetching && (results.data?.players.length ?? 0) === 0 && (
@@ -751,6 +754,7 @@ function MarketPage() {
                 isTarget
                 pending={toggleTarget.isPending}
                 onToggle={() => toggleTarget.mutate(target.fc_players!)}
+                onSign={() => setSigning(target.fc_players!)}
                 footer={`Prioritet: ${PRIORITY_LABELS[target.priority] ?? "Mellem"}${
                   target.expected_price != null
                     ? ` · Forventet pris ${formatMoney(Number(target.expected_price))}`
@@ -766,6 +770,17 @@ function MarketPage() {
           )}
         </div>
       </TabsContent>
+
+      <SignPlayerDialog
+        careerId={id}
+        seasonId={activeSeasonId}
+        seasonLabel={seasons.find((season) => season.id === activeSeasonId)?.label ?? null}
+        player={signing}
+        budget={budget}
+        onOpenChange={(open) => {
+          if (!open) setSigning(null);
+        }}
+      />
     </Tabs>
   );
 }
@@ -795,6 +810,7 @@ function PlayerRow({
   isTarget,
   pending,
   onToggle,
+  onSign,
   footer,
 }: {
   player: MarketPlayer;
@@ -802,6 +818,7 @@ function PlayerRow({
   isTarget: boolean;
   pending: boolean;
   onToggle: () => void;
+  onSign: () => void;
   footer?: string;
 }) {
   return (
@@ -856,20 +873,32 @@ function PlayerRow({
           </p>
           {footer && <p className="mt-1 text-[11px] text-primary">{footer}</p>}
         </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          disabled={pending}
-          onClick={onToggle}
-          aria-label={isTarget ? "Fjern som transfermål" : "Gem som transfermål"}
-        >
-          {isTarget ? (
-            <Star className="h-4 w-4 fill-primary text-primary" />
-          ) : (
-            <StarOff className="h-4 w-4 text-muted-foreground" />
-          )}
-        </Button>
+        <div className="flex flex-col gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            disabled={pending}
+            onClick={onToggle}
+            aria-label={isTarget ? "Fjern som transfermål" : "Gem som transfermål"}
+          >
+            {isTarget ? (
+              <Star className="h-4 w-4 fill-primary text-primary" />
+            ) : (
+              <StarOff className="h-4 w-4 text-muted-foreground" />
+            )}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onSign}
+            aria-label="Hent til trup"
+            title="Hent til trup"
+          >
+            <UserPlus className="h-4 w-4 text-muted-foreground" />
+          </Button>
+        </div>
       </div>
     </article>
   );

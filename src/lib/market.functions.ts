@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { findMatchingPlayerIndex } from "@/lib/player-matching";
+import { normalizePosition } from "@/lib/football";
 
 const FC_PLAYER_COLUMNS =
   "id, external_id, short_name, long_name, positions, overall, potential, value_eur, wage_eur, release_clause_eur, age, height_cm, weight_kg, club_name, league_name, league_level, nationality_name, preferred_foot, weak_foot, skill_moves, contract_until, pace, shooting, passing, dribbling, defending, physic, face_url";
@@ -297,4 +299,124 @@ export const removeTransferTarget = createServerFn({ method: "POST" })
       .eq("fc_player_id", data.fcPlayerId);
     if (error) throw new Error(error.message);
     return { ok: true };
+  });
+
+/**
+ * Signs a player from the FC 26 database into the user's squad: creates (or
+ * updates) the career player, writes a season snapshot and deducts the fee
+ * from the transfer budget.
+ */
+export const signMarketPlayer = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        careerId: z.string().uuid(),
+        seasonId: z.string().uuid(),
+        fcPlayerId: z.string().uuid(),
+        fee: z.number().min(0).nullable().optional(),
+        shirtNumber: z.number().int().min(1).max(99).nullable().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    const { data: fc, error: fcError } = await supabase
+      .from("fc_players")
+      .select(FC_PLAYER_COLUMNS)
+      .eq("id", data.fcPlayerId)
+      .maybeSingle();
+    if (fcError) throw new Error(fcError.message);
+    if (!fc) throw new Error("Spilleren findes ikke i FC 26-databasen.");
+
+    const name = fc.short_name.trim();
+    const position = normalizePosition(fc.positions?.[0] ?? null);
+
+    const { data: existing, error: existingError } = await supabase
+      .from("players")
+      .select("id, name, shirt_number, fc_player_id")
+      .eq("career_id", data.careerId);
+    if (existingError) throw new Error(existingError.message);
+
+    const byFc = (existing ?? []).find((row) => row.fc_player_id === data.fcPlayerId);
+    const byName = (existing ?? [])[findMatchingPlayerIndex(existing ?? [], { name })];
+    const match = byFc ?? byName ?? null;
+    let playerId = match?.id ?? null;
+    const alreadyInSquad = playerId !== null;
+
+    if (playerId) {
+      const { error } = await supabase
+        .from("players")
+        .update({
+          fc_player_id: data.fcPlayerId,
+          fc_match_source: "manual",
+          primary_position: position,
+          nationality: fc.nationality_name ?? null,
+          preferred_foot: fc.preferred_foot ?? null,
+          ...(data.shirtNumber != null ? { shirt_number: data.shirtNumber } : {}),
+        })
+        .eq("id", playerId);
+      if (error) throw new Error(error.message);
+    } else {
+      const { data: inserted, error } = await supabase
+        .from("players")
+        .insert({
+          career_id: data.careerId,
+          user_id: userId,
+          name,
+          primary_position: position,
+          preferred_foot: fc.preferred_foot ?? null,
+          nationality: fc.nationality_name ?? null,
+          shirt_number: data.shirtNumber ?? null,
+          fc_player_id: data.fcPlayerId,
+          fc_match_source: "manual",
+        })
+        .select("id")
+        .single();
+      if (error || !inserted) throw new Error(error?.message ?? "Kunne ikke oprette spilleren.");
+      playerId = inserted.id;
+    }
+
+    const { error: snapshotError } = await supabase.from("player_snapshots").upsert(
+      {
+        player_id: playerId,
+        season_id: data.seasonId,
+        career_id: data.careerId,
+        user_id: userId,
+        overall: fc.overall,
+        potential: fc.potential,
+        age: fc.age,
+        position,
+        market_value: fc.value_eur,
+        wage: fc.wage_eur,
+        contract_until: fc.contract_until != null ? String(fc.contract_until) : null,
+      },
+      { onConflict: "player_id,season_id" },
+    );
+    if (snapshotError) throw new Error(snapshotError.message);
+
+    // The fee leaves the transfer budget; the budget never goes negative.
+    const fee = data.fee ?? 0;
+    if (fee > 0) {
+      const { data: career, error: careerError } = await supabase
+        .from("careers")
+        .select("transfer_budget")
+        .eq("id", data.careerId)
+        .maybeSingle();
+      if (careerError) throw new Error(careerError.message);
+      if (career?.transfer_budget != null) {
+        const next = Math.max(0, Number(career.transfer_budget) - fee);
+        await supabase.from("careers").update({ transfer_budget: next }).eq("id", data.careerId);
+      }
+    }
+
+    // A signed player is no longer a target.
+    await supabase
+      .from("transfer_targets")
+      .delete()
+      .eq("career_id", data.careerId)
+      .eq("fc_player_id", data.fcPlayerId);
+
+    return { playerId, name, alreadyInSquad, fee };
   });
