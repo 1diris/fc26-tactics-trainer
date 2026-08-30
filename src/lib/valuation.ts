@@ -123,10 +123,11 @@ const BASELINE_KEYS = Object.keys(BASELINE_BY_OVERALL)
 
 /** Interpolated median market value for a given overall rating. */
 export function baselineValue(overall: number): number {
-  const min = BASELINE_KEYS[0];
-  const max = BASELINE_KEYS[BASELINE_KEYS.length - 1];
-  if (overall <= min) return BASELINE_BY_OVERALL[min] * Math.pow(0.9, min - overall);
-  if (overall >= max) return BASELINE_BY_OVERALL[max] * Math.pow(1.15, overall - max);
+  const min = BASELINE_KEYS[0] ?? 60;
+  const max = BASELINE_KEYS[BASELINE_KEYS.length - 1] ?? 90;
+  const at = (key: number): number => BASELINE_BY_OVERALL[key] ?? 1_000_000;
+  if (overall <= min) return at(min) * Math.pow(0.9, min - overall);
+  if (overall >= max) return at(max) * Math.pow(1.15, overall - max);
 
   let lower = min;
   let upper = max;
@@ -137,14 +138,12 @@ export function baselineValue(overall: number): number {
       break;
     }
   }
-  if (lower === upper) return BASELINE_BY_OVERALL[lower];
+  if (lower === upper) return at(lower);
   const ratio = (overall - lower) / (upper - lower);
   // Geometric interpolation — value grows exponentially with rating.
-  return (
-    BASELINE_BY_OVERALL[lower] *
-    Math.pow(BASELINE_BY_OVERALL[upper] / BASELINE_BY_OVERALL[lower], ratio)
-  );
+  return at(lower) * Math.pow(at(upper) / at(lower), ratio);
 }
+
 
 /**
  * Deterministic career valuation: start from the original FC 26 value and adjust
