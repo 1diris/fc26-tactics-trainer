@@ -50,7 +50,8 @@ export const setPlayerFcMatch = createServerFn({ method: "POST" })
 
 /**
  * Tries to link every unmatched squad player to the FC 26 database.
- * Only unambiguous matches are stored; anything uncertain is left to the user.
+ * Candidates are scored on position, age and overall; only a clear winner is
+ * stored, so uncertain cases stay available for manual matching.
  */
 export const autoMatchSquad = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -59,11 +60,35 @@ export const autoMatchSquad = createServerFn({ method: "POST" })
     const { supabase } = context;
     const { data: players, error } = await supabase
       .from("players")
-      .select("id, name, shirt_number, nationality, fc_player_id")
+      .select("id, name, shirt_number, nationality, primary_position, fc_player_id")
       .eq("career_id", data.careerId);
     if (error) throw new Error(error.message);
 
     const unmatched = (players ?? []).filter((player) => !player.fc_player_id);
+    if (unmatched.length === 0) {
+      return { checked: 0, matched: 0, ambiguous: 0, remaining: 0 };
+    }
+
+    const { data: snapshots } = await supabase
+      .from("player_snapshots")
+      .select("player_id, overall, age, position, created_at")
+      .in(
+        "player_id",
+        unmatched.map((player) => player.id),
+      )
+      .order("created_at", { ascending: false });
+
+    const latest = new Map<string, { overall: number | null; age: number | null; position: string | null }>();
+    for (const snapshot of snapshots ?? []) {
+      if (!latest.has(snapshot.player_id)) {
+        latest.set(snapshot.player_id, {
+          overall: snapshot.overall,
+          age: snapshot.age,
+          position: snapshot.position,
+        });
+      }
+    }
+
     let matched = 0;
     let ambiguous = 0;
 
@@ -74,16 +99,15 @@ export const autoMatchSquad = createServerFn({ method: "POST" })
       // Navne i FC-databasen kan have accenter (fx "Sánchez"), så vi gør
       // søgemønsteret tolerant over for bogstaver der ofte har accent.
       const pattern = [...lastName]
-        .map((char) => ("aeiouycnszo".includes(char) ? "_" : char))
+        .map((char) => ("aeiouycnszgo".includes(char) ? "_" : char))
         .join("");
 
       const { data: candidates } = await supabase
         .from("fc_players")
-        .select("id, short_name, long_name, overall, nationality_name")
+        .select("id, short_name, long_name, overall, age, positions, nationality_name")
         .or(`short_name.ilike.%${pattern}%,long_name.ilike.%${pattern}%`)
-        .limit(200);
+        .limit(300);
       if (!candidates || candidates.length === 0) continue;
-
 
       const hits = candidates.filter((candidate) => {
         const byShort = findMatchingPlayerIndex([{ name: candidate.short_name }], {
@@ -95,27 +119,53 @@ export const autoMatchSquad = createServerFn({ method: "POST" })
           findMatchingPlayerIndex([{ name: candidate.long_name }], { name: player.name }) === 0
         );
       });
+      if (hits.length === 0) continue;
 
-      let chosen = hits[0];
-      if (hits.length > 1) {
-        const sameNation = player.nationality
-          ? hits.filter(
-              (hit) =>
-                playerKey(hit.nationality_name ?? "") === playerKey(player.nationality as string),
-            )
-          : [];
-        if (sameNation.length === 1) {
-          chosen = sameNation[0];
-        } else {
-          ambiguous += 1;
-          continue;
-        }
+      const snapshot = latest.get(player.id);
+      const ownPosition = normalizePosition(snapshot?.position ?? player.primary_position);
+      const ownOverall = snapshot?.overall ?? null;
+      const ownAge = snapshot?.age ?? null;
+      const ownNation = player.nationality ? playerKey(player.nationality) : null;
+
+      const scored = hits
+        .map((candidate) => {
+          let score = 0;
+          const positions = (candidate.positions ?? [])
+            .map((position) => normalizePosition(position))
+            .filter(Boolean) as string[];
+          if (ownPosition && positions.length > 0) {
+            if (positions[0] === ownPosition) score += 40;
+            else if (positions.includes(ownPosition)) score += 25;
+          }
+          if (ownNation && candidate.nationality_name) {
+            if (playerKey(candidate.nationality_name) === ownNation) score += 30;
+          }
+          if (ownAge != null && candidate.age != null) {
+            const diff = Math.abs(candidate.age - ownAge);
+            if (diff <= 2) score += 25 - diff * 5;
+            else if (diff <= 5) score += 5;
+            else score -= 15;
+          }
+          if (ownOverall != null && candidate.overall != null) {
+            const diff = Math.abs(candidate.overall - ownOverall);
+            // Karrieren udvikler spillere, så vi tillader en pæn afvigelse.
+            score += Math.max(-10, 20 - diff * 2);
+          }
+          return { candidate, score };
+        })
+        .sort((a, b) => b.score - a.score);
+
+      const best = scored[0];
+      const runnerUp = scored[1];
+      if (!best) continue;
+      if (runnerUp && best.score - runnerUp.score < 10) {
+        ambiguous += 1;
+        continue;
       }
-      if (!chosen) continue;
 
       const { error: updateError } = await supabase
         .from("players")
-        .update({ fc_player_id: chosen.id, fc_match_source: "auto" })
+        .update({ fc_player_id: best.candidate.id, fc_match_source: "auto" })
         .eq("id", player.id);
       if (!updateError) matched += 1;
     }
@@ -127,3 +177,4 @@ export const autoMatchSquad = createServerFn({ method: "POST" })
       remaining: unmatched.length - matched,
     };
   });
+
