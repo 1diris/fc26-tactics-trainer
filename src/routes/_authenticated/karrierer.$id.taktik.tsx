@@ -13,18 +13,28 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Slider } from "@/components/ui/slider";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { careerDataQuery } from "@/lib/career-queries";
 import { getTactic, saveTactic } from "@/lib/tactics.functions";
 import { buildSquad, sortedSeasons, type SquadRow } from "@/lib/squad";
 import {
   FORMATIONS,
-  TACTIC_SETTINGS,
+  TACTIC_SETTING_GROUPS,
   defaultSettings,
   findFormation,
   positionFit,
   type Fit,
   type TacticSettings,
 } from "@/lib/formations";
+import {
+  findRole,
+  normalizeRoles,
+  roleHint,
+  rolesFor,
+  type RoleFocus,
+  type SlotRole,
+} from "@/lib/roles";
 import { suggestLineup, type LineupSuggestion } from "@/lib/lineup";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/taktik")({
