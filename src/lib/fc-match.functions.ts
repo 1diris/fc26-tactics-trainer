@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { findMatchingPlayerIndex } from "@/lib/player-matching";
-import { playerKey } from "@/lib/football";
+import { normalizePosition, playerKey } from "@/lib/football";
 
 const FC_COLUMNS =
   "id, external_id, short_name, long_name, positions, overall, potential, value_eur, wage_eur, age, club_name, league_name, face_url";
