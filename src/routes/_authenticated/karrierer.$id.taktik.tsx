@@ -71,6 +71,7 @@ function TacticsPage() {
   const [formation, setFormation] = useState("4-3-3");
   const [lineup, setLineup] = useState<Record<string, string | null>>({});
   const [settings, setSettings] = useState<TacticSettings>(() => defaultSettings());
+  const [roles, setRoles] = useState<Record<string, SlotRole>>({});
   const [notes, setNotes] = useState("");
   const [activeSlot, setActiveSlot] = useState<string | null>(null);
   const [suggestion, setSuggestion] = useState<LineupSuggestion | null>(null);
@@ -78,9 +79,17 @@ function TacticsPage() {
   useEffect(() => {
     const tactic = tacticQuery.data;
     if (!tactic) return;
+    const stored = (tactic.settings as (TacticSettings & { roles?: unknown }) | null) ?? {};
+    const { roles: storedRoles, ...rest } = stored as Record<string, unknown>;
     setFormation(tactic.formation);
     setLineup((tactic.lineup as Record<string, string | null>) ?? {});
-    setSettings({ ...defaultSettings(), ...((tactic.settings as TacticSettings) ?? {}) });
+    setSettings({ ...defaultSettings(), ...(rest as TacticSettings) });
+    setRoles(
+      normalizeRoles(
+        findFormation(tactic.formation).slots,
+        (storedRoles as Record<string, SlotRole> | undefined) ?? null,
+      ),
+    );
     setNotes(tactic.notes ?? "");
   }, [tacticQuery.data]);
 
@@ -93,6 +102,10 @@ function TacticsPage() {
   const shape = findFormation(formation);
   const usedIds = new Set(Object.values(lineup).filter(Boolean) as string[]);
 
+  useEffect(() => {
+    setRoles((prev) => normalizeRoles(shape.slots, prev));
+  }, [formation]);
+
   const saveMutation = useMutation({
     mutationFn: () =>
       persist({
@@ -102,6 +115,7 @@ function TacticsPage() {
           formation,
           lineup,
           settings,
+          roles,
           notes: notes.trim() ? notes.trim() : null,
         },
       }),
@@ -111,6 +125,23 @@ function TacticsPage() {
     },
     onError: (error: Error) => toast.error(error.message),
   });
+
+  function coveredPositions(row: SquadRow | null | undefined): string[] {
+    if (!row) return [];
+    const list = new Set<string>();
+    if (row.position) list.add(row.position);
+    for (const position of row.fc?.positions ?? []) list.add(position.trim().toUpperCase());
+    return [...list];
+  }
+
+  const hints = shape.slots
+    .map((slot) => {
+      const row = lineup[slot.id] ? rowById.get(lineup[slot.id]!) : null;
+      if (!row) return null;
+      const hint = roleHint(slot.position, roles[slot.id], coveredPositions(row));
+      return hint ? `${slot.position} – ${row.player.name}: ${hint}` : null;
+    })
+    .filter((value): value is string => Boolean(value));
 
   function assign(slotId: string, playerId: string | null) {
     setLineup((prev) => {
@@ -123,12 +154,34 @@ function TacticsPage() {
       next[slotId] = playerId;
       return next;
     });
-    setActiveSlot(null);
+  }
+
+  function setSlotRole(slotId: string, position: string, roleId: string) {
+    const found = findRole(position, roleId);
+    if (!found) return;
+    setRoles((prev) => ({
+      ...prev,
+      [slotId]: {
+        role: found.id,
+        focus: found.focuses.includes(prev[slotId]?.focus as RoleFocus)
+          ? prev[slotId]!.focus
+          : (found.focuses.includes("Balanceret") ? "Balanceret" : found.focuses[0]!),
+      },
+    }));
+  }
+
+  function setSlotFocus(slotId: string, focus: RoleFocus) {
+    setRoles((prev) => {
+      const current = prev[slotId];
+      if (!current) return prev;
+      return { ...prev, [slotId]: { ...current, focus } };
+    });
   }
 
   function autoFill() {
     const result = suggestLineup(shape, rows);
     setLineup(result.lineup);
+    setRoles((prev) => normalizeRoles(shape.slots, { ...result.roles, ...prev }));
     setSuggestion(result);
     setActiveSlot(null);
     toast.success("Stærkeste opstilling foreslået");
