@@ -1,4 +1,5 @@
 import { positionFit, type Fit, type Formation } from "./formations";
+import { defaultRole, type SlotRole } from "./roles";
 import type { SquadRow } from "./squad";
 
 export type LineupEntry = {
@@ -11,6 +12,8 @@ export type LineupEntry = {
 export type LineupSuggestion = {
   entries: LineupEntry[];
   lineup: Record<string, string | null>;
+  /** Suggested default role/focus per slot. */
+  roles: Record<string, SlotRole>;
   totalOvr: number;
   avgOvr: number | null;
   naturalCount: number;
