@@ -572,6 +572,19 @@ function SquadPage() {
           }}
         />
       )}
+
+      <SellPlayerDialog
+        careerId={id}
+        playerId={sellTarget?.player.id ?? null}
+        playerName={sellTarget?.player.name ?? null}
+        suggestedFee={sellTarget?.estimatedValue ?? null}
+        budget={data.career.transfer_budget == null ? null : Number(data.career.transfer_budget)}
+        onOpenChange={(next) => {
+          if (!next) setSellTarget(null);
+        }}
+      />
+
+      )}
     </div>
   );
 }
