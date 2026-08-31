@@ -472,7 +472,11 @@ function SquadPage() {
                       </button>
                     </th>
                   ))}
+                  <th scope="col" className="px-4 py-3 text-right font-medium">
+                    Handling
+                  </th>
                 </tr>
+
               </thead>
               <tbody>
                 {rows.map((row) => {
