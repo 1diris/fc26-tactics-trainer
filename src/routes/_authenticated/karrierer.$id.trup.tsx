@@ -23,6 +23,8 @@ import {
 import { POSITION_GROUPS, formatMoney, formatWage, ovrTone } from "@/lib/football";
 import { autoMatchSquad } from "@/lib/fc-match.functions";
 import { FcMatchDialog } from "@/components/fc-match-dialog";
+import { SellPlayerDialog } from "@/components/sell-player-dialog";
+
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/trup")({
   head: () => ({
