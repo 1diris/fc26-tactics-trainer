@@ -12,6 +12,8 @@ import { sortedSeasons } from "@/lib/squad";
 import { formatMoney, formatWage, positionGroup } from "@/lib/football";
 import { estimateCareerValue, originalPotential, type FcOriginal } from "@/lib/valuation";
 import { FcMatchDialog } from "@/components/fc-match-dialog";
+import { SellPlayerDialog } from "@/components/sell-player-dialog";
+
 import { ArrowLeft, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/spiller/$playerId")({
