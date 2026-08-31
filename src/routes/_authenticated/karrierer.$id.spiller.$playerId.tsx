@@ -414,6 +414,19 @@ function PlayerPage() {
           </>
         )}
       </section>
+
+      <SellPlayerDialog
+        careerId={id}
+        playerId={selling ? player.id : null}
+        playerName={player.name}
+        suggestedFee={estimatedValue}
+        budget={data.career.transfer_budget == null ? null : Number(data.career.transfer_budget)}
+        onOpenChange={(next) => {
+          if (!next) setSelling(false);
+        }}
+        onSold={() => navigate({ to: "/karrierer/$id/trup", params: { id } })}
+      />
     </div>
+
   );
 }
