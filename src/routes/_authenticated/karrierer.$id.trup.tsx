@@ -431,10 +431,21 @@ function SquadPage() {
                     <span className="truncate text-muted-foreground">
                       {row.fc ? `FC 26: ${row.fc.short_name} (${row.fc.overall}/${row.fc.potential})` : "Ikke matchet med FC 26"}
                     </span>
-                    <Button variant="ghost" size="sm" onClick={() => setMatchTarget(row)}>
-                      {row.fc ? "Skift" : "Match"}
-                    </Button>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <Button variant="ghost" size="sm" onClick={() => setMatchTarget(row)}>
+                        {row.fc ? "Skift" : "Match"}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => setSellTarget(row)}
+                      >
+                        Sælg
+                      </Button>
+                    </div>
                   </div>
+
                 </li>
               );
             })}
