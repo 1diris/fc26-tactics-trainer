@@ -48,6 +48,8 @@ function PlayerPage() {
   const remove = useServerFn(deletePlayer);
   const [editing, setEditing] = useState(false);
   const [matching, setMatching] = useState(false);
+  const [selling, setSelling] = useState(false);
+
 
   const player = data.players.find((entry) => entry.id === playerId);
   const seasons = sortedSeasons(data.seasons);
