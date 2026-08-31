@@ -12,6 +12,8 @@ import { sortedSeasons } from "@/lib/squad";
 import { formatMoney, formatWage, positionGroup } from "@/lib/football";
 import { estimateCareerValue, originalPotential, type FcOriginal } from "@/lib/valuation";
 import { FcMatchDialog } from "@/components/fc-match-dialog";
+import { SellPlayerDialog } from "@/components/sell-player-dialog";
+
 import { ArrowLeft, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/spiller/$playerId")({
@@ -46,6 +48,8 @@ function PlayerPage() {
   const remove = useServerFn(deletePlayer);
   const [editing, setEditing] = useState(false);
   const [matching, setMatching] = useState(false);
+  const [selling, setSelling] = useState(false);
+
 
   const player = data.players.find((entry) => entry.id === playerId);
   const seasons = sortedSeasons(data.seasons);
@@ -193,6 +197,10 @@ function PlayerPage() {
           <Button variant="outline" onClick={() => setEditing(!editing)}>
             {editing ? "Luk" : "Ret data"}
           </Button>
+          <Button variant="outline" onClick={() => setSelling(true)}>
+            Sælg
+          </Button>
+
           <Button
             variant="ghost"
             className="text-destructive hover:text-destructive"
@@ -406,6 +414,19 @@ function PlayerPage() {
           </>
         )}
       </section>
+
+      <SellPlayerDialog
+        careerId={id}
+        playerId={selling ? player.id : null}
+        playerName={player.name}
+        suggestedFee={estimatedValue}
+        budget={data.career.transfer_budget == null ? null : Number(data.career.transfer_budget)}
+        onOpenChange={(next) => {
+          if (!next) setSelling(false);
+        }}
+        onSold={() => navigate({ to: "/karrierer/$id/trup", params: { id } })}
+      />
     </div>
+
   );
 }

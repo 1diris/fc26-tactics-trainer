@@ -448,3 +448,66 @@ export const deletePlayer = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+/** Sells a player: removes him from the squad and adds the fee to the transfer budget. */
+export const sellPlayer = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        careerId: z.string().uuid(),
+        playerId: z.string().uuid(),
+        fee: z.number().min(0),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+
+    const { data: player, error: playerError } = await supabase
+      .from("players")
+      .select("id, name, career_id")
+      .eq("id", data.playerId)
+      .maybeSingle();
+    if (playerError) throw new Error(playerError.message);
+    if (!player || player.career_id !== data.careerId)
+      throw new Error("Spilleren blev ikke fundet i denne karriere.");
+
+    // Remove him from any saved lineups so tactics don't point at a sold player.
+    const { data: tactics } = await supabase
+      .from("tactics")
+      .select("id, lineup")
+      .eq("career_id", data.careerId);
+    for (const tactic of tactics ?? []) {
+      const lineup = tactic.lineup;
+      if (!lineup || typeof lineup !== "object" || Array.isArray(lineup)) continue;
+      const entries = Object.entries(lineup as Record<string, unknown>);
+      const cleaned = entries.filter(([, value]) => value !== data.playerId);
+      if (cleaned.length === entries.length) continue;
+      await supabase
+        .from("tactics")
+        .update({ lineup: Object.fromEntries(cleaned) as Json })
+        .eq("id", tactic.id);
+    }
+
+    const { error: deleteError } = await supabase
+      .from("players")
+      .delete()
+      .eq("id", data.playerId);
+    if (deleteError) throw new Error(deleteError.message);
+
+    const { data: career } = await supabase
+      .from("careers")
+      .select("transfer_budget")
+      .eq("id", data.careerId)
+      .maybeSingle();
+
+    let budget: number | null = null;
+    if (career?.transfer_budget != null) {
+      budget = Number(career.transfer_budget) + data.fee;
+      await supabase.from("careers").update({ transfer_budget: budget }).eq("id", data.careerId);
+    }
+
+    return { ok: true, name: player.name, fee: data.fee, budget };
+  });
+

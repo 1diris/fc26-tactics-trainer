@@ -23,6 +23,8 @@ import {
 import { POSITION_GROUPS, formatMoney, formatWage, ovrTone } from "@/lib/football";
 import { autoMatchSquad } from "@/lib/fc-match.functions";
 import { FcMatchDialog } from "@/components/fc-match-dialog";
+import { SellPlayerDialog } from "@/components/sell-player-dialog";
+
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/trup")({
   head: () => ({
@@ -145,6 +147,8 @@ function SquadPage() {
   const [sortKey, setSortKey] = useState<SortKey>("overall");
   const [asc, setAsc] = useState(false);
   const [matchTarget, setMatchTarget] = useState<SquadRow | null>(null);
+  const [sellTarget, setSellTarget] = useState<SquadRow | null>(null);
+
   const queryClient = useQueryClient();
   const runAutoMatch = useServerFn(autoMatchSquad);
 
@@ -427,10 +431,21 @@ function SquadPage() {
                     <span className="truncate text-muted-foreground">
                       {row.fc ? `FC 26: ${row.fc.short_name} (${row.fc.overall}/${row.fc.potential})` : "Ikke matchet med FC 26"}
                     </span>
-                    <Button variant="ghost" size="sm" onClick={() => setMatchTarget(row)}>
-                      {row.fc ? "Skift" : "Match"}
-                    </Button>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <Button variant="ghost" size="sm" onClick={() => setMatchTarget(row)}>
+                        {row.fc ? "Skift" : "Match"}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => setSellTarget(row)}
+                      >
+                        Sælg
+                      </Button>
+                    </div>
                   </div>
+
                 </li>
               );
             })}
@@ -457,7 +472,11 @@ function SquadPage() {
                       </button>
                     </th>
                   ))}
+                  <th scope="col" className="px-4 py-3 text-right font-medium">
+                    Handling
+                  </th>
                 </tr>
+
               </thead>
               <tbody>
                 {rows.map((row) => {
@@ -522,6 +541,16 @@ function SquadPage() {
                           {row.fc ? row.fc.short_name : "Match spiller"}
                         </button>
                       </td>
+                      <td className="px-4 py-2.5 text-right">
+                        <button
+                          type="button"
+                          onClick={() => setSellTarget(row)}
+                          className="text-xs text-destructive hover:underline"
+                        >
+                          Sælg
+                        </button>
+                      </td>
+
                     </tr>
                   );
                 })}
@@ -543,6 +572,17 @@ function SquadPage() {
           }}
         />
       )}
+
+      <SellPlayerDialog
+        careerId={id}
+        playerId={sellTarget?.player.id ?? null}
+        playerName={sellTarget?.player.name ?? null}
+        suggestedFee={sellTarget?.estimatedValue ?? null}
+        budget={data.career.transfer_budget == null ? null : Number(data.career.transfer_budget)}
+        onOpenChange={(next) => {
+          if (!next) setSellTarget(null);
+        }}
+      />
     </div>
   );
 }
