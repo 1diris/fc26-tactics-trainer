@@ -197,6 +197,10 @@ function PlayerPage() {
           <Button variant="outline" onClick={() => setEditing(!editing)}>
             {editing ? "Luk" : "Ret data"}
           </Button>
+          <Button variant="outline" onClick={() => setSelling(true)}>
+            Sælg
+          </Button>
+
           <Button
             variant="ghost"
             className="text-destructive hover:text-destructive"
