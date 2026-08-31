@@ -583,8 +583,6 @@ function SquadPage() {
           if (!next) setSellTarget(null);
         }}
       />
-
-      )}
     </div>
   );
 }
