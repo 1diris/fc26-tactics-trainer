@@ -541,6 +541,16 @@ function SquadPage() {
                           {row.fc ? row.fc.short_name : "Match spiller"}
                         </button>
                       </td>
+                      <td className="px-4 py-2.5 text-right">
+                        <button
+                          type="button"
+                          onClick={() => setSellTarget(row)}
+                          className="text-xs text-destructive hover:underline"
+                        >
+                          Sælg
+                        </button>
+                      </td>
+
                     </tr>
                   );
                 })}
