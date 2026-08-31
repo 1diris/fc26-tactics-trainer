@@ -146,7 +146,7 @@ function SquadPage() {
   const [ovrMax, setOvrMax] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("overall");
   const [asc, setAsc] = useState(false);
-  const [matchTarget, setMatchTarget] = useState<SquadRow | null>(null);
+  const [sellTarget, setSellTarget] = useState<SquadRow | null>(null);
   const queryClient = useQueryClient();
   const runAutoMatch = useServerFn(autoMatchSquad);
 
