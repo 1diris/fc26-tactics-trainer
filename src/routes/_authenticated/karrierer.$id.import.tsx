@@ -488,7 +488,7 @@ function ImportPage() {
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/60 bg-card/95 px-4 py-3 backdrop-blur">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
             <span className="text-sm text-muted-foreground">
-              {drafts.length} spillere klar — ikke gemt endnu
+              {counts.created} nye · {counts.updated} opdateres — ikke gemt endnu
             </span>
             <Button disabled={saveMutation.isPending} onClick={() => saveMutation.mutate()}>
               {saveMutation.isPending ? "Gemmer…" : "Gem i truppen"}
