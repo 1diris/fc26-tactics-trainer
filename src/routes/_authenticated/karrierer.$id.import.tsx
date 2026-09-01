@@ -12,7 +12,10 @@ import { savePlayers, type PlayerInput } from "@/lib/career.functions";
 import { autoMatchSquad } from "@/lib/fc-match.functions";
 import { sortedSeasons } from "@/lib/squad";
 import { findMatchingPlayerIndex } from "@/lib/player-matching";
+import { diffCounts, diffDrafts, type DiffField } from "@/lib/import-diff";
+import { formatMoney, formatWage } from "@/lib/football";
 import { Loader2, Trash2, Upload } from "lucide-react";
+
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/import")({
   head: () => ({
@@ -53,10 +56,44 @@ function ImportPage() {
   const [importId, setImportId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [onlyChanges, setOnlyChanges] = useState(false);
 
   const seasons = sortedSeasons(data.seasons);
   const activeSeason =
     seasons.find((season) => season.id === data.career.current_season_id) ?? seasons[0];
+
+  const diffs = diffDrafts(drafts ?? [], data.players, data.snapshots, activeSeason?.id ?? null);
+  const counts = diffCounts(diffs);
+  const hasExistingSquad = data.players.length > 0;
+
+  const formatDiffValue = (field: DiffField, value: string | number | null) => {
+    if (value === null || value === "") return "–";
+    if (field === "market_value") return formatMoney(Number(value));
+    if (field === "wage") return formatWage(Number(value));
+    return String(value);
+  };
+
+  const changeBadge = (field: DiffField, index: number) => {
+    const change = diffs[index]?.changes.find((entry) => entry.field === field);
+    if (!change) return null;
+    const numeric =
+      typeof change.before === "number" && typeof change.after === "number"
+        ? change.after - change.before
+        : null;
+    const tone =
+      numeric === null
+        ? "text-muted-foreground"
+        : numeric > 0
+          ? "text-emerald-500"
+          : "text-destructive";
+    return (
+      <div className={`mt-1 text-[11px] tabular-nums ${tone}`}>
+        {formatDiffValue(field, change.before)} → {formatDiffValue(field, change.after)}
+        {numeric !== null && numeric !== 0 ? ` (${numeric > 0 ? "+" : ""}${numeric})` : ""}
+      </div>
+    );
+  };
+
 
   const MAX_FILES = 10;
   const storageKey = `import-drafts-${id}`;
@@ -239,6 +276,15 @@ function ImportPage() {
           kontrakt er synlige. Du kan vælge op til {MAX_FILES} screenshots ad gangen — de analyseres
           i kø og samles i én godkendelsesliste, hvor spillere med samme navn flettes.
         </p>
+        {hasExistingSquad && (
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+            Du har allerede {data.players.length} spillere i truppen. Upload gerne opfølgende
+            screenshots efter en sæson — spillere du allerede har, bliver opdateret med nye OVR,
+            værdi, løn og kontrakt i {activeSeason?.label ?? "den aktive sæson"}, og kun helt nye
+            navne oprettes. Spillere der ikke er på billederne, står urørt.
+          </p>
+        )}
+
         <div className="mt-5 flex flex-wrap items-center gap-3">
           <input
             ref={fileRef}
@@ -274,8 +320,22 @@ function ImportPage() {
               <p className="mt-1 text-sm text-muted-foreground">
                 Ret felter AI var usikker på (markeret med gul), før du gemmer.
               </p>
+              <p className="mt-1 text-sm">
+                <span className="font-medium text-primary">{counts.created} nye</span>
+                <span className="text-muted-foreground"> · </span>
+                <span className="font-medium">{counts.updated} opdateres</span>
+                <span className="text-muted-foreground"> · {counts.unchanged} uændrede</span>
+              </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              {hasExistingSquad && (
+                <Button
+                  variant={onlyChanges ? "secondary" : "outline"}
+                  onClick={() => setOnlyChanges((value) => !value)}
+                >
+                  {onlyChanges ? "Vis alle" : "Vis kun ændringer"}
+                </Button>
+              )}
               <Button variant="ghost" onClick={() => setDrafts(null)}>
                 Annullér
               </Button>
@@ -284,10 +344,12 @@ function ImportPage() {
               </Button>
             </div>
           </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border/60 text-xs uppercase tracking-wider text-muted-foreground">
+                  <th className="px-3 py-2 text-left font-medium">Status</th>
                   <th className="px-3 py-2 text-left font-medium">Navn</th>
                   <th className="px-3 py-2 text-left font-medium">Pos</th>
                   <th className="px-3 py-2 text-right font-medium">OVR</th>
@@ -301,17 +363,39 @@ function ImportPage() {
               </thead>
               <tbody>
                 {drafts.map((draft, index) => {
+                  const diff = diffs[index];
+                  const isNew = !diff || diff.status === "new";
+                  const changedCount = diff?.changes.length ?? 0;
+                  if (onlyChanges && !isNew && changedCount === 0) return null;
                   const uncertain = new Set(draft.uncertain_fields ?? []);
                   const cell = (field: string) =>
                     uncertain.has(field) ? "bg-amber-500/10" : undefined;
                   return (
                     <tr key={`${draft.name}-${index}`} className="border-b border-border/40">
+                      <td className="px-3 py-1.5 align-top">
+                        <span
+                          className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                            isNew
+                              ? "bg-primary/15 text-primary"
+                              : changedCount > 0
+                                ? "bg-emerald-500/15 text-emerald-500"
+                                : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          {isNew ? "Ny" : changedCount > 0 ? "Opdateret" : "Ingen ændring"}
+                        </span>
+                      </td>
                       <td className={`px-3 py-1.5 ${cell("name") ?? ""}`}>
                         <Input
                           className="h-8 w-40"
                           value={draft.name}
                           onChange={(event) => patchDraft(index, { name: event.target.value })}
                         />
+                        {!isNew && diff?.playerName && diff.playerName !== draft.name && (
+                          <div className="mt-1 text-[11px] text-muted-foreground">
+                            matcher {diff.playerName}
+                          </div>
+                        )}
                       </td>
                       <td className={`px-3 py-1.5 ${cell("position") ?? ""}`}>
                         <Input
@@ -321,21 +405,28 @@ function ImportPage() {
                             patchDraft(index, { position: event.target.value || null })
                           }
                         />
+                        {changeBadge("position", index)}
                       </td>
+
                       <td className={`px-3 py-1.5 ${cell("overall") ?? ""}`}>
                         {numberField(index, "overall", draft)}
+                        {changeBadge("overall", index)}
                       </td>
                       <td className={`px-3 py-1.5 ${cell("potential") ?? ""}`}>
                         {numberField(index, "potential", draft)}
+                        {changeBadge("potential", index)}
                       </td>
                       <td className={`px-3 py-1.5 ${cell("age") ?? ""}`}>
                         {numberField(index, "age", draft)}
+                        {changeBadge("age", index)}
                       </td>
                       <td className={`px-3 py-1.5 ${cell("market_value") ?? ""}`}>
                         {numberField(index, "market_value", draft)}
+                        {changeBadge("market_value", index)}
                       </td>
                       <td className={`px-3 py-1.5 ${cell("wage") ?? ""}`}>
                         {numberField(index, "wage", draft)}
+                        {changeBadge("wage", index)}
                       </td>
                       <td className={`px-3 py-1.5 ${cell("contract_until") ?? ""}`}>
                         <Input
@@ -345,7 +436,9 @@ function ImportPage() {
                             patchDraft(index, { contract_until: event.target.value || null })
                           }
                         />
+                        {changeBadge("contract_until", index)}
                       </td>
+
                       <td className="px-3 py-1.5 text-right">
                         <button
                           type="button"
@@ -395,7 +488,7 @@ function ImportPage() {
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/60 bg-card/95 px-4 py-3 backdrop-blur">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
             <span className="text-sm text-muted-foreground">
-              {drafts.length} spillere klar — ikke gemt endnu
+              {counts.created} nye · {counts.updated} opdateres — ikke gemt endnu
             </span>
             <Button disabled={saveMutation.isPending} onClick={() => saveMutation.mutate()}>
               {saveMutation.isPending ? "Gemmer…" : "Gem i truppen"}
