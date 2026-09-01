@@ -276,6 +276,15 @@ function ImportPage() {
           kontrakt er synlige. Du kan vælge op til {MAX_FILES} screenshots ad gangen — de analyseres
           i kø og samles i én godkendelsesliste, hvor spillere med samme navn flettes.
         </p>
+        {hasExistingSquad && (
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+            Du har allerede {data.players.length} spillere i truppen. Upload gerne opfølgende
+            screenshots efter en sæson — spillere du allerede har, bliver opdateret med nye OVR,
+            værdi, løn og kontrakt i {activeSeason?.label ?? "den aktive sæson"}, og kun helt nye
+            navne oprettes. Spillere der ikke er på billederne, står urørt.
+          </p>
+        )}
+
         <div className="mt-5 flex flex-wrap items-center gap-3">
           <input
             ref={fileRef}
