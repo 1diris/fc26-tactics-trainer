@@ -410,18 +410,23 @@ function ImportPage() {
 
                       <td className={`px-3 py-1.5 ${cell("overall") ?? ""}`}>
                         {numberField(index, "overall", draft)}
+                        {changeBadge("overall", index)}
                       </td>
                       <td className={`px-3 py-1.5 ${cell("potential") ?? ""}`}>
                         {numberField(index, "potential", draft)}
+                        {changeBadge("potential", index)}
                       </td>
                       <td className={`px-3 py-1.5 ${cell("age") ?? ""}`}>
                         {numberField(index, "age", draft)}
+                        {changeBadge("age", index)}
                       </td>
                       <td className={`px-3 py-1.5 ${cell("market_value") ?? ""}`}>
                         {numberField(index, "market_value", draft)}
+                        {changeBadge("market_value", index)}
                       </td>
                       <td className={`px-3 py-1.5 ${cell("wage") ?? ""}`}>
                         {numberField(index, "wage", draft)}
+                        {changeBadge("wage", index)}
                       </td>
                       <td className={`px-3 py-1.5 ${cell("contract_until") ?? ""}`}>
                         <Input
@@ -431,7 +436,9 @@ function ImportPage() {
                             patchDraft(index, { contract_until: event.target.value || null })
                           }
                         />
+                        {changeBadge("contract_until", index)}
                       </td>
+
                       <td className="px-3 py-1.5 text-right">
                         <button
                           type="button"
