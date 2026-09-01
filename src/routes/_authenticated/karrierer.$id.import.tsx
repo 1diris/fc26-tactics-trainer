@@ -12,7 +12,10 @@ import { savePlayers, type PlayerInput } from "@/lib/career.functions";
 import { autoMatchSquad } from "@/lib/fc-match.functions";
 import { sortedSeasons } from "@/lib/squad";
 import { findMatchingPlayerIndex } from "@/lib/player-matching";
+import { diffCounts, diffDrafts, type DiffField } from "@/lib/import-diff";
+import { formatMoney, formatWage } from "@/lib/football";
 import { Loader2, Trash2, Upload } from "lucide-react";
+
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/import")({
   head: () => ({
