@@ -320,8 +320,22 @@ function ImportPage() {
               <p className="mt-1 text-sm text-muted-foreground">
                 Ret felter AI var usikker på (markeret med gul), før du gemmer.
               </p>
+              <p className="mt-1 text-sm">
+                <span className="font-medium text-primary">{counts.created} nye</span>
+                <span className="text-muted-foreground"> · </span>
+                <span className="font-medium">{counts.updated} opdateres</span>
+                <span className="text-muted-foreground"> · {counts.unchanged} uændrede</span>
+              </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              {hasExistingSquad && (
+                <Button
+                  variant={onlyChanges ? "secondary" : "outline"}
+                  onClick={() => setOnlyChanges((value) => !value)}
+                >
+                  {onlyChanges ? "Vis alle" : "Vis kun ændringer"}
+                </Button>
+              )}
               <Button variant="ghost" onClick={() => setDrafts(null)}>
                 Annullér
               </Button>
@@ -330,6 +344,7 @@ function ImportPage() {
               </Button>
             </div>
           </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
