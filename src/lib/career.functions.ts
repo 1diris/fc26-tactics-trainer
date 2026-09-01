@@ -303,6 +303,20 @@ export const savePlayers = createServerFn({ method: "POST" })
       .eq("career_id", data.careerId);
     if (existingError) throw new Error(existingError.message);
 
+    // Nuværende øjebliksbilleder for sæsonen, så felter AI ikke kunne læse
+    // beholder deres gamle værdi i stedet for at blive nulstillet.
+    const { data: currentSnapshots } = await supabase
+      .from("player_snapshots")
+      .select(
+        "player_id, overall, potential, age, position, market_value, wage, contract_until, form, stats",
+      )
+      .eq("career_id", data.careerId)
+      .eq("season_id", data.seasonId);
+    const snapshotByPlayer = new Map(
+      (currentSnapshots ?? []).map((snapshot) => [snapshot.player_id, snapshot]),
+    );
+
+
     // Collapse duplicates within the submitted batch so the same player is
     // never inserted twice; later rows patch earlier ones.
     const deduped: (typeof data.players)[number][] = [];
