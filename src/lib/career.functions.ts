@@ -372,25 +372,34 @@ export const savePlayers = createServerFn({ method: "POST" })
         updated += 1;
       }
 
+      const previous = snapshotByPlayer.get(playerId);
+      const previousStats =
+        previous?.stats && typeof previous.stats === "object" && !Array.isArray(previous.stats)
+          ? (previous.stats as Record<string, unknown>)
+          : {};
+      const keep = <T,>(next: T | null | undefined, old: T | null | undefined): T | null =>
+        next === null || next === undefined ? (old ?? null) : next;
+
       const { error: snapshotError } = await supabase.from("player_snapshots").upsert(
         {
           player_id: playerId,
           season_id: data.seasonId,
           career_id: data.careerId,
           user_id: userId,
-          overall: input.overall ?? null,
-          potential: input.potential ?? null,
-          age: input.age ?? null,
-          position: input.position ?? null,
-          market_value: input.market_value ?? null,
-          wage: input.wage ?? null,
-          contract_until: input.contract_until ?? null,
-          form: input.form ?? null,
-          stats: (input.stats ?? {}) as Json,
+          overall: keep(input.overall, previous?.overall),
+          potential: keep(input.potential, previous?.potential),
+          age: keep(input.age, previous?.age),
+          position: keep(input.position, previous?.position),
+          market_value: keep(input.market_value, previous?.market_value),
+          wage: keep(input.wage, previous?.wage),
+          contract_until: keep(input.contract_until, previous?.contract_until),
+          form: keep(input.form, previous?.form),
+          stats: { ...previousStats, ...(input.stats ?? {}) } as Json,
         },
         { onConflict: "player_id,season_id" },
       );
       if (snapshotError) throw new Error(snapshotError.message);
+
     }
 
     if (data.importId) {
