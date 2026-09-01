@@ -349,6 +349,7 @@ function ImportPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border/60 text-xs uppercase tracking-wider text-muted-foreground">
+                  <th className="px-3 py-2 text-left font-medium">Status</th>
                   <th className="px-3 py-2 text-left font-medium">Navn</th>
                   <th className="px-3 py-2 text-left font-medium">Pos</th>
                   <th className="px-3 py-2 text-right font-medium">OVR</th>
@@ -362,17 +363,39 @@ function ImportPage() {
               </thead>
               <tbody>
                 {drafts.map((draft, index) => {
+                  const diff = diffs[index];
+                  const isNew = !diff || diff.status === "new";
+                  const changedCount = diff?.changes.length ?? 0;
+                  if (onlyChanges && !isNew && changedCount === 0) return null;
                   const uncertain = new Set(draft.uncertain_fields ?? []);
                   const cell = (field: string) =>
                     uncertain.has(field) ? "bg-amber-500/10" : undefined;
                   return (
                     <tr key={`${draft.name}-${index}`} className="border-b border-border/40">
+                      <td className="px-3 py-1.5 align-top">
+                        <span
+                          className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                            isNew
+                              ? "bg-primary/15 text-primary"
+                              : changedCount > 0
+                                ? "bg-emerald-500/15 text-emerald-500"
+                                : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          {isNew ? "Ny" : changedCount > 0 ? "Opdateret" : "Ingen ændring"}
+                        </span>
+                      </td>
                       <td className={`px-3 py-1.5 ${cell("name") ?? ""}`}>
                         <Input
                           className="h-8 w-40"
                           value={draft.name}
                           onChange={(event) => patchDraft(index, { name: event.target.value })}
                         />
+                        {!isNew && diff?.playerName && diff.playerName !== draft.name && (
+                          <div className="mt-1 text-[11px] text-muted-foreground">
+                            matcher {diff.playerName}
+                          </div>
+                        )}
                       </td>
                       <td className={`px-3 py-1.5 ${cell("position") ?? ""}`}>
                         <Input
@@ -382,7 +405,9 @@ function ImportPage() {
                             patchDraft(index, { position: event.target.value || null })
                           }
                         />
+                        {changeBadge("position", index)}
                       </td>
+
                       <td className={`px-3 py-1.5 ${cell("overall") ?? ""}`}>
                         {numberField(index, "overall", draft)}
                       </td>
