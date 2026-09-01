@@ -56,10 +56,44 @@ function ImportPage() {
   const [importId, setImportId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [onlyChanges, setOnlyChanges] = useState(false);
 
   const seasons = sortedSeasons(data.seasons);
   const activeSeason =
     seasons.find((season) => season.id === data.career.current_season_id) ?? seasons[0];
+
+  const diffs = diffDrafts(drafts ?? [], data.players, data.snapshots, activeSeason?.id ?? null);
+  const counts = diffCounts(diffs);
+  const hasExistingSquad = data.players.length > 0;
+
+  const formatDiffValue = (field: DiffField, value: string | number | null) => {
+    if (value === null || value === "") return "–";
+    if (field === "market_value") return formatMoney(Number(value));
+    if (field === "wage") return formatWage(Number(value));
+    return String(value);
+  };
+
+  const changeBadge = (field: DiffField, index: number) => {
+    const change = diffs[index]?.changes.find((entry) => entry.field === field);
+    if (!change) return null;
+    const numeric =
+      typeof change.before === "number" && typeof change.after === "number"
+        ? change.after - change.before
+        : null;
+    const tone =
+      numeric === null
+        ? "text-muted-foreground"
+        : numeric > 0
+          ? "text-emerald-500"
+          : "text-destructive";
+    return (
+      <div className={`mt-1 text-[11px] tabular-nums ${tone}`}>
+        {formatDiffValue(field, change.before)} → {formatDiffValue(field, change.after)}
+        {numeric !== null && numeric !== 0 ? ` (${numeric > 0 ? "+" : ""}${numeric})` : ""}
+      </div>
+    );
+  };
+
 
   const MAX_FILES = 10;
   const storageKey = `import-drafts-${id}`;
