@@ -49,7 +49,7 @@ export function PlayerAvatar({
     >
       {showImage ? (
         <img
-          src={src!}
+          src={resolveSrc(src!)}
           alt={`Portræt af ${name}`}
           loading="lazy"
           decoding="async"
