@@ -341,13 +341,15 @@ export function normalizeRoles(
   const next: Record<string, SlotRole> = {};
   for (const slot of slots) {
     const current = raw?.[slot.id];
+    const mastery: RoleMastery =
+      current?.mastery === "+" || current?.mastery === "++" ? current.mastery : "base";
     const found = findRole(slot.position, current?.role);
     if (found) {
       const focus =
         current?.focus && found.focuses.includes(current.focus) ? current.focus : found.focuses[0]!;
-      next[slot.id] = { role: found.id, focus };
+      next[slot.id] = { role: found.id, focus, mastery };
     } else {
-      next[slot.id] = defaultRole(slot.position);
+      next[slot.id] = { ...defaultRole(slot.position), mastery };
     }
   }
   return next;
