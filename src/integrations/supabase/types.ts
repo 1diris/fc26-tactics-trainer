@@ -517,6 +517,62 @@ export type Database = {
           },
         ]
       }
+      youth_players: {
+        Row: {
+          age: number | null
+          career_id: string
+          created_at: string
+          id: string
+          name: string
+          overall: number | null
+          photo_data_url: string | null
+          plan: string
+          position: string | null
+          potential_max: number | null
+          potential_min: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          age?: number | null
+          career_id: string
+          created_at?: string
+          id?: string
+          name: string
+          overall?: number | null
+          photo_data_url?: string | null
+          plan?: string
+          position?: string | null
+          potential_max?: number | null
+          potential_min?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          age?: number | null
+          career_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          overall?: number | null
+          photo_data_url?: string | null
+          plan?: string
+          position?: string | null
+          potential_max?: number | null
+          potential_min?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "youth_players_career_id_fkey"
+            columns: ["career_id"]
+            isOneToOne: false
+            referencedRelation: "careers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
