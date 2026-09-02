@@ -6,7 +6,7 @@ const youthInput = z.object({
   careerId: z.string().uuid(),
   name: z.string().min(1),
   position: z.string().min(1),
-  age: z.number().int().min(14).max(19),
+  age: z.number().int().min(13).max(18),
   overall: z.number().int().min(30).max(99).nullable().optional(),
   potentialMin: z.number().int().min(30).max(99).nullable().optional(),
   potentialMax: z.number().int().min(30).max(99).nullable().optional(),
@@ -47,6 +47,89 @@ export const createYouthPlayer = createServerFn({ method: "POST" })
     });
     if (error) throw new Error(error.message);
     return { ok: true };
+  });
+
+const youthImportRow = z.object({
+  name: z.string().min(1),
+  position: z.string().nullable().optional(),
+  age: z.number().int().min(13).max(18).nullable().optional(),
+  overall: z.number().int().min(30).max(99).nullable().optional(),
+  potentialMin: z.number().int().min(30).max(99).nullable().optional(),
+  potentialMax: z.number().int().min(30).max(99).nullable().optional(),
+  plan: z.string().nullable().optional(),
+});
+
+/**
+ * Saves talents read from a screenshot import. Existing talents are matched on
+ * name and updated in place, so follow-up screenshots never create duplicates.
+ * Null values from the AI never clear data that is already stored.
+ */
+export const saveYouthPlayers = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({ careerId: z.string().uuid(), players: z.array(youthImportRow).min(1) })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { findMatchingPlayerIndex } = await import("./player-matching");
+
+    const { data: existing, error: existingError } = await supabase
+      .from("youth_players")
+      .select("id, name, position, age, overall, potential_min, potential_max, plan")
+      .eq("career_id", data.careerId);
+    if (existingError) throw new Error(existingError.message);
+
+    const rows = existing ?? [];
+    let created = 0;
+    let updated = 0;
+
+    for (const player of data.players) {
+      const name = player.name.trim();
+      if (!name) continue;
+      const index = findMatchingPlayerIndex(rows, { name });
+      const current = index >= 0 ? rows[index] : undefined;
+
+      if (current) {
+        const patch = {
+          name,
+          position: player.position ?? current.position,
+          age: player.age ?? current.age,
+          overall: player.overall ?? current.overall,
+          potential_min: player.potentialMin ?? current.potential_min,
+          potential_max: player.potentialMax ?? current.potential_max,
+          plan: player.plan ?? current.plan,
+        };
+        const { error } = await supabase
+          .from("youth_players")
+          .update(patch)
+          .eq("id", current.id);
+        if (error) throw new Error(error.message);
+        updated += 1;
+      } else {
+        const { data: inserted, error } = await supabase
+          .from("youth_players")
+          .insert({
+            career_id: data.careerId,
+            user_id: userId,
+            name,
+            position: player.position ?? "CM",
+            age: player.age ?? 16,
+            overall: player.overall ?? null,
+            potential_min: player.potentialMin ?? null,
+            potential_max: player.potentialMax ?? null,
+            plan: player.plan ?? "Dynamisk",
+          })
+          .select("id, name, position, age, overall, potential_min, potential_max, plan")
+          .single();
+        if (error || !inserted) throw new Error(error?.message ?? "Kunne ikke gemme talentet.");
+        rows.push(inserted);
+        created += 1;
+      }
+    }
+
+    return { created, updated };
   });
 
 export const deleteYouthPlayer = createServerFn({ method: "POST" })
