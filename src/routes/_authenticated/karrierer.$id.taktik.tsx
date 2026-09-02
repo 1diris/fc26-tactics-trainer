@@ -203,6 +203,13 @@ function TacticsPage() {
     return row ? positionFit(slot.position, row.position) === "out" : false;
   }).length;
 
+  const filled = shape.slots.filter((slot) => lineup[slot.id]).length;
+
+  function numValue(key: string, fallback: number) {
+    const raw = Number(settings[key]);
+    return Number.isFinite(raw) ? raw : fallback;
+  }
+
   const bench = rows
     .filter((row) => !usedIds.has(row.player.id))
     .sort((a, b) => (b.current?.overall ?? 0) - (a.current?.overall ?? 0));
@@ -297,7 +304,7 @@ function TacticsPage() {
                   Snit OVR <strong className="text-lime-400">{avgOvr ?? "–"}</strong>
                 </span>
                 <span className="rounded-full border border-zinc-800 bg-zinc-950 px-2 py-0.5">
-                  <Shield className="mr-1 inline h-3 w-3" /> Besat {usedIds.size}/11
+                  <Shield className="mr-1 inline h-3 w-3" /> Besat {filled}/11
                 </span>
                 <span className="rounded-full border border-zinc-800 bg-zinc-950 px-2 py-0.5">
                   <Target className="mr-1 inline h-3 w-3" /> Ude af pos. {outOfPosition}
@@ -452,7 +459,7 @@ function TacticsPage() {
                                 min={item.min}
                                 max={item.max}
                                 step={item.step}
-                                value={[Number(settings[item.key] ?? item.defaultValue)]}
+                                value={[numValue(item.key, item.defaultValue)]}
                                 onValueChange={([value]) =>
                                   setSettings((prev) => ({
                                     ...prev,
@@ -461,7 +468,7 @@ function TacticsPage() {
                                 }
                               />
                               <span className="w-8 text-right text-sm font-semibold text-lime-400">
-                                {Number(settings[item.key] ?? item.defaultValue)}
+                                {numValue(item.key, item.defaultValue)}
                               </span>
                             </div>
                             <div className="flex justify-between text-[10px] text-zinc-500">
@@ -549,7 +556,7 @@ function TacticsPage() {
                   <p className="mb-2 font-medium text-zinc-200">Opsummering</p>
                   <ul className="space-y-1">
                     <li>Formation: {formation}</li>
-                    <li>Besatte pladser: {usedIds.size}/11</li>
+                    <li>Besatte pladser: {filled}/11</li>
                     <li>Roller med mastery: {masteryCount}/11</li>
                   </ul>
                 </div>
