@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { careerDataQuery, importsQuery } from "@/lib/career-queries";
 import { analyzeScreenshot } from "@/lib/import.functions";
+import { saveYouthPlayers } from "@/lib/youth.functions";
 import { savePlayers, type PlayerInput } from "@/lib/career.functions";
 import { autoMatchSquad } from "@/lib/fc-match.functions";
 import { sortedSeasons } from "@/lib/squad";
@@ -38,7 +39,29 @@ export const Route = createFileRoute("/_authenticated/karrierer/$id/import")({
   component: ImportPage,
 });
 
-type Draft = PlayerInput & { uncertain_fields?: string[] };
+type Draft = PlayerInput & {
+  uncertain_fields?: string[];
+  potential_min?: number | null;
+  potential_max?: number | null;
+  plan?: string | null;
+  is_youth?: boolean;
+  target?: "squad" | "youth";
+};
+
+/** Talenter genkendes på alder 13-18, POT-interval eller AI'ens akademi-hint. */
+function suggestTarget(draft: Draft): "squad" | "youth" {
+  if (draft.target) return draft.target;
+  if (draft.is_youth) return "youth";
+  if (typeof draft.age === "number" && draft.age >= 13 && draft.age <= 18) return "youth";
+  if (
+    typeof draft.potential_min === "number" &&
+    typeof draft.potential_max === "number" &&
+    draft.potential_max > draft.potential_min
+  ) {
+    return "youth";
+  }
+  return "squad";
+}
 
 function ImportPage() {
   const { id } = useParams({ from: "/_authenticated/karrierer/$id/import" });
@@ -49,6 +72,7 @@ function ImportPage() {
 
   const analyze = useServerFn(analyzeScreenshot);
   const save = useServerFn(savePlayers);
+  const saveYouth = useServerFn(saveYouthPlayers);
   const runAutoMatch = useServerFn(autoMatchSquad);
 
   const fileRef = useRef<HTMLInputElement>(null);
@@ -62,7 +86,13 @@ function ImportPage() {
   const activeSeason =
     seasons.find((season) => season.id === data.career.current_season_id) ?? seasons[0];
 
-  const diffs = diffDrafts(drafts ?? [], data.players, data.snapshots, activeSeason?.id ?? null);
+  const withTarget: Draft[] = (drafts ?? []).map((draft) => ({
+    ...draft,
+    target: suggestTarget(draft),
+  }));
+  const squadDrafts = withTarget.filter((draft) => draft.target !== "youth");
+  const youthDrafts = withTarget.filter((draft) => draft.target === "youth");
+  const diffs = diffDrafts(withTarget, data.players, data.snapshots, activeSeason?.id ?? null);
   const counts = diffCounts(diffs);
   const hasExistingSquad = data.players.length > 0;
 
@@ -215,29 +245,69 @@ function ImportPage() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!activeSeason || !drafts) throw new Error("Ingen data at gemme.");
-      const result = await save({
-        data: {
-          careerId: id,
-          seasonId: activeSeason.id,
-          importId,
-          players: drafts.map(({ uncertain_fields: _ignored, ...player }) => player),
-        },
-      });
-      // Kobl nye spillere til FC 26-databasen med det samme.
-      try {
-        await runAutoMatch({ data: { careerId: id } });
-      } catch {
-        // Match kan altid køres manuelt fra Trup-siden.
+      let squadResult = { created: 0, updated: 0 };
+      if (squadDrafts.length > 0) {
+        squadResult = await save({
+          data: {
+            careerId: id,
+            seasonId: activeSeason.id,
+            importId,
+            players: squadDrafts.map(
+              ({
+                uncertain_fields: _u,
+                potential_min: _pmin,
+                potential_max: _pmax,
+                plan: _plan,
+                is_youth: _y,
+                target: _t,
+                ...player
+              }) => player,
+            ),
+          },
+        });
+        // Kobl nye spillere til FC 26-databasen med det samme.
+        try {
+          await runAutoMatch({ data: { careerId: id } });
+        } catch {
+          // Match kan altid køres manuelt fra Trup-siden.
+        }
       }
-      return result;
+
+      let youthResult = { created: 0, updated: 0 };
+      if (youthDrafts.length > 0) {
+        youthResult = await saveYouth({
+          data: {
+            careerId: id,
+            players: youthDrafts.map((draft) => ({
+              name: draft.name,
+              position: draft.position ?? null,
+              age: typeof draft.age === "number" && draft.age >= 13 && draft.age <= 18 ? draft.age : null,
+              overall: draft.overall ?? null,
+              potentialMin: draft.potential_min ?? draft.potential ?? null,
+              potentialMax: draft.potential_max ?? draft.potential ?? null,
+              plan: draft.plan ?? null,
+            })),
+          },
+        });
+      }
+
+      return { squad: squadResult, youth: youthResult };
     },
     onSuccess: (result) => {
       void queryClient.invalidateQueries({ queryKey: ["career", id] });
       void queryClient.invalidateQueries({ queryKey: ["careers"] });
+      void queryClient.invalidateQueries({ queryKey: ["youth", id] });
+      const squadTotal = result.squad.created + result.squad.updated;
+      const youthTotal = result.youth.created + result.youth.updated;
       setDrafts(null);
       setImportId(null);
-      toast.success(`${result.created} nye og ${result.updated} opdaterede spillere gemt.`);
-      void navigate({ to: "/karrierer/$id/trup", params: { id } });
+      toast.success(
+        `Trup: ${result.squad.created} nye, ${result.squad.updated} opdaterede · Akademi: ${result.youth.created} nye, ${result.youth.updated} opdaterede.`,
+      );
+      void navigate({
+        to: squadTotal === 0 && youthTotal > 0 ? "/karrierer/$id/akademi" : "/karrierer/$id/trup",
+        params: { id },
+      });
     },
     onError: (error) => toast.error(error.message),
   });
