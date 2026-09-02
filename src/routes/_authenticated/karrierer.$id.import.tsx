@@ -93,7 +93,7 @@ function ImportPage() {
   const squadDrafts = withTarget.filter((draft) => draft.target !== "youth");
   const youthDrafts = withTarget.filter((draft) => draft.target === "youth");
   const diffs = diffDrafts(withTarget, data.players, data.snapshots, activeSeason?.id ?? null);
-  const counts = diffCounts(diffs);
+  const counts = diffCounts(diffs.filter((_, i) => withTarget[i]?.target !== "youth"));
   const hasExistingSquad = data.players.length > 0;
 
   const formatDiffValue = (field: DiffField, value: string | number | null) => {
