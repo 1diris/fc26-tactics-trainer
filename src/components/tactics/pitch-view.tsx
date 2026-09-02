@@ -62,7 +62,21 @@ export function PitchView({
                     }`
               }`}
             >
-              {node.position}
+              {node.playerName ? (
+                <>
+                  <PlayerAvatar
+                    name={node.playerFullName ?? node.playerName}
+                    src={node.faceUrl}
+                    size="sm"
+                    className="h-full w-full border-0 bg-zinc-900/80"
+                  />
+                  <span className="absolute -bottom-1 -left-1 rounded-full border border-zinc-700 bg-zinc-950 px-1 text-[9px] font-bold text-zinc-200">
+                    {node.position}
+                  </span>
+                </>
+              ) : (
+                node.position
+              )}
               {node.mastery !== "base" && (
                 <span className="absolute -right-1 -top-1 rounded-full border border-lime-400/60 bg-zinc-950 px-1 text-[9px] font-bold text-lime-400">
                   {node.mastery}
