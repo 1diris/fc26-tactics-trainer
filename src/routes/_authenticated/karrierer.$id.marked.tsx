@@ -16,6 +16,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { careerDataQuery, leaguesQuery, marketSearchQuery, targetsQuery } from "@/lib/career-queries";
 import { SignPlayerDialog } from "@/components/sign-player-dialog";
+import { PlayerAvatar } from "@/components/player-avatar";
 import {
   addTransferTarget,
   removeTransferTarget,
