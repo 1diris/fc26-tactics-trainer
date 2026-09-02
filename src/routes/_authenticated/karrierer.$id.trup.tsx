@@ -24,6 +24,7 @@ import { POSITION_GROUPS, formatMoney, formatWage, ovrTone } from "@/lib/footbal
 import { autoMatchSquad } from "@/lib/fc-match.functions";
 import { FcMatchDialog } from "@/components/fc-match-dialog";
 import { SellPlayerDialog } from "@/components/sell-player-dialog";
+import { PlayerAvatar } from "@/components/player-avatar";
 
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/trup")({
@@ -374,9 +375,11 @@ function SquadPage() {
               const role = roleOf(row);
               return (
                 <li key={row.player.id} className="rounded-xl border border-border/60 bg-card p-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <Link
+                   <div className="flex items-start justify-between gap-2">
+                     <div className="flex min-w-0 items-center gap-3">
+                       <PlayerAvatar name={row.player.name} src={row.fc?.face_url} size="md" />
+                       <div className="min-w-0">
+                       <Link
                         to="/karrierer/$id/spiller/$playerId"
                         params={{ id, playerId: row.player.id }}
                         className="block truncate font-medium hover:text-primary"
@@ -386,9 +389,10 @@ function SquadPage() {
                       <p className="text-xs text-muted-foreground">
                         {row.position ?? "–"}
                         {role ? ` · ${role}` : ""}
-                      </p>
-                    </div>
-                    <div className="shrink-0 text-right">
+                       </p>
+                       </div>
+                     </div>
+                     <div className="shrink-0 text-right">
                       <span
                         className={`text-lg font-semibold tabular-nums ${ovrTone(row.current?.overall)}`}
                       >
@@ -485,6 +489,9 @@ function SquadPage() {
                   return (
                     <tr key={row.player.id} className="border-b border-border/40 last:border-0">
                       <td className="px-4 py-2.5">
+                        <div className="flex items-center gap-3">
+                          <PlayerAvatar name={row.player.name} src={row.fc?.face_url} size="sm" />
+                          <div className="min-w-0">
                         <Link
                           to="/karrierer/$id/spiller/$playerId"
                           params={{ id, playerId: row.player.id }}
@@ -500,6 +507,8 @@ function SquadPage() {
                             {row.ovrDelta}
                           </span>
                         )}
+                          </div>
+                        </div>
                       </td>
                       <td className="px-4 py-2.5 text-muted-foreground">{row.position ?? "–"}</td>
                       <td
