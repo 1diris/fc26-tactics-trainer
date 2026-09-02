@@ -24,6 +24,7 @@ import { POSITION_GROUPS, formatMoney, formatWage, ovrTone } from "@/lib/footbal
 import { autoMatchSquad } from "@/lib/fc-match.functions";
 import { FcMatchDialog } from "@/components/fc-match-dialog";
 import { SellPlayerDialog } from "@/components/sell-player-dialog";
+import { PlayerAvatar } from "@/components/player-avatar";
 
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/trup")({
