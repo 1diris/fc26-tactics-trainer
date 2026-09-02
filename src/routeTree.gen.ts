@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as FcIqRouteImport } from './routes/fc-iq'
 import { Route as AuthenticatedKarriererIndexRouteImport } from './routes/_authenticated/karrierer.index'
 import { Route as AuthenticatedKarriererIdRouteImport } from './routes/_authenticated/karrierer.$id'
 import { Route as AuthenticatedKarriererIdIndexRouteImport } from './routes/_authenticated/karrierer.$id.index'
@@ -33,6 +34,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FcIqRoute = FcIqRouteImport.update({
+  id: '/fc-iq',
+  path: '/fc-iq',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedKarriererIndexRoute =
@@ -87,6 +93,7 @@ const AuthenticatedKarriererIdSpillerPlayerIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/fc-iq': typeof FcIqRoute
   '/karrierer/$id': typeof AuthenticatedKarriererIdRouteWithChildren
   '/karrierer/': typeof AuthenticatedKarriererIndexRoute
   '/karrierer/$id/import': typeof AuthenticatedKarriererIdImportRoute
@@ -99,6 +106,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/fc-iq': typeof FcIqRoute
   '/karrierer': typeof AuthenticatedKarriererIndexRoute
   '/karrierer/$id/import': typeof AuthenticatedKarriererIdImportRoute
   '/karrierer/$id/marked': typeof AuthenticatedKarriererIdMarkedRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/fc-iq': typeof FcIqRoute
   '/_authenticated/karrierer/$id': typeof AuthenticatedKarriererIdRouteWithChildren
   '/_authenticated/karrierer/': typeof AuthenticatedKarriererIndexRoute
   '/_authenticated/karrierer/$id/import': typeof AuthenticatedKarriererIdImportRoute
@@ -126,6 +135,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/fc-iq'
     | '/karrierer/$id'
     | '/karrierer/'
     | '/karrierer/$id/import'
@@ -138,6 +148,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/fc-iq'
     | '/karrierer'
     | '/karrierer/$id/import'
     | '/karrierer/$id/marked'
@@ -150,6 +161,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/fc-iq'
     | '/_authenticated/karrierer/$id'
     | '/_authenticated/karrierer/'
     | '/_authenticated/karrierer/$id/import'
@@ -164,6 +176,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  FcIqRoute: typeof FcIqRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -187,6 +200,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fc-iq': {
+      id: '/fc-iq'
+      path: '/fc-iq'
+      fullPath: '/fc-iq'
+      preLoaderRoute: typeof FcIqRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/karrierer/': {
@@ -290,6 +310,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  FcIqRoute: FcIqRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
