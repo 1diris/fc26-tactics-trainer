@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as FcIqRouteImport } from './routes/fc-iq'
 import { Route as AuthenticatedKarriererIndexRouteImport } from './routes/_authenticated/karrierer.index'
 import { Route as AuthenticatedKarriererIdRouteImport } from './routes/_authenticated/karrierer.$id'
+import { Route as ApiPublicPlayerFaceRouteImport } from './routes/api/public/player-face'
 import { Route as AuthenticatedKarriererIdIndexRouteImport } from './routes/_authenticated/karrierer.$id.index'
 import { Route as AuthenticatedKarriererIdImportRouteImport } from './routes/_authenticated/karrierer.$id.import'
 import { Route as AuthenticatedKarriererIdMarkedRouteImport } from './routes/_authenticated/karrierer.$id.marked'
@@ -53,6 +54,11 @@ const AuthenticatedKarriererIdRoute =
     path: '/karrierer/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicPlayerFaceRoute = ApiPublicPlayerFaceRouteImport.update({
+  id: '/api/public/player-face',
+  path: '/api/public/player-face',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedKarriererIdIndexRoute =
   AuthenticatedKarriererIdIndexRouteImport.update({
     id: '/',
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/fc-iq': typeof FcIqRoute
   '/karrierer/$id': typeof AuthenticatedKarriererIdRouteWithChildren
+  '/api/public/player-face': typeof ApiPublicPlayerFaceRoute
   '/karrierer/': typeof AuthenticatedKarriererIndexRoute
   '/karrierer/$id/import': typeof AuthenticatedKarriererIdImportRoute
   '/karrierer/$id/marked': typeof AuthenticatedKarriererIdMarkedRoute
@@ -107,6 +114,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/fc-iq': typeof FcIqRoute
+  '/api/public/player-face': typeof ApiPublicPlayerFaceRoute
   '/karrierer': typeof AuthenticatedKarriererIndexRoute
   '/karrierer/$id/import': typeof AuthenticatedKarriererIdImportRoute
   '/karrierer/$id/marked': typeof AuthenticatedKarriererIdMarkedRoute
@@ -122,6 +130,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/fc-iq': typeof FcIqRoute
   '/_authenticated/karrierer/$id': typeof AuthenticatedKarriererIdRouteWithChildren
+  '/api/public/player-face': typeof ApiPublicPlayerFaceRoute
   '/_authenticated/karrierer/': typeof AuthenticatedKarriererIndexRoute
   '/_authenticated/karrierer/$id/import': typeof AuthenticatedKarriererIdImportRoute
   '/_authenticated/karrierer/$id/marked': typeof AuthenticatedKarriererIdMarkedRoute
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/fc-iq'
     | '/karrierer/$id'
+    | '/api/public/player-face'
     | '/karrierer/'
     | '/karrierer/$id/import'
     | '/karrierer/$id/marked'
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/fc-iq'
+    | '/api/public/player-face'
     | '/karrierer'
     | '/karrierer/$id/import'
     | '/karrierer/$id/marked'
@@ -163,6 +174,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/fc-iq'
     | '/_authenticated/karrierer/$id'
+    | '/api/public/player-face'
     | '/_authenticated/karrierer/'
     | '/_authenticated/karrierer/$id/import'
     | '/_authenticated/karrierer/$id/marked'
@@ -177,6 +189,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   FcIqRoute: typeof FcIqRoute
+  ApiPublicPlayerFaceRoute: typeof ApiPublicPlayerFaceRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -222,6 +235,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/karrierer/$id'
       preLoaderRoute: typeof AuthenticatedKarriererIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/player-face': {
+      id: '/api/public/player-face'
+      path: '/api/public/player-face'
+      fullPath: '/api/public/player-face'
+      preLoaderRoute: typeof ApiPublicPlayerFaceRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/karrierer/$id/': {
       id: '/_authenticated/karrierer/$id/'
@@ -311,6 +331,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   FcIqRoute: FcIqRoute,
+  ApiPublicPlayerFaceRoute: ApiPublicPlayerFaceRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

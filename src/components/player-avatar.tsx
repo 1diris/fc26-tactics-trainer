@@ -17,6 +17,12 @@ const sizeClass = {
   lg: "h-14 w-14 text-base",
 } as const;
 
+/** External CDN portraits block hotlinking, so they go through our proxy. */
+function resolveSrc(src: string): string {
+  if (!/^https?:\/\//i.test(src)) return src;
+  return `/api/public/player-face?u=${encodeURIComponent(src)}`;
+}
+
 export function PlayerAvatar({
   name,
   src,
