@@ -375,9 +375,11 @@ function SquadPage() {
               const role = roleOf(row);
               return (
                 <li key={row.player.id} className="rounded-xl border border-border/60 bg-card p-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <Link
+                   <div className="flex items-start justify-between gap-2">
+                     <div className="flex min-w-0 items-center gap-3">
+                       <PlayerAvatar name={row.player.name} src={row.fc?.face_url} size="md" />
+                       <div className="min-w-0">
+                       <Link
                         to="/karrierer/$id/spiller/$playerId"
                         params={{ id, playerId: row.player.id }}
                         className="block truncate font-medium hover:text-primary"
