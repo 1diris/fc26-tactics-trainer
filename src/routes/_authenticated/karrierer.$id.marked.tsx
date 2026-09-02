@@ -825,6 +825,7 @@ function PlayerRow({
   return (
     <article className="rounded-lg border border-border/60 bg-card/40 p-3">
       <div className="flex items-start gap-3">
+        <PlayerAvatar name={player.short_name} src={player.face_url} size="md" />
         <div className="flex flex-col items-center">
           <span className={`font-display text-2xl font-bold leading-none ${ovrTone(player.overall)}`}>
             {player.overall ?? "–"}
