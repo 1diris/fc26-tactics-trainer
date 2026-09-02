@@ -24,7 +24,7 @@ export function PlayerAvatar({
   className = "",
 }: {
   name: string;
-  src?: string | null;
+  src?: string | null | undefined;
   size?: keyof typeof sizeClass;
   className?: string;
 }) {
