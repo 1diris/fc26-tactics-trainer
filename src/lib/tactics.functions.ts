@@ -31,7 +31,9 @@ export const saveTactic = createServerFn({ method: "POST" })
         formation: z.string().min(1),
         lineup: z.record(z.string().nullable()),
         settings: z.record(z.union([z.string(), z.number()])),
-        roles: z.record(z.object({ role: z.string(), focus: z.string() })).optional(),
+        roles: z
+          .record(z.object({ role: z.string(), focus: z.string(), mastery: z.string().optional() }))
+          .optional(),
         notes: z.string().nullable().optional(),
       })
       .parse(input),
