@@ -414,8 +414,8 @@ function AddTalentDialog({
       return;
     }
     const ageValue = Number(age);
-    if (!Number.isFinite(ageValue) || ageValue < 14 || ageValue > 19) {
-      toast.error("Alder skal være mellem 14 og 19.");
+    if (!Number.isFinite(ageValue) || ageValue < 13 || ageValue > 18) {
+      toast.error("Alder skal være mellem 13 og 18.");
       return;
     }
     setSaving(true);
@@ -500,8 +500,8 @@ function AddTalentDialog({
               <Input
                 id="youth-age"
                 type="number"
-                min={14}
-                max={19}
+                min={13}
+                max={18}
                 value={age}
                 onChange={(event) => setAge(event.target.value)}
               />

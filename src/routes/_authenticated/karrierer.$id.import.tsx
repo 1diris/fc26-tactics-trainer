@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { careerDataQuery, importsQuery } from "@/lib/career-queries";
 import { analyzeScreenshot } from "@/lib/import.functions";
+import { saveYouthPlayers } from "@/lib/youth.functions";
 import { savePlayers, type PlayerInput } from "@/lib/career.functions";
 import { autoMatchSquad } from "@/lib/fc-match.functions";
 import { sortedSeasons } from "@/lib/squad";
@@ -38,7 +39,29 @@ export const Route = createFileRoute("/_authenticated/karrierer/$id/import")({
   component: ImportPage,
 });
 
-type Draft = PlayerInput & { uncertain_fields?: string[] };
+type Draft = PlayerInput & {
+  uncertain_fields?: string[];
+  potential_min?: number | null;
+  potential_max?: number | null;
+  plan?: string | null;
+  is_youth?: boolean;
+  target?: "squad" | "youth";
+};
+
+/** Talenter genkendes på alder 13-18, POT-interval eller AI'ens akademi-hint. */
+function suggestTarget(draft: Draft): "squad" | "youth" {
+  if (draft.target) return draft.target;
+  if (draft.is_youth) return "youth";
+  if (typeof draft.age === "number" && draft.age >= 13 && draft.age <= 18) return "youth";
+  if (
+    typeof draft.potential_min === "number" &&
+    typeof draft.potential_max === "number" &&
+    draft.potential_max > draft.potential_min
+  ) {
+    return "youth";
+  }
+  return "squad";
+}
 
 function ImportPage() {
   const { id } = useParams({ from: "/_authenticated/karrierer/$id/import" });
@@ -49,6 +72,7 @@ function ImportPage() {
 
   const analyze = useServerFn(analyzeScreenshot);
   const save = useServerFn(savePlayers);
+  const saveYouth = useServerFn(saveYouthPlayers);
   const runAutoMatch = useServerFn(autoMatchSquad);
 
   const fileRef = useRef<HTMLInputElement>(null);
@@ -62,8 +86,14 @@ function ImportPage() {
   const activeSeason =
     seasons.find((season) => season.id === data.career.current_season_id) ?? seasons[0];
 
-  const diffs = diffDrafts(drafts ?? [], data.players, data.snapshots, activeSeason?.id ?? null);
-  const counts = diffCounts(diffs);
+  const withTarget: Draft[] = (drafts ?? []).map((draft) => ({
+    ...draft,
+    target: suggestTarget(draft),
+  }));
+  const squadDrafts = withTarget.filter((draft) => draft.target !== "youth");
+  const youthDrafts = withTarget.filter((draft) => draft.target === "youth");
+  const diffs = diffDrafts(withTarget, data.players, data.snapshots, activeSeason?.id ?? null);
+  const counts = diffCounts(diffs.filter((_, i) => withTarget[i]?.target !== "youth"));
   const hasExistingSquad = data.players.length > 0;
 
   const formatDiffValue = (field: DiffField, value: string | number | null) => {
@@ -215,32 +245,76 @@ function ImportPage() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!activeSeason || !drafts) throw new Error("Ingen data at gemme.");
-      const result = await save({
-        data: {
-          careerId: id,
-          seasonId: activeSeason.id,
-          importId,
-          players: drafts.map(({ uncertain_fields: _ignored, ...player }) => player),
-        },
-      });
-      // Kobl nye spillere til FC 26-databasen med det samme.
-      try {
-        await runAutoMatch({ data: { careerId: id } });
-      } catch {
-        // Match kan altid køres manuelt fra Trup-siden.
+      let squadResult = { created: 0, updated: 0 };
+      if (squadDrafts.length > 0) {
+        squadResult = await save({
+          data: {
+            careerId: id,
+            seasonId: activeSeason.id,
+            importId,
+            players: squadDrafts.map(
+              ({
+                uncertain_fields: _u,
+                potential_min: _pmin,
+                potential_max: _pmax,
+                plan: _plan,
+                is_youth: _y,
+                target: _t,
+                ...player
+              }) => player,
+            ),
+          },
+        });
+        // Kobl nye spillere til FC 26-databasen med det samme.
+        try {
+          await runAutoMatch({ data: { careerId: id } });
+        } catch {
+          // Match kan altid køres manuelt fra Trup-siden.
+        }
       }
-      return result;
+
+      let youthResult = { created: 0, updated: 0 };
+      if (youthDrafts.length > 0) {
+        youthResult = await saveYouth({
+          data: {
+            careerId: id,
+            players: youthDrafts.map((draft) => ({
+              name: draft.name,
+              position: draft.position ?? null,
+              age: typeof draft.age === "number" && draft.age >= 13 && draft.age <= 18 ? draft.age : null,
+              overall: draft.overall ?? null,
+              potentialMin: draft.potential_min ?? draft.potential ?? null,
+              potentialMax: draft.potential_max ?? draft.potential ?? null,
+              plan: draft.plan ?? null,
+            })),
+          },
+        });
+      }
+
+      return { squad: squadResult, youth: youthResult };
     },
     onSuccess: (result) => {
       void queryClient.invalidateQueries({ queryKey: ["career", id] });
       void queryClient.invalidateQueries({ queryKey: ["careers"] });
+      void queryClient.invalidateQueries({ queryKey: ["youth", id] });
+      const squadTotal = result.squad.created + result.squad.updated;
+      const youthTotal = result.youth.created + result.youth.updated;
       setDrafts(null);
       setImportId(null);
-      toast.success(`${result.created} nye og ${result.updated} opdaterede spillere gemt.`);
-      void navigate({ to: "/karrierer/$id/trup", params: { id } });
+      toast.success(
+        `Trup: ${result.squad.created} nye, ${result.squad.updated} opdaterede · Akademi: ${result.youth.created} nye, ${result.youth.updated} opdaterede.`,
+      );
+      void navigate({
+        to: squadTotal === 0 && youthTotal > 0 ? "/karrierer/$id/akademi" : "/karrierer/$id/trup",
+        params: { id },
+      });
     },
     onError: (error) => toast.error(error.message),
   });
+
+  const setAllTargets = (target: "squad" | "youth") => {
+    setDrafts((current) => (current ? current.map((draft) => ({ ...draft, target })) : current));
+  };
 
   const patchDraft = (index: number, patch: Partial<Draft>) => {
     setDrafts((current) =>
@@ -321,6 +395,11 @@ function ImportPage() {
                 Ret felter AI var usikker på (markeret med gul), før du gemmer.
               </p>
               <p className="mt-1 text-sm">
+                <span className="font-medium">{squadDrafts.length} til truppen</span>
+                <span className="text-muted-foreground"> · </span>
+                <span className="font-medium text-violet-500">{youthDrafts.length} til akademiet</span>
+              </p>
+              <p className="mt-1 text-sm">
                 <span className="font-medium text-primary">{counts.created} nye</span>
                 <span className="text-muted-foreground"> · </span>
                 <span className="font-medium">{counts.updated} opdateres</span>
@@ -328,6 +407,12 @@ function ImportPage() {
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
+              <Button variant="outline" onClick={() => setAllTargets("squad")}>
+                Alle til trup
+              </Button>
+              <Button variant="outline" onClick={() => setAllTargets("youth")}>
+                Alle til akademi
+              </Button>
               {hasExistingSquad && (
                 <Button
                   variant={onlyChanges ? "secondary" : "outline"}
@@ -340,7 +425,7 @@ function ImportPage() {
                 Annullér
               </Button>
               <Button disabled={saveMutation.isPending} onClick={() => saveMutation.mutate()}>
-                {saveMutation.isPending ? "Gemmer…" : "Gem i truppen"}
+                {saveMutation.isPending ? "Gemmer…" : "Gem"}
               </Button>
             </div>
           </div>
@@ -349,6 +434,7 @@ function ImportPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border/60 text-xs uppercase tracking-wider text-muted-foreground">
+                  <th className="px-3 py-2 text-left font-medium">Gemmes i</th>
                   <th className="px-3 py-2 text-left font-medium">Status</th>
                   <th className="px-3 py-2 text-left font-medium">Navn</th>
                   <th className="px-3 py-2 text-left font-medium">Pos</th>
@@ -362,16 +448,35 @@ function ImportPage() {
                 </tr>
               </thead>
               <tbody>
-                {drafts.map((draft, index) => {
+                {withTarget.map((draft, index) => {
+                  const isYouth = draft.target === "youth";
                   const diff = diffs[index];
                   const isNew = !diff || diff.status === "new";
                   const changedCount = diff?.changes.length ?? 0;
-                  if (onlyChanges && !isNew && changedCount === 0) return null;
+                  if (onlyChanges && !isYouth && !isNew && changedCount === 0) return null;
                   const uncertain = new Set(draft.uncertain_fields ?? []);
                   const cell = (field: string) =>
                     uncertain.has(field) ? "bg-amber-500/10" : undefined;
                   return (
                     <tr key={`${draft.name}-${index}`} className="border-b border-border/40">
+                      <td className="px-3 py-1.5 align-top">
+                        <div className="inline-flex overflow-hidden rounded-md border border-border/60">
+                          <button
+                            type="button"
+                            className={`px-2 py-1 text-[11px] font-medium ${isYouth ? "text-muted-foreground" : "bg-primary/15 text-primary"}`}
+                            onClick={() => patchDraft(index, { target: "squad" })}
+                          >
+                            Trup
+                          </button>
+                          <button
+                            type="button"
+                            className={`px-2 py-1 text-[11px] font-medium ${isYouth ? "bg-violet-500/20 text-violet-500" : "text-muted-foreground"}`}
+                            onClick={() => patchDraft(index, { target: "youth" })}
+                          >
+                            Akademi
+                          </button>
+                        </div>
+                      </td>
                       <td className="px-3 py-1.5 align-top">
                         <span
                           className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ${
@@ -382,7 +487,13 @@ function ImportPage() {
                                 : "bg-muted text-muted-foreground"
                           }`}
                         >
-                          {isNew ? "Ny" : changedCount > 0 ? "Opdateret" : "Ingen ændring"}
+                          {isYouth
+                            ? "Talent"
+                            : isNew
+                              ? "Ny"
+                              : changedCount > 0
+                                ? "Opdateret"
+                                : "Ingen ændring"}
                         </span>
                       </td>
                       <td className={`px-3 py-1.5 ${cell("name") ?? ""}`}>
@@ -488,10 +599,10 @@ function ImportPage() {
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/60 bg-card/95 px-4 py-3 backdrop-blur">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
             <span className="text-sm text-muted-foreground">
-              {counts.created} nye · {counts.updated} opdateres — ikke gemt endnu
+              {squadDrafts.length} til truppen · {youthDrafts.length} til akademiet — ikke gemt endnu
             </span>
             <Button disabled={saveMutation.isPending} onClick={() => saveMutation.mutate()}>
-              {saveMutation.isPending ? "Gemmer…" : "Gem i truppen"}
+              {saveMutation.isPending ? "Gemmer…" : "Gem"}
             </Button>
           </div>
         </div>

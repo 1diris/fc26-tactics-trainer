@@ -6,6 +6,10 @@ export type ExtractedPlayer = {
   position: string | null;
   overall: number | null;
   potential: number | null;
+  potential_min: number | null;
+  potential_max: number | null;
+  plan: string | null;
+  is_youth: boolean;
   age: number | null;
   market_value: number | null;
   wage: number | null;
@@ -20,6 +24,7 @@ export type ExtractedPlayer = {
 
 const SYSTEM_PROMPT = `Du er en dataudtrækker for et fodbold-management værktøj.
 Du får et screenshot fra en spilkarriere (trupliste, spillerkort eller statistikoversigt).
+Billedet kan være førsteholdstruppen ELLER ungdomsakademiet/ungdomsholdet.
 Læs ALLE synlige spillere ud af billedet. Gæt ikke felter du ikke kan se — brug null.
 
 Svar KUN med JSON på formen:
@@ -27,7 +32,9 @@ Svar KUN med JSON på formen:
  "name": string,
  "position": string|null,           // fx "ST", "CB", "GK"
  "overall": number|null,            // OVR / samlet rating
- "potential": number|null,          // POT hvis synlig
+ "potential": number|null,          // POT hvis synlig (enkelt tal)
+ "potential_range": string|null,    // hvis POT vises som interval, fx "80 - 94"
+ "plan": string|null,               // udviklingsplan hvis synlig, fx "Dynamisk"
  "age": number|null,
  "market_value": number|null,       // i euro, fx 25.5m => 25500000
  "wage": number|null,               // euro pr. uge
@@ -37,8 +44,10 @@ Svar KUN med JSON på formen:
  "shirt_number": number|null,
  "form": number|null,               // 1-10 hvis synlig
  "stats": object,                   // synlige statistikker, fx {"kampe":12,"maal":7,"assists":3,"snit":7.4}
- "uncertain_fields": string[]       // felter du er usikker på
+ "uncertain_fields": string[],      // felter du er usikker på
+ "is_youth": boolean                // true hvis spilleren står på en akademi-/ungdomsskærm
 }]}
+Sæt "is_youth": true på spillere fra en akademi-/ungdomsholdsskærm (typisk alder 13-18 og POT som interval).
 Ingen forklaring, ingen markdown-kodeblok.`;
 
 export async function extractPlayersFromImage(
@@ -153,6 +162,29 @@ function normalizeStats(value: unknown): Record<string, string | number | boolea
   return result;
 }
 
+/** POT vises i akademiet som interval, fx "80 - 94". */
+function parsePotentialRange(entry: Record<string, unknown>): {
+  potential_min: number | null;
+  potential_max: number | null;
+} {
+  const explicitMin = toInt(entry["potential_min"], 30, 99);
+  const explicitMax = toInt(entry["potential_max"], 30, 99);
+  if (explicitMin !== null || explicitMax !== null) {
+    return { potential_min: explicitMin ?? explicitMax, potential_max: explicitMax ?? explicitMin };
+  }
+  const raw = toText(entry["potential_range"]) ?? toText(entry["potential"]);
+  if (raw) {
+    const parts = raw.match(/\d{2}/g);
+    if (parts && parts.length >= 2) {
+      const min = Number(parts[0]);
+      const max = Number(parts[1]);
+      if (min >= 30 && max <= 99 && min <= max) return { potential_min: min, potential_max: max };
+    }
+  }
+  const single = toInt(entry["potential"], 30, 99);
+  return { potential_min: single, potential_max: single };
+}
+
 function normalizeExtracted(entry: Record<string, unknown>): ExtractedPlayer | null {
   const name = toText(entry["name"]);
   if (!name) return null;
@@ -164,6 +196,9 @@ function normalizeExtracted(entry: Record<string, unknown>): ExtractedPlayer | n
     position: toText(entry["position"]),
     overall: toInt(entry["overall"], 30, 99),
     potential: toInt(entry["potential"], 30, 99),
+    ...parsePotentialRange(entry),
+    plan: toText(entry["plan"]),
+    is_youth: entry["is_youth"] === true,
     age: toInt(entry["age"], 14, 50),
     market_value: toNumber(entry["market_value"]),
     wage: toNumber(entry["wage"]),
