@@ -17,6 +17,7 @@ import { Route as AuthenticatedKarriererIndexRouteImport } from './routes/_authe
 import { Route as AuthenticatedKarriererIdRouteImport } from './routes/_authenticated/karrierer.$id'
 import { Route as ApiPublicPlayerFaceRouteImport } from './routes/api/public/player-face'
 import { Route as AuthenticatedKarriererIdIndexRouteImport } from './routes/_authenticated/karrierer.$id.index'
+import { Route as AuthenticatedKarriererIdAkademiRouteImport } from './routes/_authenticated/karrierer.$id.akademi'
 import { Route as AuthenticatedKarriererIdImportRouteImport } from './routes/_authenticated/karrierer.$id.import'
 import { Route as AuthenticatedKarriererIdMarkedRouteImport } from './routes/_authenticated/karrierer.$id.marked'
 import { Route as AuthenticatedKarriererIdTaktikRouteImport } from './routes/_authenticated/karrierer.$id.taktik'
@@ -65,6 +66,12 @@ const AuthenticatedKarriererIdIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedKarriererIdRoute,
   } as any)
+const AuthenticatedKarriererIdAkademiRoute =
+  AuthenticatedKarriererIdAkademiRouteImport.update({
+    id: '/akademi',
+    path: '/akademi',
+    getParentRoute: () => AuthenticatedKarriererIdRoute,
+  } as any)
 const AuthenticatedKarriererIdImportRoute =
   AuthenticatedKarriererIdImportRouteImport.update({
     id: '/import',
@@ -103,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/karrierer/$id': typeof AuthenticatedKarriererIdRouteWithChildren
   '/api/public/player-face': typeof ApiPublicPlayerFaceRoute
   '/karrierer/': typeof AuthenticatedKarriererIndexRoute
+  '/karrierer/$id/akademi': typeof AuthenticatedKarriererIdAkademiRoute
   '/karrierer/$id/import': typeof AuthenticatedKarriererIdImportRoute
   '/karrierer/$id/marked': typeof AuthenticatedKarriererIdMarkedRoute
   '/karrierer/$id/taktik': typeof AuthenticatedKarriererIdTaktikRoute
@@ -116,6 +124,7 @@ export interface FileRoutesByTo {
   '/fc-iq': typeof FcIqRoute
   '/api/public/player-face': typeof ApiPublicPlayerFaceRoute
   '/karrierer': typeof AuthenticatedKarriererIndexRoute
+  '/karrierer/$id/akademi': typeof AuthenticatedKarriererIdAkademiRoute
   '/karrierer/$id/import': typeof AuthenticatedKarriererIdImportRoute
   '/karrierer/$id/marked': typeof AuthenticatedKarriererIdMarkedRoute
   '/karrierer/$id/taktik': typeof AuthenticatedKarriererIdTaktikRoute
@@ -132,6 +141,7 @@ export interface FileRoutesById {
   '/_authenticated/karrierer/$id': typeof AuthenticatedKarriererIdRouteWithChildren
   '/api/public/player-face': typeof ApiPublicPlayerFaceRoute
   '/_authenticated/karrierer/': typeof AuthenticatedKarriererIndexRoute
+  '/_authenticated/karrierer/$id/akademi': typeof AuthenticatedKarriererIdAkademiRoute
   '/_authenticated/karrierer/$id/import': typeof AuthenticatedKarriererIdImportRoute
   '/_authenticated/karrierer/$id/marked': typeof AuthenticatedKarriererIdMarkedRoute
   '/_authenticated/karrierer/$id/taktik': typeof AuthenticatedKarriererIdTaktikRoute
@@ -148,6 +158,7 @@ export interface FileRouteTypes {
     | '/karrierer/$id'
     | '/api/public/player-face'
     | '/karrierer/'
+    | '/karrierer/$id/akademi'
     | '/karrierer/$id/import'
     | '/karrierer/$id/marked'
     | '/karrierer/$id/taktik'
@@ -161,6 +172,7 @@ export interface FileRouteTypes {
     | '/fc-iq'
     | '/api/public/player-face'
     | '/karrierer'
+    | '/karrierer/$id/akademi'
     | '/karrierer/$id/import'
     | '/karrierer/$id/marked'
     | '/karrierer/$id/taktik'
@@ -176,6 +188,7 @@ export interface FileRouteTypes {
     | '/_authenticated/karrierer/$id'
     | '/api/public/player-face'
     | '/_authenticated/karrierer/'
+    | '/_authenticated/karrierer/$id/akademi'
     | '/_authenticated/karrierer/$id/import'
     | '/_authenticated/karrierer/$id/marked'
     | '/_authenticated/karrierer/$id/taktik'
@@ -250,6 +263,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedKarriererIdIndexRouteImport
       parentRoute: typeof AuthenticatedKarriererIdRoute
     }
+    '/_authenticated/karrierer/$id/akademi': {
+      id: '/_authenticated/karrierer/$id/akademi'
+      path: '/akademi'
+      fullPath: '/karrierer/$id/akademi'
+      preLoaderRoute: typeof AuthenticatedKarriererIdAkademiRouteImport
+      parentRoute: typeof AuthenticatedKarriererIdRoute
+    }
     '/_authenticated/karrierer/$id/import': {
       id: '/_authenticated/karrierer/$id/import'
       path: '/import'
@@ -289,6 +309,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedKarriererIdRouteChildren {
+  AuthenticatedKarriererIdAkademiRoute: typeof AuthenticatedKarriererIdAkademiRoute
   AuthenticatedKarriererIdImportRoute: typeof AuthenticatedKarriererIdImportRoute
   AuthenticatedKarriererIdMarkedRoute: typeof AuthenticatedKarriererIdMarkedRoute
   AuthenticatedKarriererIdTaktikRoute: typeof AuthenticatedKarriererIdTaktikRoute
@@ -299,6 +320,7 @@ interface AuthenticatedKarriererIdRouteChildren {
 
 const AuthenticatedKarriererIdRouteChildren: AuthenticatedKarriererIdRouteChildren =
   {
+    AuthenticatedKarriererIdAkademiRoute: AuthenticatedKarriererIdAkademiRoute,
     AuthenticatedKarriererIdImportRoute: AuthenticatedKarriererIdImportRoute,
     AuthenticatedKarriererIdMarkedRoute: AuthenticatedKarriererIdMarkedRoute,
     AuthenticatedKarriererIdTaktikRoute: AuthenticatedKarriererIdTaktikRoute,

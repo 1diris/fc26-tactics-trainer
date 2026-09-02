@@ -21,6 +21,7 @@ const tabs = [
   { to: "/karrierer/$id", label: "Overblik", exact: true },
   { to: "/karrierer/$id/trup", label: "Trup", exact: false },
   { to: "/karrierer/$id/taktik", label: "Taktik", exact: false },
+  { to: "/karrierer/$id/akademi", label: "Akademi", exact: false },
   { to: "/karrierer/$id/marked", label: "Transfermarked", exact: false },
   { to: "/karrierer/$id/import", label: "Import", exact: false },
 ] as const;
