@@ -489,6 +489,9 @@ function SquadPage() {
                   return (
                     <tr key={row.player.id} className="border-b border-border/40 last:border-0">
                       <td className="px-4 py-2.5">
+                        <div className="flex items-center gap-3">
+                          <PlayerAvatar name={row.player.name} src={row.fc?.face_url} size="sm" />
+                          <div className="min-w-0">
                         <Link
                           to="/karrierer/$id/spiller/$playerId"
                           params={{ id, playerId: row.player.id }}
