@@ -507,6 +507,8 @@ function SquadPage() {
                             {row.ovrDelta}
                           </span>
                         )}
+                          </div>
+                        </div>
                       </td>
                       <td className="px-4 py-2.5 text-muted-foreground">{row.position ?? "–"}</td>
                       <td
