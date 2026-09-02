@@ -1,4 +1,5 @@
 import type { Fit } from "@/lib/formations";
+import { PlayerAvatar } from "@/components/player-avatar";
 
 export type PitchNode = {
   id: string;
@@ -7,6 +8,8 @@ export type PitchNode = {
   x: number;
   y: number;
   playerName: string | null;
+  playerFullName?: string | null;
+  faceUrl?: string | null;
   overall: number | null;
   roleLabel: string;
   mastery: "base" | "+" | "++";
