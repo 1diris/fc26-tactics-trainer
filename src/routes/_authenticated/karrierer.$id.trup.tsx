@@ -389,9 +389,10 @@ function SquadPage() {
                       <p className="text-xs text-muted-foreground">
                         {row.position ?? "–"}
                         {role ? ` · ${role}` : ""}
-                      </p>
-                    </div>
-                    <div className="shrink-0 text-right">
+                       </p>
+                       </div>
+                     </div>
+                     <div className="shrink-0 text-right">
                       <span
                         className={`text-lg font-semibold tabular-nums ${ovrTone(row.current?.overall)}`}
                       >
