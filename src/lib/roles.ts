@@ -307,7 +307,9 @@ export const ROLES_BY_POSITION: Record<string, Role[]> = {
   ],
 };
 
-export type SlotRole = { role: string; focus: RoleFocus };
+export type RoleMastery = "base" | "+" | "++";
+
+export type SlotRole = { role: string; focus: RoleFocus; mastery?: RoleMastery };
 
 export function rolesFor(position: string): Role[] {
   return ROLES_BY_POSITION[position] ?? [];
