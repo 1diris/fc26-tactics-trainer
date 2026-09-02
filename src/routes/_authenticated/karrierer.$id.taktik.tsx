@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PitchView, type PitchNode } from "@/components/tactics/pitch-view";
+import { PlayerAvatar } from "@/components/player-avatar";
 import { careerDataQuery } from "@/lib/career-queries";
 import { getTactic, saveTactic } from "@/lib/tactics.functions";
 import { buildSquad, sortedSeasons, type SquadRow } from "@/lib/squad";
@@ -222,6 +223,8 @@ function TacticsPage() {
       x: slot.x,
       y: slot.y,
       playerName: row ? (row.player.name.split(" ").slice(-1)[0] ?? row.player.name) : null,
+      playerFullName: row?.player.name ?? null,
+      faceUrl: row?.fc?.face_url ?? null,
       overall: row?.current?.overall ?? null,
       roleLabel: findRole(slot.position, roles[slot.id]?.role)?.label ?? "—",
       mastery: roles[slot.id]?.mastery ?? "base",
@@ -568,8 +571,11 @@ function TacticsPage() {
             <h3 className="text-sm font-semibold text-zinc-200">Bænk og resten af truppen</h3>
             <ul className="mt-2 max-h-72 space-y-1 overflow-y-auto text-sm">
               {bench.map((row) => (
-                <li key={row.player.id} className="flex justify-between gap-2 text-zinc-300">
-                  <span className="truncate">{row.player.name}</span>
+                <li key={row.player.id} className="flex items-center justify-between gap-2 text-zinc-300">
+                  <span className="flex min-w-0 items-center gap-2">
+                    <PlayerAvatar name={row.player.name} src={row.fc?.face_url} size="sm" />
+                    <span className="truncate">{row.player.name}</span>
+                  </span>
                   <span className="shrink-0 text-zinc-500">
                     {row.position ?? "–"} · {row.current?.overall ?? "–"}
                   </span>
