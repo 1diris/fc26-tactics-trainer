@@ -21,4 +21,5 @@ I dag ender alle spillere fra en screenshot-import i førsteholdstruppen. Planen
 - `src/lib/import-diff.ts` / import-siden: draft får `target: "squad" | "youth"` med auto-forslag ud fra alder, potentialeinterval og AI-hint. Diff-visningen gælder fortsat kun trup-drafts.
 - `src/lib/youth.functions.ts`: ny `saveYouthPlayers` serverfunktion (auth-beskyttet) som tager en liste og upserter pr. karriere ved at matche på normaliseret navn (genbrug logikken fra `src/lib/player-matching.ts`); nul-felter fra AI overskriver ikke eksisterende værdier.
 - `src/routes/_authenticated/karrierer.$id.import.tsx`: target-vælger pr. række, bulk-handlinger, opdelt gem-kald (`savePlayers` + `saveYouthPlayers`), invalidering af både karriere- og akademi-queries, opdateret toast.
+- Aldersgrænsen for talenter ændres fra 14–19 til **13–18** i validering (`src/lib/youth.functions.ts`) og i Akademi-formularen (`karrierer.$id.akademi.tsx`).
 - Ingen databaseændringer nødvendige — `youth_players` har allerede de felter der skal til.
