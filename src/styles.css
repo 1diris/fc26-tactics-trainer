@@ -8,6 +8,12 @@
   --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
   --font-sans: "Archivo", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-stat: "DM Mono", ui-monospace, monospace;
+  --color-dash-bg: var(--dash-bg);
+  --color-dash-card: var(--dash-card);
+  --color-dash-elevated: var(--dash-elevated);
+  --color-dash-border: var(--dash-border);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
