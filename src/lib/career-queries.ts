@@ -46,3 +46,9 @@ export const targetsQuery = (careerId: string) =>
     queryKey: ["transfer-targets", careerId],
     queryFn: () => listTransferTargets({ data: { careerId } }),
   });
+
+export const youthQuery = (careerId: string) =>
+  queryOptions({
+    queryKey: ["youth", careerId],
+    queryFn: () => listYouthPlayers({ data: { careerId } }),
+  });
