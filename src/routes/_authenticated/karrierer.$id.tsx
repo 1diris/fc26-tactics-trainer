@@ -41,7 +41,7 @@ function CareerLayout() {
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-dash-bg">
       <AppHeader />
       <div className="border-b border-border/60 bg-card/20">
         <div className="mx-auto max-w-6xl px-5 py-5">

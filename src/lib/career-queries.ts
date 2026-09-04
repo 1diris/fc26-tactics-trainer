@@ -1,6 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import { listCareers, getCareerData } from "./career.functions";
 import { listImports } from "./import.functions";
+import { listYouthPlayers } from "./youth.functions";
 import {
   searchMarketPlayers,
   listLeagues,
@@ -44,4 +45,10 @@ export const targetsQuery = (careerId: string) =>
   queryOptions({
     queryKey: ["transfer-targets", careerId],
     queryFn: () => listTransferTargets({ data: { careerId } }),
+  });
+
+export const youthQuery = (careerId: string) =>
+  queryOptions({
+    queryKey: ["youth", careerId],
+    queryFn: () => listYouthPlayers({ data: { careerId } }),
   });
