@@ -452,7 +452,7 @@ function CareerOverview() {
                       <Link
                         to="/karrierer/$id/marked"
                         params={{ id }}
-                        search={{ position: alert.action.search["position"] }}
+                        search={{ position: alert.action.search["position"] ?? "" }}
                       >
                         {alert.action.label}
                       </Link>
