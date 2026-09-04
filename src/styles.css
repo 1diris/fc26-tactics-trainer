@@ -63,6 +63,11 @@
 /* Dark-only football management dashboard palette. */
 :root {
   --radius: 0.5rem;
+  /* Dashboard surfaces: near-black analytics look. */
+  --dash-bg: oklch(0.145 0.004 285);
+  --dash-card: oklch(0.185 0.004 285);
+  --dash-elevated: oklch(0.215 0.004 285);
+  --dash-border: oklch(0.28 0.005 285);
   --background: oklch(0.16 0.012 250);
   --foreground: oklch(0.95 0.005 250);
   --card: oklch(0.21 0.014 250);
