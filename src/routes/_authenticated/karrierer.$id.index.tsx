@@ -167,24 +167,9 @@ function CareerOverview() {
   const rows = allRows.filter((row) => row.current !== null);
   const needs = useMemo(() => analyseSquadNeeds(allRows), [allRows]);
 
-  const league = data.career.league ?? "Career";
-  const club = data.career.club;
-
-  const contextBar = (
-    <div className="border-b border-dash-border">
-      <div className="mx-auto max-w-6xl px-1 pb-5 pt-1">
-        <p className="font-body text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
-          {league}
-        </p>
-        <h1 className="mt-1 font-display text-3xl font-bold tracking-tight sm:text-4xl">{club}</h1>
-      </div>
-    </div>
-  );
-
   if (rows.length === 0) {
     return (
       <div className="space-y-8 pb-24 lg:pb-8">
-        {contextBar}
         <div className="rounded-xl border border-dashed border-dash-border bg-dash-card p-10 text-center">
           <p className="font-display text-lg font-semibold">
             Ingen trupdata for {activeSeason?.label}
@@ -315,8 +300,6 @@ function CareerOverview() {
 
   return (
     <div className="space-y-8 pb-24 lg:pb-8">
-      {contextBar}
-
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
         <Kpi value={String(rows.length)} label="Players" hint="in squad" icon={Users} />
         <Kpi

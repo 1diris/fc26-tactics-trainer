@@ -35,6 +35,11 @@ import {
 import { POSITIONS, formatMoney, formatWage, normalizePosition, ovrTone } from "@/lib/football";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/marked")({
+  validateSearch: (search: Record<string, unknown>): { position?: string } => {
+    const raw = typeof search["position"] === "string" ? search["position"] : undefined;
+    const position = raw ? (normalizePosition(raw) ?? undefined) : undefined;
+    return position ? { position } : {};
+  },
   head: () => ({
     meta: [
       { title: "Transfermarked — Career Chronicles" },
@@ -149,12 +154,13 @@ function RangeField({
 
 function MarketPage() {
   const { id } = useParams({ from: "/_authenticated/karrierer/$id/marked" });
+  const { position: searchPosition } = Route.useSearch();
   const { data: career } = useSuspenseQuery(careerDataQuery(id));
   const queryClient = useQueryClient();
 
   const [term, setTerm] = useState("");
   const [submittedTerm, setSubmittedTerm] = useState("");
-  const [positions, setPositions] = useState<string[]>([]);
+  const [positions, setPositions] = useState<string[]>(searchPosition ? [searchPosition] : []);
   const [minOverall, setMinOverall] = useState("");
   const [maxOverall, setMaxOverall] = useState("");
   const [minPotential, setMinPotential] = useState("");
@@ -171,7 +177,7 @@ function MarketPage() {
   const [preset, setPreset] = useState<MarketPreset | null>(null);
   const [page, setPage] = useState(0);
   const [needsOpen, setNeedsOpen] = useState(false);
-  const [focusPosition, setFocusPosition] = useState<string | null>(null);
+  const [focusPosition, setFocusPosition] = useState<string | null>(searchPosition ?? null);
   const [signing, setSigning] = useState<MarketPlayer | null>(null);
 
 
