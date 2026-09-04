@@ -2,6 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut } from "lucide-react";
+import logoMark from "@/assets/logo-mark.png";
 
 export function AppHeader({ children }: { children?: React.ReactNode }) {
   const navigate = useNavigate();
@@ -14,7 +15,17 @@ export function AppHeader({ children }: { children?: React.ReactNode }) {
   return (
     <header className="border-b border-border/60 bg-card/40">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-5 py-3">
-        <Link to="/karrierer" className="font-display text-sm font-semibold tracking-tight">
+        <Link
+          to="/karrierer"
+          className="flex items-center gap-2.5 font-display text-sm font-semibold tracking-tight"
+        >
+          <img
+            src={logoMark}
+            alt="Career Chronicles"
+            width={28}
+            height={28}
+            className="h-7 w-7 shrink-0"
+          />
           Career Chronicles
         </Link>
         <div className="flex-1">{children}</div>
