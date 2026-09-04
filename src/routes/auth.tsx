@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
-import logoMark from "@/assets/logo-mark.png";
+import { BrandLogo } from "@/components/brand-logo";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -89,13 +89,7 @@ function AuthPage() {
           to="/"
           className="flex items-center gap-2.5 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground"
         >
-          <img
-            src={logoMark}
-            alt="Career Chronicles"
-            width={36}
-            height={36}
-            className="h-9 w-9 shrink-0"
-          />
+          <BrandLogo size={36} className="h-9 w-9 shrink-0" />
           Career Chronicles
         </Link>
         <h1 className="mt-4 font-display text-2xl font-bold tracking-tight">

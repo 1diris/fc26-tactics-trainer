@@ -2,7 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut } from "lucide-react";
-import logoMark from "@/assets/logo-mark.png";
+import { BrandLogo } from "@/components/brand-logo";
 
 export function AppHeader({ children }: { children?: React.ReactNode }) {
   const navigate = useNavigate();
@@ -19,13 +19,7 @@ export function AppHeader({ children }: { children?: React.ReactNode }) {
           to="/karrierer"
           className="flex items-center gap-2.5 font-display text-sm font-semibold tracking-tight"
         >
-          <img
-            src={logoMark}
-            alt="Career Chronicles"
-            width={28}
-            height={28}
-            className="h-7 w-7 shrink-0"
-          />
+          <BrandLogo size={28} className="h-7 w-7 shrink-0" />
           Career Chronicles
         </Link>
         <div className="flex-1">{children}</div>
