@@ -1,22 +1,31 @@
-# Spillerbilleder følger med fra screenshot-import
+# Redesign of the Overview page
 
-I dag gemmes talenter fra en screenshot-import uden portræt, så akademilisten viser silhuet/initialer. Planen tager billederne med fra selve screenshottet.
+Rebuild only the career Overview/Dashboard screen to match the attached design. All data, navigation, imports, squad, tactics, academy and backend logic stay exactly as they are. Labels on this page will be in English, as in the design.
 
-## Sådan bliver det
+## What the page will look like
 
-1. Når AI læser et screenshot, angiver den også hvor hver spillers portræt/ansigt sidder i billedet (en lille ramme med relative koordinater).
-2. Importsiden klipper det udsnit ud af det billede du selv uploadede, laver et lille kvadratisk portræt og viser det i gennemgangslisten ved siden af navnet — så du kan se med det samme om det ramte rigtigt.
-3. Når du gemmer:
-   - Akademi-markerede spillere gemmes med portrættet i `photo_data_url`, så Ungdomsakademiet viser rigtige billeder.
-   - Trup-markerede spillere beholder nuværende adfærd: portræt hentes fra FC 26-databasen når spilleren er matchet (uændret).
-4. Klipper AI ved siden af, eller er der ikke noget ansigt i billedet (fx en ren tabelvisning), falder visningen tilbage til initialer som nu. Ingen import fejler af den grund.
-5. Ved opfølgende import overskrives et eksisterende portræt kun hvis det nye screenshot faktisk gav et billede.
+1. **Club context bar** — league in small green uppercase text, club name large below it. Flat near-black background, no stadium image, no gradient. The "YOUR CLUB. YOUR DECISIONS. YOUR LEGACY." line and the whole stadium hero are not part of the new page.
+2. **6 KPI cards** — Players, Avg. OVR, Avg. POT, Avg. Age, Squad Value, Wage/Week. Each with big condensed number, small uppercase label, discreet icon, and a short status line where real data supports one (e.g. "+2.1 from season start" comes from the previous season snapshot; "young squad" from average age). Cards with a positive trend get a green top edge, warnings an orange one.
+3. **"Career Chronicles recommends"** — dark green tinted card with green border, a short recommendation built from the real squad gap analysis and contract situation, plus a CTA button (e.g. "Find RB") that opens Transfers pre-filled for that position.
+4. **Top Players** — ranked list with portrait, name, position badge, green OVR and POT, and a "See full squad →" link.
+5. **Alerts** — red for critical gaps, orange for thin positions and expiring contracts, green for database-match status. Each alert has a real action: Find <position>, View players, or Match squad.
+6. **Squad Distribution** — Goalkeeper / Defence / Midfield / Attack with player count, average OVR and a green progress bar.
+7. **Academy's Best Talents** — top youth talents sorted by max potential, with "See academy →".
+8. **Expiring Contracts** — portrait, position badges, OVR and remaining contract time in a mono amber chip.
 
-## Teknisk
+Sections with no data (e.g. empty academy) are simply hidden; the existing "no squad data yet — upload a screenshot" empty state is kept.
 
-- `src/lib/ai-extract.server.ts`: prompt og `ExtractedPlayer` udvides med `face_box` som `{x, y, w, h}` i 0–1 (null hvis intet portræt er synligt). Normalisering klamper værdier til gyldigt interval og kasserer alt for små/store bokse.
-- `src/routes/_authenticated/karrierer.$id.import.tsx`: efter analyse af hver fil laves crop klientside via `createImageBitmap` + `<canvas>` (ca. 128×128 px, JPEG kvalitet ~0.8) fra den `File` der allerede ligger i hukommelsen; resultatet gemmes som `photo_data_url` på draftet. Cropping sker i en try/catch — fejl giver blot intet billede.
-- Draft-typen får `photo_data_url?: string | null`. Sessionstorage-persistering beholdes, men billeder udelades af det gemte objekt for at holde `sessionStorage` under kvoten (billederne genskabes ikke ved reload — draftet vises da uden portræt).
-- Gennemgangstabellen får en billedkolonne, der genbruger `src/components/player-avatar.tsx` med `src={draft.photo_data_url}`.
-- `src/lib/youth.functions.ts`: `youthImportRow` får `photoDataUrl` (nullable, maks-længde som i `youthInput`); insert sætter feltet, update sætter det kun når der er en ny værdi (`player.photoDataUrl ?? current.photo_data_url`).
-- Ingen databaseændringer — `youth_players.photo_data_url` findes allerede.
+## Responsive behaviour
+
+- Desktop: airy multi-column dashboard grid; recommendation and alerts high on the page.
+- Mobile: single column, KPI cards in 2 columns, extra bottom padding so nothing hides behind the bottom bar.
+
+## Technical notes
+
+- Rewrite `src/routes/_authenticated/karrierer.$id.index.tsx` only; keep its existing `head()` metadata and `careerDataQuery` loading.
+- Reuse existing logic: `buildSquad`, `averageOf`, `contractYear`, `seasonStartYear` (squad.ts), `analyseSquadNeeds`/`PRIORITY_META` (squad-needs.ts), `formatMoney`/`POSITION_GROUPS`/`normalizePosition` (football.ts), `PlayerAvatar`.
+- Academy data: add a `youthQuery` wrapper in `src/lib/career-queries.ts` around the existing `listYouthPlayers` server function; no new backend code.
+- Transfers pre-fill: add optional search params (position, OVR/age hints) to the existing `/karrierer/$id/marked` route and apply them as initial filter state. No change to market server functions.
+- Typography: reuse the existing display font for headings/numbers; add Inter for body text and DM Mono for stats/contract chips via a font link in the root route and tokens in `src/styles.css`.
+- Palette: add near-black background and green/amber/red accent tokens to `src/styles.css` as semantic tokens; no hardcoded colour classes in the component.
+- "Wage/Week" shows total weekly wage; there is no stored wage budget, so it will not claim a budget percentage unless a budget field is added later.
