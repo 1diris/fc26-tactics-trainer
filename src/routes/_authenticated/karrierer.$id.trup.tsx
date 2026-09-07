@@ -3,7 +3,7 @@ import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-q
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowUpRight, Check, TriangleAlert } from "lucide-react";
+import { ArrowDownWideNarrow, ArrowLeft, ArrowUpNarrowWide, ArrowUpRight, Check, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { careerDataQuery } from "@/lib/career-queries";
@@ -278,6 +278,11 @@ function SquadPage() {
     }
   };
 
+  const changeSort = (key: SortKey) => {
+    setSortKey(key);
+    setAsc(key === "name" || key === "position" || key === "age");
+  };
+
   function resetFilters() {
     setSearch("");
     setGroup("alle");
@@ -377,6 +382,41 @@ function SquadPage() {
               className={`h-9 ${ovrRangeInvalid ? "border-destructive" : ""}`}
             />
           </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <label
+            htmlFor="squad-sort"
+            className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground"
+          >
+            Sort by
+          </label>
+          <select
+            id="squad-sort"
+            value={sortKey}
+            onChange={(event) => changeSort(event.target.value as SortKey)}
+            className="h-9 rounded-md border border-dash-border bg-dash-elevated px-2.5 text-sm text-foreground"
+          >
+            <option value="overall">OVR</option>
+            <option value="potential">Potential</option>
+            <option value="age">Age</option>
+            <option value="market_value">Value</option>
+            <option value="wage">Wage</option>
+            <option value="contract">Contract</option>
+            <option value="name">Name</option>
+            <option value="position">Position</option>
+          </select>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => setAsc(!asc)}
+            aria-label={asc ? "Sort high to low" : "Sort low to high"}
+            className="gap-1.5"
+          >
+            {asc ? <ArrowUpNarrowWide className="h-4 w-4" /> : <ArrowDownWideNarrow className="h-4 w-4" />}
+            {asc ? "Low → High" : "High → Low"}
+          </Button>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
