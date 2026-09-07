@@ -71,7 +71,7 @@ function Landing() {
           </span>
           <Button asChild size="sm" variant={signedIn ? "default" : "outline"}>
             <Link to={signedIn ? "/karrierer" : "/auth"}>
-              {signedIn ? "Mine karrierer" : "Log ind"}
+              {signedIn ? "My careers" : "Log in"}
             </Link>
           </Button>
         </div>
