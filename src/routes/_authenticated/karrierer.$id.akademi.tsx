@@ -66,294 +66,77 @@ type YouthRow = {
   created_at: string;
 };
 
-const SORT_KEYS = ["overall", "potential", "age"] as const;
+const SORT_KEYS = ["potential", "overall", "age", "name"] as const;
 type SortKey = (typeof SORT_KEYS)[number];
-const SORT_LABEL: Record<SortKey, string> = {
-  overall: "SML",
-  potential: "POT",
-  age: "År",
+
+const GROUP_PILL: Record<string, string> = {
+  Målmand: "border-violet-500/40 bg-violet-500/15 text-violet-300",
+  Forsvar: "border-sky-500/40 bg-sky-500/15 text-sky-300",
+  Midtbane: "border-amber-500/40 bg-amber-500/15 text-amber-300",
+  Angreb: "border-red-500/40 bg-red-500/15 text-red-300",
+  Ukendt: "border-dash-border bg-dash-elevated text-muted-foreground",
 };
 
-function shortName(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length < 2) return name;
-  return `${parts[0]?.[0]}. ${parts.slice(1).join(" ")}`;
+function groupOfPosition(position: string | null): string {
+  if (!position) return "Ukendt";
+  for (const [group, list] of Object.entries(POSITION_GROUPS)) {
+    if (list.includes(position)) return group;
+  }
+  return "Ukendt";
 }
 
-function AcademyPage() {
-  const { id } = useParams({ from: "/_authenticated/karrierer/$id" });
-  const queryClient = useQueryClient();
-  const listFn = useServerFn(listYouthPlayers);
-  const createFn = useServerFn(createYouthPlayer);
-  const deleteFn = useServerFn(deleteYouthPlayer);
-  const promoteFn = useServerFn(promoteYouthPlayer);
-
-  const careerQuery = useQuery(careerDataQuery(id));
-  const seasons = sortedSeasons(careerQuery.data?.seasons ?? []);
-  const activeSeasonId = careerQuery.data?.career.current_season_id ?? seasons[0]?.id ?? "";
-
-  const youth = useQuery({
-    queryKey: ["youth", id],
-    queryFn: () => listFn({ data: { careerId: id } }) as Promise<YouthRow[]>,
-  });
-
-  const [sortKey, setSortKey] = useState<SortKey>("overall");
-  const [cursor, setCursor] = useState(0);
-  const [showActions, setShowActions] = useState(false);
-  const [addOpen, setAddOpen] = useState(false);
-
-  const rows = useMemo(() => {
-    const list = [...(youth.data ?? [])];
-    list.sort((a, b) => {
-      if (sortKey === "age") return (a.age ?? 99) - (b.age ?? 99);
-      if (sortKey === "potential")
-        return (b.potential_max ?? b.potential_min ?? 0) - (a.potential_max ?? a.potential_min ?? 0);
-      return (b.overall ?? 0) - (a.overall ?? 0);
-    });
-    return list;
-  }, [youth.data, sortKey]);
-
-  useEffect(() => {
-    if (cursor > rows.length - 1) setCursor(Math.max(0, rows.length - 1));
-  }, [rows.length, cursor]);
-
-  const selected = rows[cursor];
-
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (addOpen) return;
-      if (event.key === "ArrowDown") {
-        event.preventDefault();
-        setCursor((value) => Math.min(rows.length - 1, value + 1));
-      } else if (event.key === "ArrowUp") {
-        event.preventDefault();
-        setCursor((value) => Math.max(0, value - 1));
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [rows.length, addOpen]);
-
-  const invalidate = () => {
-    void queryClient.invalidateQueries({ queryKey: ["youth", id] });
-    void queryClient.invalidateQueries({ queryKey: ["career", id] });
-  };
-
-  const promote = useMutation({
-    mutationFn: (youthId: string) =>
-      promoteFn({ data: { youthId, careerId: id, seasonId: activeSeasonId } }),
-    onSuccess: (result) => {
-      toast.success(`${result.name} er forfremmet til førsteholdet.`);
-      setShowActions(false);
-      invalidate();
-    },
-    onError: (error: Error) => toast.error(error.message),
-  });
-
-  const release = useMutation({
-    mutationFn: (youthId: string) => deleteFn({ data: { youthId } }),
-    onSuccess: () => {
-      toast.success("Talentet er frigivet.");
-      setShowActions(false);
-      invalidate();
-    },
-    onError: (error: Error) => toast.error(error.message),
-  });
-
-  const cycleSort = () => {
-    const index = SORT_KEYS.indexOf(sortKey);
-    const next = SORT_KEYS[(index + 1) % SORT_KEYS.length] ?? "overall";
-    setSortKey(next);
-  };
-
+function PositionPill({ position }: { position: string | null }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-[linear-gradient(160deg,#1a0826_0%,#240d38_55%,#2d0f45_100%)] text-white shadow-2xl">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.07]"
-        style={{
-          backgroundImage:
-            "linear-gradient(115deg, transparent 48%, #fff 49%, #fff 50%, transparent 51%), linear-gradient(65deg, transparent 68%, #fff 69%, #fff 70%, transparent 71%), radial-gradient(circle at 80% 15%, #fff 0, transparent 45%)",
-          backgroundSize: "220px 220px, 320px 320px, 100% 100%",
-        }}
-      />
+    <span
+      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${GROUP_PILL[groupOfPosition(position)]}`}
+    >
+      {position ?? "–"}
+    </span>
+  );
+}
 
-      <div className="relative px-4 pb-24 pt-5 sm:px-7">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-1">
-            <span className="mr-2 rounded border border-white/25 px-1.5 py-0.5 text-[10px] font-bold text-white/50">
-              L2
-            </span>
-            {["Akademi", "Ungdomshold", "Udvikling"].map((tab) => (
-              <span
-                key={tab}
-                className={
-                  tab === "Ungdomshold"
-                    ? "rounded-full bg-white px-4 py-1.5 text-sm font-bold text-[#1a0826]"
-                    : "rounded-full px-4 py-1.5 text-sm font-medium text-white/45"
-                }
-              >
-                {tab}
-              </span>
-            ))}
-            <span className="ml-2 rounded border border-white/25 px-1.5 py-0.5 text-[10px] font-bold text-white/50">
-              R2
-            </span>
-          </div>
-          <Button
-            onClick={() => setAddOpen(true)}
-            className="bg-white text-[#1a0826] hover:bg-white/85"
-          >
-            <Plus className="mr-1 h-4 w-4" /> Tilføj talent
-          </Button>
-        </div>
+/** Rating badge: green >= 80, amber 70-79, red below 70. */
+function ratingClass(value: number | null | undefined): string {
+  if (value == null) return "border-dash-border bg-dash-elevated text-muted-foreground";
+  if (value >= 80) return "border-emerald-500/40 bg-emerald-500/15 text-emerald-300";
+  if (value >= 70) return "border-amber-500/40 bg-amber-500/15 text-amber-300";
+  return "border-red-500/40 bg-red-500/15 text-red-300";
+}
 
-        <h1 className="mt-6 font-display text-2xl font-bold tracking-tight">Ungdomsakademi</h1>
-        <p className="text-sm text-white/50">
-          {rows.length} {rows.length === 1 ? "talent" : "talenter"} · sorteret efter{" "}
-          {SORT_LABEL[sortKey]}
-        </p>
+function RatingBadge({ value }: { value: number | null | undefined }) {
+  return (
+    <span
+      className={`inline-flex min-w-10 items-center justify-center rounded-md border px-2 py-0.5 font-stat text-sm tabular-nums ${ratingClass(value)}`}
+    >
+      {value ?? "–"}
+    </span>
+  );
+}
 
-        <div className="mt-5 grid grid-cols-[3rem_2.75rem_1fr_3rem_3.5rem_5.5rem] items-center gap-3 px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-[#c9a8e8] sm:grid-cols-[3.5rem_3rem_1fr_3.5rem_4rem_6rem_7rem]">
-          <span>Pos</span>
-          <span />
-          <span>Navn</span>
-          <span className="text-center">År</span>
-          <button
-            type="button"
-            onClick={() => setSortKey("overall")}
-            className="flex items-center justify-center gap-0.5 text-center uppercase tracking-wider"
-          >
-            SML {sortKey === "overall" && <ChevronDown className="h-3 w-3" />}
-          </button>
-          <button
-            type="button"
-            onClick={() => setSortKey("potential")}
-            className="flex items-center gap-0.5 text-center uppercase tracking-wider"
-          >
-            POT {sortKey === "potential" && <ChevronDown className="h-3 w-3" />}
-          </button>
-          <span className="hidden sm:block">Plan</span>
-        </div>
-
-        <div className="space-y-1">
-          {youth.isLoading && <p className="px-3 py-6 text-sm text-white/50">Henter talenter…</p>}
-          {!youth.isLoading && rows.length === 0 && (
-            <p className="px-3 py-10 text-center text-sm text-white/50">
-              Ingen talenter endnu. Tilføj dit første akademitalent.
-            </p>
-          )}
-          {rows.map((row, index) => {
-            const active = index === cursor;
-            return (
-              <button
-                key={row.id}
-                type="button"
-                onClick={() => {
-                  setCursor(index);
-                  setShowActions(true);
-                }}
-                className={`grid w-full grid-cols-[3rem_2.75rem_1fr_3rem_3.5rem_5.5rem] items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors sm:grid-cols-[3.5rem_3rem_1fr_3.5rem_4rem_6rem_7rem] ${
-                  active
-                    ? "bg-white/10 outline outline-2 outline-white/90"
-                    : "hover:bg-white/[0.06]"
-                }`}
-              >
-                <span className="font-bold tracking-wide text-white">{row.position ?? "–"}</span>
-                <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-white/20 bg-[#3a1558]">
-                  {row.photo_data_url ? (
-                    <img
-                      src={row.photo_data_url}
-                      alt={`Portræt af ${row.name}`}
-                      className="h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <User className="h-5 w-5 text-white/40" />
-                  )}
-                </span>
-                <span className="truncate font-semibold text-white">{shortName(row.name)}</span>
-                <span className="text-center text-white/85">{row.age ?? "–"}</span>
-                <span className="text-center font-bold text-white">{row.overall ?? "–"}</span>
-                <span className="font-semibold text-white">
-                  {row.potential_min ?? "–"} <span className="font-bold text-white/50">-</span>{" "}
-                  {row.potential_max ?? row.potential_min ?? "–"}
-                </span>
-                <span className="hidden truncate text-white/60 sm:block">{row.plan}</span>
-              </button>
-            );
-          })}
-        </div>
+function PotentialRange({ row }: { row: YouthRow }) {
+  const min = row.potential_min;
+  const max = row.potential_max ?? row.potential_min;
+  const ovr = row.overall;
+  const target = max ?? min ?? null;
+  const progress =
+    ovr != null && target != null && target > 0 ? Math.min(100, Math.round((ovr / target) * 100)) : 0;
+  return (
+    <div className="min-w-[9rem] space-y-1.5">
+      <div className="font-stat text-xs tabular-nums text-muted-foreground">
+        OVR <span className="text-foreground">{ovr ?? "–"}</span> →{" "}
+        <span className="text-emerald-300">
+          {min ?? "–"}
+          {max != null && min != null && max !== min ? `–${max}` : ""}
+        </span>
       </div>
-
-      <div className="absolute inset-x-0 bottom-0 flex items-center gap-4 border-t border-white/10 bg-black/30 px-4 py-3 text-xs font-medium text-white/60 backdrop-blur sm:px-7">
-        <button
-          type="button"
-          disabled={!selected}
-          onClick={() => setShowActions(true)}
-          className="flex items-center gap-2 disabled:opacity-40"
-        >
-          <span className="flex h-5 w-5 items-center justify-center rounded-full border border-white/40 text-[10px] font-bold text-white">
-            X
-          </span>
-          Vis handlinger
-        </button>
-        <button
-          type="button"
-          onClick={() => window.history.back()}
-          className="flex items-center gap-2"
-        >
-          <span className="flex h-5 w-5 items-center justify-center rounded-full border border-white/40 text-[10px] font-bold text-white">
-            O
-          </span>
-          Tilbage
-        </button>
-        <button type="button" onClick={cycleSort} className="flex items-center gap-2">
-          <span className="flex h-5 w-5 items-center justify-center rounded-sm border border-white/40 text-[10px] font-bold text-white">
-            ◻
-          </span>
-          Sortér ({SORT_LABEL[sortKey]})
-        </button>
+      <div className="h-1 w-full overflow-hidden rounded-full bg-dash-elevated">
+        <div className="h-full rounded-full bg-emerald-500" style={{ width: `${progress}%` }} />
       </div>
-
-      <Dialog open={showActions && !!selected} onOpenChange={setShowActions}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>{selected?.name}</DialogTitle>
-            <DialogDescription>
-              {selected?.position} · {selected?.age} år · SML {selected?.overall ?? "–"}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-2">
-            <Button
-              disabled={!activeSeasonId || promote.isPending}
-              onClick={() => selected && promote.mutate(selected.id)}
-            >
-              <ArrowUpFromLine className="mr-2 h-4 w-4" /> Forfrem til førstehold
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={release.isPending}
-              onClick={() => selected && release.mutate(selected.id)}
-            >
-              <Trash2 className="mr-2 h-4 w-4" /> Frigiv
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <AddTalentDialog
-        open={addOpen}
-        onOpenChange={setAddOpen}
-        onSubmit={async (values) => {
-          await createFn({ data: { careerId: id, ...values } });
-          toast.success(`${values.name} er tilføjet til akademiet.`);
-          invalidate();
-        }}
-      />
     </div>
   );
 }
+
+function AcademyPage() {
 
 type NewTalent = {
   name: string;
