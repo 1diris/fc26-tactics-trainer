@@ -77,7 +77,7 @@ export const createCareer = createServerFn({ method: "POST" })
       })
       .select("id")
       .single();
-    if (error || !career) throw new Error(error?.message ?? "Kunne ikke oprette karriere.");
+    if (error || !career) throw new Error(error?.message ?? "Could not create career.");
 
     const { data: season, error: seasonError } = await supabase
       .from("seasons")
@@ -89,7 +89,7 @@ export const createCareer = createServerFn({ method: "POST" })
       })
       .select("id")
       .single();
-    if (seasonError || !season) throw new Error(seasonError?.message ?? "Kunne ikke oprette sæson.");
+    if (seasonError || !season) throw new Error(seasonError?.message ?? "Could not create season.");
 
     await supabase.from("careers").update({ current_season_id: season.id }).eq("id", career.id);
 
@@ -116,7 +116,7 @@ export const getCareerData = createServerFn({ method: "GET" })
       .eq("id", data.careerId)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    if (!career) throw new Error("Karrieren blev ikke fundet.");
+    if (!career) throw new Error("Career not found.");
 
     const [seasonsRes, playersRes, snapshotsRes] = await Promise.all([
       supabase

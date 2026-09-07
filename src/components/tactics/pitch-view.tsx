@@ -88,7 +88,7 @@ export function PitchView({
                 active ? "text-lime-300" : "text-zinc-100"
               }`}
             >
-              {node.playerName ?? "Tom"}
+              {node.playerName ?? "Empty"}
               {node.overall != null && (
                 <span className="ml-1 text-lime-400">{node.overall}</span>
               )}

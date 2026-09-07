@@ -50,7 +50,7 @@ export function PlayerAvatar({
       {showImage ? (
         <img
           src={resolveSrc(src!)}
-          alt={`Portræt af ${name}`}
+          alt={`Portrait of ${name}`}
           loading="lazy"
           decoding="async"
           className="h-full w-full object-cover"

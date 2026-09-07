@@ -24,7 +24,7 @@ export function AppHeader({ children }: { children?: React.ReactNode }) {
         </Link>
         <div className="flex-1">{children}</div>
         <Button variant="ghost" size="sm" onClick={() => void signOut()}>
-          <LogOut className="mr-2 h-4 w-4" /> Log ud
+          <LogOut className="mr-2 h-4 w-4" /> Log out
         </Button>
       </div>
     </header>

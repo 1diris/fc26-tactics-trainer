@@ -735,7 +735,7 @@ function MarketPage() {
           ))}
           {!results.isFetching && (results.data?.players.length ?? 0) === 0 && (
             <p className="rounded-lg border border-border/60 bg-card/40 p-6 text-center text-sm text-muted-foreground">
-              Ingen spillere matcher dine filtre.
+              No players match your filters.
             </p>
           )}
         </div>
@@ -743,10 +743,10 @@ function MarketPage() {
 
       <TabsContent value="targets" className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-3">
-          <Stat label="Antal mål" value={String(targets.data?.length ?? 0)} />
-          <Stat label="Forventet udgift" value={formatMoney(targetSpend)} />
+          <Stat label="Number of targets" value={String(targets.data?.length ?? 0)} />
+          <Stat label="Expected spend" value={formatMoney(targetSpend)} />
           <Stat
-            label="Rest af budget"
+            label="Remaining budget"
             value={budget == null ? "–" : formatMoney(budget - targetSpend)}
           />
         </div>
@@ -762,9 +762,9 @@ function MarketPage() {
                 pending={toggleTarget.isPending}
                 onToggle={() => toggleTarget.mutate(target.fc_players!)}
                 onSign={() => setSigning(target.fc_players!)}
-                footer={`Prioritet: ${PRIORITY_LABELS[target.priority] ?? "Mellem"}${
+                footer={`Priority: ${PRIORITY_LABELS[target.priority] ?? "Medium"}${
                   target.expected_price != null
-                    ? ` · Forventet pris ${formatMoney(Number(target.expected_price))}`
+                    ? ` · Expected price ${formatMoney(Number(target.expected_price))}`
                     : ""
                 }`}
               />
@@ -772,7 +772,7 @@ function MarketPage() {
           )}
           {(targets.data?.length ?? 0) === 0 && (
             <p className="rounded-lg border border-border/60 bg-card/40 p-6 text-center text-sm text-muted-foreground">
-              Ingen transfermål endnu. Tryk på stjernen ved en spiller i søgningen.
+              No transfer targets yet. Click the star next to a player in the search.
             </p>
           )}
         </div>
