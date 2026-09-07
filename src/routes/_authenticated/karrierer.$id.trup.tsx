@@ -3,7 +3,7 @@ import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-q
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowUpRight, Check, TriangleAlert } from "lucide-react";
+import { ArrowDownWideNarrow, ArrowLeft, ArrowUpNarrowWide, ArrowUpRight, Check, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { careerDataQuery } from "@/lib/career-queries";
@@ -276,6 +276,11 @@ function SquadPage() {
       setSortKey(key);
       setAsc(key === "name" || key === "position" || key === "age");
     }
+  };
+
+  const changeSort = (key: SortKey) => {
+    setSortKey(key);
+    setAsc(key === "name" || key === "position" || key === "age");
   };
 
   function resetFilters() {
