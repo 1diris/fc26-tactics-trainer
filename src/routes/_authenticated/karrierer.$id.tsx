@@ -1,6 +1,14 @@
 import { createFileRoute, Link, Outlet, useParams } from "@tanstack/react-router";
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import {
+  ArrowLeftRight,
+  LayoutGrid,
+  Star,
+  Target,
+  Upload,
+  Users,
+} from "lucide-react";
 import { AppHeader } from "@/components/app-header";
 import {
   Select,
