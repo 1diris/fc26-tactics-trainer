@@ -543,11 +543,11 @@ function MarketPage() {
               resetPage();
               setMaxOverall(value);
             }}
-            minPlaceholder="fx 70"
-            maxPlaceholder="fx 78"
+            minPlaceholder="e.g. 70"
+            maxPlaceholder="e.g. 78"
           />
           <RangeField
-            label="Potentiale"
+            label="Potential"
             digits={2}
             min={minPotential}
             max={maxPotential}
@@ -559,11 +559,11 @@ function MarketPage() {
               resetPage();
               setMaxPotential(value);
             }}
-            minPlaceholder="fx 80"
-            maxPlaceholder="fx 90"
+            minPlaceholder="e.g. 80"
+            maxPlaceholder="e.g. 90"
           />
           <RangeField
-            label="Alder"
+            label="Age"
             digits={2}
             min={minAge}
             max={maxAge}
@@ -575,11 +575,11 @@ function MarketPage() {
               resetPage();
               setMaxAge(value);
             }}
-            minPlaceholder="fx 16"
-            maxPlaceholder="fx 23"
+            minPlaceholder="e.g. 16"
+            maxPlaceholder="e.g. 23"
           />
           <RangeField
-            label="Værdi (€)"
+            label="Value (€)"
             digits={12}
             min={minValue}
             max={maxValue}
@@ -591,11 +591,11 @@ function MarketPage() {
               resetPage();
               setMaxValue(value);
             }}
-            minPlaceholder="fx 0"
-            maxPlaceholder="fx 40000000"
+            minPlaceholder="e.g. 0"
+            maxPlaceholder="e.g. 40000000"
           />
           <RangeField
-            label="Løn (€ pr. uge)"
+            label="Wage (€ per week)"
             digits={9}
             min={minWage}
             max={maxWage}
@@ -607,14 +607,14 @@ function MarketPage() {
               resetPage();
               setMaxWage(value);
             }}
-            minPlaceholder="fx 0"
-            maxPlaceholder="fx 100000"
+            minPlaceholder="e.g. 0"
+            maxPlaceholder="e.g. 100000"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <label className="space-y-1 text-xs text-muted-foreground">
-            Fod
+            Foot
             <Select
               value={foot}
               onValueChange={(value) => {
@@ -622,18 +622,18 @@ function MarketPage() {
                 setFoot(value);
               }}
             >
-              <SelectTrigger aria-label="Foretrukket fod">
+              <SelectTrigger aria-label="Preferred foot">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Alle</SelectItem>
-                <SelectItem value="Right">Højre</SelectItem>
-                <SelectItem value="Left">Venstre</SelectItem>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="Right">Right</SelectItem>
+                <SelectItem value="Left">Left</SelectItem>
               </SelectContent>
             </Select>
           </label>
           <label className="space-y-1 text-xs text-muted-foreground">
-            Liga
+            League
             <Select
               value={league}
               onValueChange={(value) => {
@@ -641,11 +641,11 @@ function MarketPage() {
                 setLeague(value);
               }}
             >
-              <SelectTrigger aria-label="Liga">
+              <SelectTrigger aria-label="League">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Alle ligaer</SelectItem>
+                <SelectItem value="all">All leagues</SelectItem>
                 {(leagues.data ?? []).map((name) => (
                   <SelectItem key={name} value={name}>
                     {name}
@@ -655,7 +655,7 @@ function MarketPage() {
             </Select>
           </label>
           <label className="space-y-1 text-xs text-muted-foreground">
-            Sortering
+            Sort
             <Select
               value={sort}
               onValueChange={(value) => {
@@ -663,7 +663,7 @@ function MarketPage() {
                 setSort(value as NonNullable<MarketSearchInput["sort"]>);
               }}
             >
-              <SelectTrigger aria-label="Sortering">
+              <SelectTrigger aria-label="Sort">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -679,8 +679,8 @@ function MarketPage() {
 
         {invalidRanges.length > 0 && (
           <p className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive">
-            Ugyldigt interval i: {invalidRanges.join(", ")}. Minimum må ikke være større end
-            maksimum — filteret er midlertidigt ignoreret.
+            Invalid range in: {invalidRanges.join(", ")}. Minimum must not be greater than
+            maximum — the filter is temporarily ignored.
           </p>
         )}
 
@@ -688,10 +688,10 @@ function MarketPage() {
           <span>
             {results.isFetching ? (
               <span className="inline-flex items-center gap-1.5">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Søger…
+                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Searching…
               </span>
             ) : (
-              `${total.toLocaleString("da-DK")} spillere fundet`
+              `${total.toLocaleString("en-GB")} players found`
             )}
           </span>
           {pageCount > 1 && (
@@ -703,10 +703,10 @@ function MarketPage() {
                 disabled={page === 0}
                 onClick={() => setPage((current) => Math.max(0, current - 1))}
               >
-                Forrige
+                Previous
               </Button>
               <span>
-                Side {page + 1} af {pageCount}
+                Page {page + 1} of {pageCount}
               </span>
               <Button
                 type="button"
@@ -715,7 +715,7 @@ function MarketPage() {
                 disabled={page + 1 >= pageCount}
                 onClick={() => setPage((current) => current + 1)}
               >
-                Næste
+                Next
               </Button>
             </span>
           )}

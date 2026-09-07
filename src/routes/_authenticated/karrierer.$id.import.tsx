@@ -490,10 +490,10 @@ function ImportPage() {
                           {isYouth
                             ? "Talent"
                             : isNew
-                              ? "Ny"
+                              ? "New"
                               : changedCount > 0
-                                ? "Opdateret"
-                                : "Ingen ændring"}
+                                ? "Updated"
+                                : "Unchanged"}
                         </span>
                       </td>
                       <td className={`px-3 py-1.5 ${cell("name") ?? ""}`}>
