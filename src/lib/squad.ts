@@ -132,8 +132,8 @@ export function buildWarnings(rows: SquadRow[], seasonLabel: string | null): War
   for (const position of missing.slice(0, 3)) {
     warnings.push({
       tone: "danger",
-      title: "Position mangler",
-      message: `Du har ingen naturlig spiller på ${position}.`,
+      title: "Position missing",
+      message: `You have no natural player at ${position}.`,
     });
   }
 
@@ -143,8 +143,8 @@ export function buildWarnings(rows: SquadRow[], seasonLabel: string | null): War
   for (const position of thin.slice(0, 2)) {
     warnings.push({
       tone: "warn",
-      title: "Ingen backup",
-      message: `Kun én naturlig ${position} i truppen.`,
+      title: "No backup",
+      message: `Only one natural ${position} in the squad.`,
     });
   }
 
@@ -158,8 +158,8 @@ export function buildWarnings(rows: SquadRow[], seasonLabel: string | null): War
     if (expiring.length > 0) {
       warnings.push({
         tone: "warn",
-        title: "Kontrakt",
-        message: `${expiring.length} ${expiring.length === 1 ? "spiller har" : "spillere har"} kontraktudløb inden for næste sæson.`,
+        title: "Contract",
+        message: `${expiring.length} ${expiring.length === 1 ? "player has" : "players have"} a contract expiring within the next season.`,
       });
     }
   }
@@ -171,8 +171,8 @@ export function buildWarnings(rows: SquadRow[], seasonLabel: string | null): War
   if (topRiser?.previous?.overall != null && topRiser.current?.overall != null) {
     warnings.push({
       tone: "success",
-      title: "Udvikling",
-      message: `${topRiser.player.name} er steget fra ${topRiser.previous.overall} → ${topRiser.current.overall} OVR.`,
+      title: "Growth",
+      message: `${topRiser.player.name} has risen from ${topRiser.previous.overall} → ${topRiser.current.overall} OVR.`,
     });
   }
 
@@ -180,8 +180,8 @@ export function buildWarnings(rows: SquadRow[], seasonLabel: string | null): War
   if (fallers.length > 0) {
     warnings.push({
       tone: "warn",
-      title: "Faldende rating",
-      message: `${fallers.length} ${fallers.length === 1 ? "spiller er" : "spillere er"} faldet i overall siden sidste sæson.`,
+      title: "Declining rating",
+      message: `${fallers.length} ${fallers.length === 1 ? "player has" : "players have"} dropped in overall since last season.`,
     });
   }
 

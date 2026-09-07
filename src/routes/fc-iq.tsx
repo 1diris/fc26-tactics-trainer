@@ -19,17 +19,17 @@ export const Route = createFileRoute("/fc-iq")({
   component: FcIqPage,
   head: () => ({
     meta: [
-      { title: "FC IQ – Tactic Builder til FC 26 Career Mode" },
+      { title: "FC IQ – Tactic Builder for FC 26 Career Mode" },
       {
         name: "description",
         content:
-          "Byg og visualisér din FC 26-taktik: formationer, spillerroller, fokus, rolle-mastery og delbare taktikkoder.",
+          "Build and visualise your FC 26 tactics: formations, player roles, focus, role mastery and shareable tactic codes.",
       },
-      { property: "og:title", content: "FC IQ – Tactic Builder til FC 26" },
+      { property: "og:title", content: "FC IQ – Tactic Builder for FC 26" },
       {
         property: "og:description",
         content:
-          "Interaktiv 2D-bane, roller pr. position og eksporterbare taktikkoder til FC 26 Career Mode.",
+          "Interactive 2D pitch, roles per position and exportable tactic codes for FC 26 Career Mode.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -228,16 +228,16 @@ function FcIqPage() {
   async function copyCode() {
     try {
       await navigator.clipboard.writeText(code);
-      toast.success("Taktikkode kopieret", { description: code });
+      toast.success("Tactic code copied", { description: code });
     } catch {
-      toast.error("Kunne ikke kopiere koden");
+      toast.error("Could not copy the code");
     }
   }
 
   function importTactic() {
     const value = importCode.trim();
     if (!value) {
-      toast.error("Indtast en taktikkode først");
+      toast.error("Enter a tactic code first");
       return;
     }
     const formations = Object.keys(FORMATIONS);
@@ -248,7 +248,7 @@ function FcIqPage() {
     setCode(value.startsWith("#") ? value : `#${value}`);
     setImportCode("");
     setTab("team");
-    toast.success(`Taktik importeret (${picked})`, { description: value });
+    toast.success(`Tactic imported (${picked})`, { description: value });
   }
 
   const attackers = players.filter((player) => player.focus === "Attack").length;
@@ -266,7 +266,7 @@ function FcIqPage() {
               Tactic Builder &amp; Visualizer
             </h1>
             <p className="mt-1 max-w-xl text-sm text-zinc-400">
-              Byg din FC 26-opstilling, tildel roller og fokus pr. plads, og del taktikken som kode.
+              Build your FC 26 lineup, assign roles and focus per slot, and share the tactic as a code.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -286,9 +286,9 @@ function FcIqPage() {
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-200">
-                  <Users className="h-4 w-4 text-lime-400" /> Opstilling
+                  <Users className="h-4 w-4 text-lime-400" /> Lineup
                 </h2>
-                <span className="text-xs text-zinc-500">Klik på en spiller for at redigere</span>
+                <span className="text-xs text-zinc-500">Click a player to edit</span>
               </div>
               <Pitch
                 players={players}
@@ -306,9 +306,9 @@ function FcIqPage() {
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
               <Tabs value={tab} onValueChange={setTab}>
                 <TabsList className="grid w-full grid-cols-3 bg-zinc-950">
-                  <TabsTrigger value="team">Holdtaktik</TabsTrigger>
-                  <TabsTrigger value="player">Spillerrolle</TabsTrigger>
-                  <TabsTrigger value="export">Eksport</TabsTrigger>
+                  <TabsTrigger value="team">Team tactics</TabsTrigger>
+                  <TabsTrigger value="player">Player role</TabsTrigger>
+                  <TabsTrigger value="export">Export</TabsTrigger>
                 </TabsList>
 
                 {/* Team */}
@@ -373,7 +373,7 @@ function FcIqPage() {
                     </Badge>
                   </div>
 
-                  <Field label="Rolle">
+                  <Field label="Role">
                     <Select value={selected.role} onValueChange={setRole}>
                       <SelectTrigger className="border-zinc-800 bg-zinc-950">
                         <SelectValue />
@@ -388,7 +388,7 @@ function FcIqPage() {
                     </Select>
                   </Field>
 
-                  <Field label="Fokus">
+                  <Field label="Focus">
                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                       {ALL_FOCUS.map((focus) => {
                         const enabled = focusesFor(selected.role).includes(focus);
@@ -411,7 +411,7 @@ function FcIqPage() {
                       })}
                     </div>
                     <p className="mt-1 text-xs text-zinc-500">
-                      Kun fokus der passer til {selected.role} kan vælges.
+                      Only focuses that fit {selected.role} can be selected.
                     </p>
                   </Field>
 
@@ -443,7 +443,7 @@ function FcIqPage() {
 
                 {/* Export */}
                 <TabsContent value="export" className="mt-4 space-y-5">
-                  <Field label="Din taktikkode">
+                  <Field label="Your tactic code">
                     <div className="flex items-center gap-2">
                       <code className="flex-1 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 font-mono text-sm text-lime-400">
                         {code}
@@ -454,9 +454,9 @@ function FcIqPage() {
                         className="border-zinc-800 bg-zinc-950"
                         onClick={() => {
                           setCode(randomCode());
-                          toast.success("Ny kode genereret");
+                          toast.success("New code generated");
                         }}
-                        aria-label="Generér ny kode"
+                        aria-label="Generate new code"
                       >
                         <Sparkles className="h-4 w-4" />
                       </Button>
@@ -467,10 +467,10 @@ function FcIqPage() {
                     className="w-full bg-lime-500 text-zinc-950 hover:bg-lime-400"
                     onClick={copyCode}
                   >
-                    <Copy className="mr-2 h-4 w-4" /> Kopiér Taktikkode
+                    <Copy className="mr-2 h-4 w-4" /> Copy Tactic Code
                   </Button>
 
-                  <Field label="Importér taktikkode">
+                  <Field label="Import tactic code">
                     <div className="flex gap-2">
                       <Input
                         value={importCode}
@@ -483,23 +483,23 @@ function FcIqPage() {
                         className="border-zinc-800 bg-zinc-950"
                         onClick={importTactic}
                       >
-                        <Download className="mr-2 h-4 w-4" /> Importér
+                        <Download className="mr-2 h-4 w-4" /> Import
                       </Button>
                     </div>
                   </Field>
 
                   <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-xs text-zinc-400">
                     <p className="mb-2 flex items-center gap-2 font-medium text-zinc-200">
-                      <ClipboardCopy className="h-3.5 w-3.5 text-lime-400" /> Opsummering
+                      <ClipboardCopy className="h-3.5 w-3.5 text-lime-400" /> Summary
                     </p>
                     <ul className="space-y-1">
                       <li>Formation: {formation}</li>
                       <li>Build-up: {buildUp}</li>
                       <li>
-                        Defensiv: {defensiveLabel(defensive)} ({defensive})
+                        Defensive: {defensiveLabel(defensive)} ({defensive})
                       </li>
                       <li>
-                        Roller med mastery:{" "}
+                        Roles with mastery:{" "}
                         {players.filter((player) => player.mastery !== "base").length}/11
                       </li>
                     </ul>

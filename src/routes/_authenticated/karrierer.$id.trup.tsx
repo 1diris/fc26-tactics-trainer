@@ -201,11 +201,11 @@ function SquadPage() {
     mutationFn: () => runAutoMatch({ data: { careerId: id } }),
     onSuccess: (result) => {
       void queryClient.invalidateQueries({ queryKey: ["career", id] });
-      if (result.checked === 0) toast.success("Alle spillere er allerede matchet.");
+      if (result.checked === 0) toast.success("All players are already matched.");
       else
         toast.success(
-          `${result.matched} af ${result.checked} spillere matchet automatisk.` +
-            (result.remaining > 0 ? ` ${result.remaining} skal matches manuelt.` : ""),
+          `${result.matched} of ${result.checked} players matched automatically.` +
+            (result.remaining > 0 ? ` ${result.remaining} need to be matched manually.` : ""),
         );
     },
     onError: (error: Error) => toast.error(error.message),
