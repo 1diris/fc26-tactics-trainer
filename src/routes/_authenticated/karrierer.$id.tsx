@@ -69,8 +69,8 @@ function CareerLayout() {
                   value={activeSeasonId}
                   onValueChange={(value) => seasonMutation.mutate(value)}
                 >
-                  <SelectTrigger aria-label="Vælg sæson">
-                    <SelectValue placeholder="Sæson" />
+                  <SelectTrigger aria-label="Active season">
+                    <SelectValue placeholder="Season" />
                   </SelectTrigger>
                   <SelectContent>
                     {seasons.map((season) => (

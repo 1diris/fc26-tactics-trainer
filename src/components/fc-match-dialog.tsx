@@ -52,7 +52,7 @@ export function FcMatchDialog({
     mutationFn: (fcPlayerId: string | null) => save({ data: { playerId, fcPlayerId } }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["career", careerId] });
-      toast.success("Match opdateret.");
+      toast.success("Match updated.");
       onOpenChange(false);
     },
     onError: (error: Error) => toast.error(error.message),
@@ -64,14 +64,14 @@ export function FcMatchDialog({
         <DialogHeader>
           <DialogTitle>Match {playerName}</DialogTitle>
           <DialogDescription>
-            Vælg den rigtige spiller i FC 26-databasen, så original POT og værdi bliver korrekt.
+            Select the correct player in the FC 26 database so the original POT and value are accurate.
           </DialogDescription>
         </DialogHeader>
 
         {currentMatch && (
           <div className="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-muted/40 p-3 text-sm">
             <span>
-              Matchet med <strong>{currentMatch.short_name}</strong> · OVR {currentMatch.overall} ·
+              Matched with <strong>{currentMatch.short_name}</strong> · OVR {currentMatch.overall} ·
               POT {currentMatch.potential}
             </span>
             <Button
@@ -80,7 +80,7 @@ export function FcMatchDialog({
               onClick={() => saveMutation.mutate(null)}
               disabled={saveMutation.isPending}
             >
-              Fjern match
+              Remove match
             </Button>
           </div>
         )}
@@ -95,17 +95,17 @@ export function FcMatchDialog({
           <Input
             value={term}
             onChange={(event) => setTerm(event.target.value)}
-            placeholder="Søg navn i FC 26-databasen…"
-            aria-label="Søg i FC 26-databasen"
+            placeholder="Search name in the FC 26 database…"
+            aria-label="Search the FC 26 database"
           />
           <Button type="submit" disabled={searchMutation.isPending || term.trim().length < 2}>
-            {searchMutation.isPending ? "Søger…" : "Søg"}
+            {searchMutation.isPending ? "Searching…" : "Search"}
           </Button>
         </form>
 
         <div className="max-h-72 space-y-1 overflow-y-auto">
           {results?.length === 0 && (
-            <p className="p-3 text-sm text-muted-foreground">Ingen spillere fundet.</p>
+            <p className="p-3 text-sm text-muted-foreground">No players found.</p>
           )}
           {(results ?? []).map((candidate) => (
             <button
@@ -118,8 +118,8 @@ export function FcMatchDialog({
               <span className="min-w-0">
                 <span className="block truncate font-medium">{candidate.short_name}</span>
                 <span className="block truncate text-xs text-muted-foreground">
-                  {(candidate.positions ?? []).join("/")} · {candidate.club_name ?? "fri agent"} ·{" "}
-                  {candidate.age ?? "–"} år
+                  {(candidate.positions ?? []).join("/")} · {candidate.club_name ?? "free agent"} ·{" "}
+                  {candidate.age ?? "–"} yrs
                 </span>
               </span>
               <span className="shrink-0 text-right text-xs tabular-nums text-muted-foreground">

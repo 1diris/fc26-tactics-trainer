@@ -307,7 +307,7 @@ function AcademyPage() {
           <DialogHeader>
             <DialogTitle>{selected?.name}</DialogTitle>
             <DialogDescription>
-              {selected?.position} · {selected?.age} år · OVR {selected?.overall ?? "–"}
+              {selected?.position} · {selected?.age} yrs · OVR {selected?.overall ?? "–"}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-2">
