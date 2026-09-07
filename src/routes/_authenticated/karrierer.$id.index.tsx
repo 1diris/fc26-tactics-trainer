@@ -33,16 +33,16 @@ import {
 export const Route = createFileRoute("/_authenticated/karrierer/$id/")({
   head: () => ({
     meta: [
-      { title: "Karriereoverblik — Career Chronicles" },
+      { title: "Career overview — Career Chronicles" },
       {
         name: "description",
         content:
-          "Nøgletal, advarsler og udvikling for din FC 26 trup: gennemsnitsalder, overall, kontraktudløb og positioner der mangler.",
+          "Key stats, alerts and growth for your FC 26 squad: average age, OVR, contract expiry and missing positions.",
       },
-      { property: "og:title", content: "Karriereoverblik — Career Chronicles" },
+      { property: "og:title", content: "Career overview — Career Chronicles" },
       {
         property: "og:description",
-        content: "Se trupstyrke, advarsler og hvem der udvikler sig i din FC 26 karriere.",
+        content: "See squad strength, alerts and who is growing in your FC 26 career.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -172,15 +172,15 @@ function CareerOverview() {
       <div className="space-y-8 pb-24 lg:pb-8">
         <div className="rounded-xl border border-dashed border-dash-border bg-dash-card p-10 text-center">
           <p className="font-display text-lg font-semibold">
-            Ingen trupdata for {activeSeason?.label}
+            No squad data for {activeSeason?.label}
           </p>
           <p className="mx-auto mt-2 max-w-md font-body text-sm text-muted-foreground">
-            Upload et screenshot af trupskærmen, så læser AI navn, position, OVR, potentiale, alder,
-            værdi, løn og kontrakt for hele holdet.
+            Upload a screenshot of the squad screen and AI reads name, position, OVR, POT, age, value,
+            wage and contract for the whole team.
           </p>
           <Button asChild className="mt-6">
             <Link to="/karrierer/$id/import" params={{ id }}>
-              <Upload className="mr-2 h-4 w-4" /> Upload screenshot
+              <Upload className="mr-2 h-4 w-4" /> Upload screenshots
             </Link>
           </Button>
         </div>
@@ -228,19 +228,19 @@ function CareerOverview() {
 
   const recommendation = (() => {
     if (!topNeed) {
-      return "Truppen er godt dækket på alle nøglepositioner. Brug transfervinduet på at sænke gennemsnitsalderen eller sælge overskydende spillere.";
+      return "The squad is well covered in every key position. Use the transfer window to lower the average age or sell surplus players.";
     }
     const natural = rows.filter((row) => row.position === topNeed.position);
     const best = natural.sort((a, b) => (b.current?.overall ?? 0) - (a.current?.overall ?? 0))[0];
     const bestText = best
-      ? `${best.player.name} (${best.current?.overall ?? "–"} OVR) er din bedste ${topNeed.position}`
-      : `Du har ingen naturlig ${topNeed.position}`;
+      ? `${best.player.name} (${best.current?.overall ?? "–"} OVR) is your best ${topNeed.position}`
+      : `You have no natural ${topNeed.position}`;
     const contract = best ? contractLeft(best, startYear) : null;
     const contractText =
       contract && contract !== "expired" && best?.current?.contract_until
-        ? ` og kontrakten udløber om ${contract.replace(/^0y /, "")}`
+        ? ` and the contract expires in ${contract.replace(/^0y /, "")}`
         : "";
-    return `${topNeed.position} er dit største behov. ${bestText}${contractText}. ${topNeed.reason}`;
+    return `${topNeed.position} is your biggest need. ${bestText}${contractText}. ${topNeed.reason}`;
   })();
 
   type Alert = {
