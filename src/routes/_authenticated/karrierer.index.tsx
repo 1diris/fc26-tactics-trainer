@@ -22,13 +22,13 @@ import { Plus, Trash2, Users } from "lucide-react";
 export const Route = createFileRoute("/_authenticated/karrierer/")({
   head: () => ({
     meta: [
-      { title: "Mine karrierer — Career Chronicles" },
+      { title: "My careers — Career Chronicles" },
       {
         name: "description",
-        content: "Overblik over dine FC 26 karrierer, klubber og trupstørrelser.",
+        content: "Overview of your FC 26 careers, clubs and squad sizes.",
       },
-      { property: "og:title", content: "Mine karrierer — Career Chronicles" },
-      { property: "og:description", content: "Alle dine FC 26 karrierer på ét sted." },
+      { property: "og:title", content: "My careers — Career Chronicles" },
+      { property: "og:description", content: "All your FC 26 careers in one place." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -65,7 +65,7 @@ function CareersPage() {
       setName("");
       setClub("");
       setLeague("");
-      toast.success("Karriere oprettet.");
+      toast.success("Career created.");
       void navigate({
         to: "/karrierer/$id/import",
         params: { id: result.careerId },
@@ -78,7 +78,7 @@ function CareersPage() {
     mutationFn: (careerId: string) => remove({ data: { careerId } }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["careers"] });
-      toast.success("Karriere slettet.");
+      toast.success("Career deleted.");
     },
     onError: (error) => toast.error(error.message),
   });
@@ -89,22 +89,22 @@ function CareersPage() {
       <main className="mx-auto max-w-5xl px-5 py-10">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold tracking-tight">Mine karrierer</h1>
+            <h1 className="font-display text-3xl font-bold tracking-tight">My careers</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Én karriere pr. gemt spil. Hver sæson får sit eget snapshot af truppen.
+              One career per save. Every season gets its own squad snapshot.
             </p>
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button>
-                <Plus className="mr-2 h-4 w-4" /> Ny karriere
+                <Plus className="mr-2 h-4 w-4" /> New career
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Ny karriere</DialogTitle>
+                <DialogTitle>New career</DialogTitle>
                 <DialogDescription>
-                  Angiv klub og startsæson. Du kan tilføje flere sæsoner senere.
+                  Enter club and starting season. You can add more seasons later.
                 </DialogDescription>
               </DialogHeader>
               <form
@@ -115,27 +115,27 @@ function CareersPage() {
                 }}
               >
                 <div className="space-y-2">
-                  <Label htmlFor="club">Klub</Label>
+                  <Label htmlFor="club">Club</Label>
                   <Input
                     id="club"
                     required
                     value={club}
-                    placeholder="fx FC København"
+                    placeholder="e.g. Wolves"
                     onChange={(event) => setClub(event.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="name">Navn på karriere (valgfrit)</Label>
+                  <Label htmlFor="name">Career name (optional)</Label>
                   <Input
                     id="name"
                     value={name}
-                    placeholder="fx Rebuild med unge spillere"
+                    placeholder="e.g. Rebuild with young players"
                     onChange={(event) => setName(event.target.value)}
                   />
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="league">Liga (valgfrit)</Label>
+                    <Label htmlFor="league">League (optional)</Label>
                     <Input
                       id="league"
                       value={league}
@@ -143,7 +143,7 @@ function CareersPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="season">Startsæson</Label>
+                    <Label htmlFor="season">Starting season</Label>
                     <Input
                       id="season"
                       required
@@ -153,7 +153,7 @@ function CareersPage() {
                   </div>
                 </div>
                 <Button type="submit" className="w-full" disabled={createMutation.isPending}>
-                  {createMutation.isPending ? "Opretter…" : "Opret karriere"}
+                  {createMutation.isPending ? "Creating…" : "Create career"}
                 </Button>
               </form>
             </DialogContent>
@@ -162,10 +162,10 @@ function CareersPage() {
 
         {careers.length === 0 ? (
           <div className="mt-10 rounded-xl border border-dashed border-border bg-card/50 p-10 text-center">
-            <p className="font-display text-lg font-semibold">Ingen karrierer endnu</p>
+            <p className="font-display text-lg font-semibold">No careers yet</p>
             <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-              Opret din første karriere, upload et screenshot af trupskærmen, og få hele holdet ind
-              automatisk.
+              Create your first career, upload a screenshot of the squad screen, and get the whole team in
+              automatically.
             </p>
           </div>
         ) : (
@@ -184,19 +184,19 @@ function CareersPage() {
                     {career.club}
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {career.name !== career.club ? career.name : (career.league ?? "Karriere")}
+                    {career.name !== career.club ? career.name : (career.league ?? "Career")}
                   </p>
                   <p className="mt-4 inline-flex items-center gap-2 text-xs text-muted-foreground">
                     <Users className="h-3.5 w-3.5" aria-hidden />
-                    {career.player_count} spillere
+                    {career.player_count} players
                   </p>
                 </Link>
                 <button
                   type="button"
-                  aria-label={`Slet ${career.club}`}
+                  aria-label={`Delete ${career.club}`}
                   className="absolute right-4 top-4 rounded-md p-2 text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100"
                   onClick={() => {
-                    if (window.confirm(`Slet karrieren "${career.club}" med alle data?`)) {
+                    if (window.confirm(`Delete the career "${career.club}" and all its data?`)) {
                       deleteMutation.mutate(career.id);
                     }
                   }}

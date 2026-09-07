@@ -145,7 +145,7 @@ export function suggestLineup(formation: Formation, rows: SquadRow[]): LineupSug
   const reasons: string[] = [];
   if (emptyCount > 0) {
     reasons.push(
-      `Du har kun ${players.length} spillere i truppen, så ${emptyCount} plads(er) står tomme.`,
+      `You only have ${players.length} players in your squad, so ${emptyCount} slot(s) are left empty.`,
     );
   }
   if (outCount > 0) {
@@ -153,11 +153,11 @@ export function suggestLineup(formation: Formation, rows: SquadRow[]): LineupSug
       .filter((entry) => entry.fit === "out")
       .map((entry) => entry.slotPosition);
     reasons.push(
-      `${outCount} spiller(e) står ude af position (${outSlots.join(", ")}), fordi ingen ledige spillere dækker de pladser.`,
+      `${outCount} player(s) are out of position (${outSlots.join(", ")}), because no available players cover those slots.`,
     );
     if (missingNatural.length > 0) {
       reasons.push(
-        `Truppen mangler helt naturlige spillere til: ${missingNatural.join(", ")}. Overvej at hente spillere der på Transfermarkedet.`,
+        `Your squad has no natural players for: ${missingNatural.join(", ")}. Consider signing players there on the Transfer Market.`,
       );
     }
   }

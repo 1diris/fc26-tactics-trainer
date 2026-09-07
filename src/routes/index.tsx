@@ -7,17 +7,17 @@ import { Camera, LineChart, ShieldAlert, Users } from "lucide-react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Career Chronicles — assistent til FC 26 Career Mode" },
+      { title: "Career Chronicles — FC 26 Career Mode assistant" },
       {
         name: "description",
         content:
-          "Upload screenshots fra din FC 26 karriere, få truppen læst automatisk af AI og hold styr på udvikling, kontrakter og huller i truppen.",
+          "Upload screenshots from your FC 26 career, let AI read your squad automatically and keep track of growth, contracts and gaps in the squad.",
       },
-      { property: "og:title", content: "Career Chronicles — assistent til FC 26 Career Mode" },
+      { property: "og:title", content: "Career Chronicles — FC 26 Career Mode assistant" },
       {
         property: "og:description",
         content:
-          "Screenshot ind, trupdata ud. Følg spillerudvikling, kontraktudløb og svagheder i din FC 26 karriere.",
+          "Screenshots in, squad data out. Track player growth, contract expiry and weaknesses in your FC 26 career.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -30,22 +30,22 @@ const features = [
   {
     icon: Camera,
     title: "Screenshot → data",
-    text: "Upload et screenshot af trupskærmen. AI læser navn, position, OVR, potentiale, alder, værdi, løn og kontrakt.",
+    text: "Upload a screenshot of the squad screen. AI reads name, position, OVR, POT, age, value, wage and contract.",
   },
   {
     icon: Users,
-    title: "Trupoversigt",
-    text: "Sortér og filtrér hele truppen på position, alder, potentiale og værdi — langt hurtigere end i spillet.",
+    title: "Squad overview",
+    text: "Sort and filter your whole squad by position, age, POT and value — far faster than in the game.",
   },
   {
     icon: LineChart,
-    title: "Udvikling over sæsoner",
-    text: "Hver upload bliver et snapshot, så du kan se hvem der vokser, og hvem der stagnerer.",
+    title: "Growth across seasons",
+    text: "Every upload becomes a snapshot, so you can see who is growing and who is stalling.",
   },
   {
     icon: ShieldAlert,
-    title: "Advarsler",
-    text: "Manglende positioner, ingen backup og kontrakter der udløber bliver fremhævet automatisk.",
+    title: "Alerts",
+    text: "Missing positions, no backup and expiring contracts are highlighted automatically.",
   },
 ];
 
@@ -71,7 +71,7 @@ function Landing() {
           </span>
           <Button asChild size="sm" variant={signedIn ? "default" : "outline"}>
             <Link to={signedIn ? "/karrierer" : "/auth"}>
-              {signedIn ? "Mine karrierer" : "Log ind"}
+              {signedIn ? "My careers" : "Log in"}
             </Link>
           </Button>
         </div>
@@ -80,18 +80,18 @@ function Landing() {
       <main className="mx-auto max-w-6xl px-5 pb-20">
         <section className="py-16 sm:py-24">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-            Til FC 26 Career Mode
+            For FC 26 Career Mode
           </p>
           <h1 className="mt-4 max-w-3xl font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
-            Dit eksterne managementværktøj til karrieren
+            Your external management tool for the career
           </h1>
           <p className="mt-5 max-w-2xl text-base text-muted-foreground sm:text-lg">
-            Tag et screenshot af din trup, upload det, og få hele holdet ind i en database du kan
-            analysere sæson efter sæson. Ingen manuel indtastning, ingen regneark.
+            Take a screenshot of your squad, upload it, and get the whole team into a database you
+            can analyse season after season. No manual typing, no spreadsheets.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button asChild size="lg">
-              <Link to={signedIn ? "/karrierer" : "/auth"}>Kom i gang</Link>
+              <Link to={signedIn ? "/karrierer" : "/auth"}>Get started</Link>
             </Button>
           </div>
         </section>

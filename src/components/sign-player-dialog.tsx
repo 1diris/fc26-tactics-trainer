@@ -52,7 +52,7 @@ export function SignPlayerDialog({
 
   const mutation = useMutation({
     mutationFn: async () => {
-      if (!player || !seasonId) throw new Error("Ingen sæson valgt.");
+      if (!player || !seasonId) throw new Error("No season selected.");
       return sign({
         data: {
           careerId,
@@ -69,8 +69,8 @@ export function SignPlayerDialog({
       await router.invalidate();
       toast.success(
         result.alreadyInSquad
-          ? `${result.name} var allerede i truppen og er nu opdateret.`
-          : `${result.name} er hentet til truppen.`,
+          ? `${result.name} was already in the squad and has been updated.`
+          : `${result.name} has been signed to the squad.`,
       );
       onOpenChange(false);
     },
@@ -83,10 +83,10 @@ export function SignPlayerDialog({
     <Dialog open={player !== null} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Hent til trup</DialogTitle>
+          <DialogTitle>Sign to squad</DialogTitle>
           <DialogDescription>
             {player
-              ? `${player.short_name} · ${player.overall ?? "–"} OVR / POT ${player.potential ?? "–"} · ${player.age ?? "–"} år · ${position ?? "–"}`
+              ? `${player.short_name} · ${player.overall ?? "–"} OVR / POT ${player.potential ?? "–"} · ${player.age ?? "–"} yrs · ${position ?? "–"}`
               : ""}
           </DialogDescription>
         </DialogHeader>
@@ -94,14 +94,14 @@ export function SignPlayerDialog({
         {player && (
           <div className="space-y-3 text-sm">
             <p className="text-xs text-muted-foreground">
-              Markedsværdi {formatMoney(player.value_eur == null ? null : Number(player.value_eur))}{" "}
-              · Løn {formatWage(player.wage_eur == null ? null : Number(player.wage_eur))} · Kontrakt{" "}
+              Value {formatMoney(player.value_eur == null ? null : Number(player.value_eur))}{" "}
+              · Wage {formatWage(player.wage_eur == null ? null : Number(player.wage_eur))} · Contract expiry{" "}
               {player.contract_until ?? "–"}
             </p>
 
             <label className="block space-y-1">
               <span className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
-                Transfersum (EUR)
+                Transfer fee (EUR)
               </span>
               <Input
                 inputMode="numeric"
@@ -113,7 +113,7 @@ export function SignPlayerDialog({
 
             <label className="block space-y-1">
               <span className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
-                Trøjenummer (valgfrit)
+                Shirt number (optional)
               </span>
               <Input
                 inputMode="numeric"
@@ -124,20 +124,20 @@ export function SignPlayerDialog({
             </label>
 
             <p className="text-xs text-muted-foreground">
-              Sæson: {seasonLabel ?? "–"} · Budget {budget == null ? "–" : formatMoney(budget)}
+              Season: {seasonLabel ?? "–"} · Budget {budget == null ? "–" : formatMoney(budget)}
             </p>
 
             {feeInvalid && (
-              <p className="text-xs text-destructive">Transfersummen skal være et positivt tal.</p>
+              <p className="text-xs text-destructive">The transfer fee must be a positive number.</p>
             )}
             {overBudget && (
               <p className="text-xs text-destructive">
-                Transfersummen overstiger dit budget — budgettet sættes til 0.
+                The transfer fee exceeds your budget — the budget will be set to 0.
               </p>
             )}
             {!seasonId && (
               <p className="text-xs text-destructive">
-                Opret en sæson i karrieren, før du kan hente spillere til truppen.
+                Create a season in the career before you can sign players to the squad.
               </p>
             )}
           </div>
@@ -145,14 +145,14 @@ export function SignPlayerDialog({
 
         <DialogFooter>
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-            Annuller
+            Cancel
           </Button>
           <Button
             type="button"
             disabled={mutation.isPending || feeInvalid || !seasonId}
             onClick={() => mutation.mutate()}
           >
-            {mutation.isPending ? "Henter…" : "Hent til trup"}
+            {mutation.isPending ? "Signing…" : "Sign to squad"}
           </Button>
         </DialogFooter>
       </DialogContent>

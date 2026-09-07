@@ -42,17 +42,17 @@ export const Route = createFileRoute("/_authenticated/karrierer/$id/marked")({
   },
   head: () => ({
     meta: [
-      { title: "Transfermarked — Career Chronicles" },
+      { title: "Transfer Market — Career Chronicles" },
       {
         name: "description",
         content:
-          "Søg blandt over 18.000 FC 26-spillere på position, overall, potentiale, alder, værdi og løn — og gem dine transfermål.",
+          "Search over 18,000 FC 26 players by position, overall, potential, age, value and wage — and save your transfer targets.",
       },
-      { property: "og:title", content: "Transfermarked — Career Chronicles" },
+      { property: "og:title", content: "Transfer Market — Career Chronicles" },
       {
         property: "og:description",
         content:
-          "Find spillere du kan købe inden for dit transferbudget, og se om de er en opgradering af truppen.",
+          "Find players you can buy within your transfer budget, and see if they are an upgrade on the squad.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -62,30 +62,30 @@ export const Route = createFileRoute("/_authenticated/karrierer/$id/marked")({
 });
 
 const SORT_LABELS: Record<NonNullable<MarketSearchInput["sort"]>, string> = {
-  overall: "Højeste OVR",
-  potential: "Højeste potentiale",
-  value_desc: "Dyreste først",
-  value_asc: "Billigste først",
-  age: "Yngste først",
+  overall: "Highest OVR",
+  potential: "Highest potential",
+  value_desc: "Most expensive first",
+  value_asc: "Cheapest first",
+  age: "Youngest first",
 };
 
 const PRESET_LABELS: Record<MarketPreset, string> = {
   wonderkids: "Wonderkids",
-  gems: "Talenter",
+  gems: "Gems",
   bargains: "Bargains",
-  expiring: "Kontrakt udløber",
+  expiring: "Expiring",
   free_agents: "Free agents",
 };
 
 const PRESET_HINTS: Record<MarketPreset, string> = {
-  wonderkids: "Maks 21 år med mindst +10 i vækstpotentiale, rangeret efter potentiale pr. krone.",
-  gems: "22-26 år der stadig kan udvikle sig, og som er billige i forhold til deres potentiale.",
-  bargains: "OVR 70+ rangeret efter mest kvalitet pr. krone.",
-  expiring: "Kontrakt udløber i år — kan hentes billigt eller gratis.",
-  free_agents: "Spillere uden klub lige nu.",
+  wonderkids: "Max 21 years old with at least +10 growth potential, ranked by potential per euro.",
+  gems: "22-26 years old who can still develop, and who are cheap relative to their potential.",
+  bargains: "OVR 70+ ranked by the most quality per euro.",
+  expiring: "Contract expires this year — can be signed cheaply or for free.",
+  free_agents: "Players without a club right now.",
 };
 
-const PRIORITY_LABELS: Record<number, string> = { 1: "Høj", 2: "Mellem", 3: "Lav" };
+const PRIORITY_LABELS: Record<number, string> = { 1: "High", 2: "Medium", 3: "Low" };
 
 /**
  * Turns two optional numeric text inputs into filter bounds.
@@ -140,13 +140,13 @@ function RangeField({
           inputMode="numeric"
           value={max}
           onChange={(event) => onMax(clean(event.target.value))}
-          placeholder={maxPlaceholder ?? "Maks."}
-          aria-label={`${label} maksimum`}
+          placeholder={maxPlaceholder ?? "Max."}
+          aria-label={`${label} maximum`}
           aria-invalid={invalid}
         />
       </div>
       {invalid && (
-        <p className="text-xs text-destructive">Minimum må ikke være større end maksimum.</p>
+        <p className="text-xs text-destructive">Minimum must not be greater than maximum.</p>
       )}
     </div>
   );
@@ -214,10 +214,10 @@ function MarketPage() {
   const wage = range(minWage, maxWage);
   const invalidRanges = [
     ovr.invalid ? "OVR" : null,
-    pot.invalid ? "Potentiale" : null,
-    age.invalid ? "Alder" : null,
-    value.invalid ? "Værdi" : null,
-    wage.invalid ? "Løn" : null,
+    pot.invalid ? "Potential" : null,
+    age.invalid ? "Age" : null,
+    value.invalid ? "Value" : null,
+    wage.invalid ? "Wage" : null,
   ].filter((label): label is string => label != null);
 
   const filters: MarketSearchInput = {
@@ -341,8 +341,8 @@ function MarketPage() {
 
     <Tabs defaultValue="search" className="space-y-6">
       <TabsList>
-        <TabsTrigger value="search">Søg spillere</TabsTrigger>
-        <TabsTrigger value="targets">Mine mål ({targets.data?.length ?? 0})</TabsTrigger>
+        <TabsTrigger value="search">Search players</TabsTrigger>
+        <TabsTrigger value="targets">My targets ({targets.data?.length ?? 0})</TabsTrigger>
       </TabsList>
 
       <TabsContent value="search" className="space-y-5">
@@ -359,12 +359,12 @@ function MarketPage() {
             <Input
               value={term}
               onChange={(event) => setTerm(event.target.value)}
-              placeholder="Søg på navn eller klub"
+              placeholder="Search by name or club"
               className="pl-9"
-              aria-label="Søg på navn eller klub"
+              aria-label="Search by name or club"
             />
           </div>
-          <Button type="submit">Søg</Button>
+          <Button type="submit">Search</Button>
         </form>
 
         <div className="flex flex-wrap gap-1.5">
@@ -403,7 +403,7 @@ function MarketPage() {
                 setMaxValue(String(budget));
               }}
             >
-              Inden for budget ({formatMoney(budget)})
+              Within budget ({formatMoney(budget)})
             </Button>
           )}
           <Button
@@ -413,7 +413,7 @@ function MarketPage() {
             onClick={() => setNeedsOpen((open) => !open)}
             aria-expanded={needsOpen}
           >
-            Dæk mine huller
+            Cover my gaps
             {highNeeds > 0 && (
               <span className="ml-1.5 rounded bg-destructive/20 px-1 text-[10px] font-semibold text-destructive">
                 {highNeeds}
@@ -446,7 +446,7 @@ function MarketPage() {
               setPreset(null);
             }}
           >
-            Nulstil filtre
+            Reset filters
           </Button>
         </div>
 
@@ -454,16 +454,16 @@ function MarketPage() {
           <section className="space-y-2 rounded-lg border border-border/60 bg-card/40 p-3">
             <header className="flex flex-wrap items-baseline justify-between gap-2">
               <h2 className="font-display text-sm font-bold uppercase tracking-[0.15em]">
-                Trupanalyse
+                Squad analysis
               </h2>
               <p className="text-xs text-muted-foreground">
-                Klubniveau {level ?? "–"} OVR
-                {squadAvgAge != null ? ` · gennemsnitsalder ${squadAvgAge} år` : ""}
+                Club level {level ?? "–"} OVR
+                {squadAvgAge != null ? ` · average age ${squadAvgAge} yrs` : ""}
               </p>
             </header>
             <p className="text-xs text-muted-foreground">
-              Tryk på en position for automatisk at filtrere markedet til relevante,
-              realistiske spillere til netop den rolle.
+              Click a position to automatically filter the market to relevant,
+              realistic players for that role.
             </p>
             <ul className="space-y-2">
               {needs.map((need) => {
@@ -491,12 +491,12 @@ function MarketPage() {
                       </span>
                       <span className="mt-1 block text-xs text-muted-foreground">{need.reason}</span>
                       <span className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
-                        <span>{need.naturalCount} naturlige</span>
-                        <span>{need.capableCount} kan dække</span>
-                        <span>Bedste {need.bestOverall ?? "–"} OVR</span>
-                        <span>Snit {need.averageOverall ?? "–"} OVR</span>
+                        <span>{need.naturalCount} natural</span>
+                        <span>{need.capableCount} can cover</span>
+                        <span>Best {need.bestOverall ?? "–"} OVR</span>
+                        <span>Avg {need.averageOverall ?? "–"} OVR</span>
                         <span>
-                          Dybde {need.depth} / {need.required}
+                          Depth {need.depth} / {need.required}
                         </span>
                       </span>
                     </button>
@@ -543,11 +543,11 @@ function MarketPage() {
               resetPage();
               setMaxOverall(value);
             }}
-            minPlaceholder="fx 70"
-            maxPlaceholder="fx 78"
+            minPlaceholder="e.g. 70"
+            maxPlaceholder="e.g. 78"
           />
           <RangeField
-            label="Potentiale"
+            label="Potential"
             digits={2}
             min={minPotential}
             max={maxPotential}
@@ -559,11 +559,11 @@ function MarketPage() {
               resetPage();
               setMaxPotential(value);
             }}
-            minPlaceholder="fx 80"
-            maxPlaceholder="fx 90"
+            minPlaceholder="e.g. 80"
+            maxPlaceholder="e.g. 90"
           />
           <RangeField
-            label="Alder"
+            label="Age"
             digits={2}
             min={minAge}
             max={maxAge}
@@ -575,11 +575,11 @@ function MarketPage() {
               resetPage();
               setMaxAge(value);
             }}
-            minPlaceholder="fx 16"
-            maxPlaceholder="fx 23"
+            minPlaceholder="e.g. 16"
+            maxPlaceholder="e.g. 23"
           />
           <RangeField
-            label="Værdi (€)"
+            label="Value (€)"
             digits={12}
             min={minValue}
             max={maxValue}
@@ -591,11 +591,11 @@ function MarketPage() {
               resetPage();
               setMaxValue(value);
             }}
-            minPlaceholder="fx 0"
-            maxPlaceholder="fx 40000000"
+            minPlaceholder="e.g. 0"
+            maxPlaceholder="e.g. 40000000"
           />
           <RangeField
-            label="Løn (€ pr. uge)"
+            label="Wage (€ per week)"
             digits={9}
             min={minWage}
             max={maxWage}
@@ -607,14 +607,14 @@ function MarketPage() {
               resetPage();
               setMaxWage(value);
             }}
-            minPlaceholder="fx 0"
-            maxPlaceholder="fx 100000"
+            minPlaceholder="e.g. 0"
+            maxPlaceholder="e.g. 100000"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <label className="space-y-1 text-xs text-muted-foreground">
-            Fod
+            Foot
             <Select
               value={foot}
               onValueChange={(value) => {
@@ -622,18 +622,18 @@ function MarketPage() {
                 setFoot(value);
               }}
             >
-              <SelectTrigger aria-label="Foretrukket fod">
+              <SelectTrigger aria-label="Preferred foot">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Alle</SelectItem>
-                <SelectItem value="Right">Højre</SelectItem>
-                <SelectItem value="Left">Venstre</SelectItem>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="Right">Right</SelectItem>
+                <SelectItem value="Left">Left</SelectItem>
               </SelectContent>
             </Select>
           </label>
           <label className="space-y-1 text-xs text-muted-foreground">
-            Liga
+            League
             <Select
               value={league}
               onValueChange={(value) => {
@@ -641,11 +641,11 @@ function MarketPage() {
                 setLeague(value);
               }}
             >
-              <SelectTrigger aria-label="Liga">
+              <SelectTrigger aria-label="League">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Alle ligaer</SelectItem>
+                <SelectItem value="all">All leagues</SelectItem>
                 {(leagues.data ?? []).map((name) => (
                   <SelectItem key={name} value={name}>
                     {name}
@@ -655,7 +655,7 @@ function MarketPage() {
             </Select>
           </label>
           <label className="space-y-1 text-xs text-muted-foreground">
-            Sortering
+            Sort
             <Select
               value={sort}
               onValueChange={(value) => {
@@ -663,7 +663,7 @@ function MarketPage() {
                 setSort(value as NonNullable<MarketSearchInput["sort"]>);
               }}
             >
-              <SelectTrigger aria-label="Sortering">
+              <SelectTrigger aria-label="Sort">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -679,8 +679,8 @@ function MarketPage() {
 
         {invalidRanges.length > 0 && (
           <p className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive">
-            Ugyldigt interval i: {invalidRanges.join(", ")}. Minimum må ikke være større end
-            maksimum — filteret er midlertidigt ignoreret.
+            Invalid range in: {invalidRanges.join(", ")}. Minimum must not be greater than
+            maximum — the filter is temporarily ignored.
           </p>
         )}
 
@@ -688,10 +688,10 @@ function MarketPage() {
           <span>
             {results.isFetching ? (
               <span className="inline-flex items-center gap-1.5">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Søger…
+                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Searching…
               </span>
             ) : (
-              `${total.toLocaleString("da-DK")} spillere fundet`
+              `${total.toLocaleString("en-GB")} players found`
             )}
           </span>
           {pageCount > 1 && (
@@ -703,10 +703,10 @@ function MarketPage() {
                 disabled={page === 0}
                 onClick={() => setPage((current) => Math.max(0, current - 1))}
               >
-                Forrige
+                Previous
               </Button>
               <span>
-                Side {page + 1} af {pageCount}
+                Page {page + 1} of {pageCount}
               </span>
               <Button
                 type="button"
@@ -715,7 +715,7 @@ function MarketPage() {
                 disabled={page + 1 >= pageCount}
                 onClick={() => setPage((current) => current + 1)}
               >
-                Næste
+                Next
               </Button>
             </span>
           )}
@@ -735,7 +735,7 @@ function MarketPage() {
           ))}
           {!results.isFetching && (results.data?.players.length ?? 0) === 0 && (
             <p className="rounded-lg border border-border/60 bg-card/40 p-6 text-center text-sm text-muted-foreground">
-              Ingen spillere matcher dine filtre.
+              No players match your filters.
             </p>
           )}
         </div>
@@ -743,10 +743,10 @@ function MarketPage() {
 
       <TabsContent value="targets" className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-3">
-          <Stat label="Antal mål" value={String(targets.data?.length ?? 0)} />
-          <Stat label="Forventet udgift" value={formatMoney(targetSpend)} />
+          <Stat label="Number of targets" value={String(targets.data?.length ?? 0)} />
+          <Stat label="Expected spend" value={formatMoney(targetSpend)} />
           <Stat
-            label="Rest af budget"
+            label="Remaining budget"
             value={budget == null ? "–" : formatMoney(budget - targetSpend)}
           />
         </div>
@@ -762,9 +762,9 @@ function MarketPage() {
                 pending={toggleTarget.isPending}
                 onToggle={() => toggleTarget.mutate(target.fc_players!)}
                 onSign={() => setSigning(target.fc_players!)}
-                footer={`Prioritet: ${PRIORITY_LABELS[target.priority] ?? "Mellem"}${
+                footer={`Priority: ${PRIORITY_LABELS[target.priority] ?? "Medium"}${
                   target.expected_price != null
-                    ? ` · Forventet pris ${formatMoney(Number(target.expected_price))}`
+                    ? ` · Expected price ${formatMoney(Number(target.expected_price))}`
                     : ""
                 }`}
               />
@@ -772,7 +772,7 @@ function MarketPage() {
           )}
           {(targets.data?.length ?? 0) === 0 && (
             <p className="rounded-lg border border-border/60 bg-card/40 p-6 text-center text-sm text-muted-foreground">
-              Ingen transfermål endnu. Tryk på stjernen ved en spiller i søgningen.
+              No transfer targets yet. Click the star next to a player in the search.
             </p>
           )}
         </div>
@@ -849,28 +849,28 @@ function PlayerRow({
               </Badge>
             ))}
             {delta != null && delta > 0 && (
-              <span className="text-xs font-semibold text-primary">+{delta} vs. trup</span>
+              <span className="text-xs font-semibold text-primary">+{delta} vs. squad</span>
             )}
             {delta != null && delta <= 0 && (
-              <span className="text-xs text-muted-foreground">{delta} vs. trup</span>
+              <span className="text-xs text-muted-foreground">{delta} vs. squad</span>
             )}
           </div>
           <p className="mt-0.5 truncate text-xs text-muted-foreground">
-            {player.age} år · {player.club_name ?? "Uden klub"} · {player.league_name ?? "–"}
+            {player.age} yrs · {player.club_name ?? "No club"} · {player.league_name ?? "–"}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
             {formatMoney(player.value_eur == null ? null : Number(player.value_eur))} ·{" "}
-            {formatWage(player.wage_eur == null ? null : Number(player.wage_eur))} · Kontrakt{" "}
+            {formatWage(player.wage_eur == null ? null : Number(player.wage_eur))} · Contract expiry{" "}
             {player.contract_until ?? "–"} ·{" "}
-            {player.preferred_foot === "Left" ? "Venstrebenet" : "Højrebenet"}
+            {player.preferred_foot === "Left" ? "Left-footed" : "Right-footed"}
           </p>
           <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
             {growthOf(player) > 0 && (
-              <span className="font-semibold text-primary">+{growthOf(player)} vækst</span>
+              <span className="font-semibold text-primary">+{growthOf(player)} growth</span>
             )}
-            {pricePerPoint(player) && <span>{pricePerPoint(player)} pr. OVR-point</span>}
+            {pricePerPoint(player) && <span>{pricePerPoint(player)} per OVR point</span>}
             {player.release_clause_eur != null && (
-              <span>Klausul {formatMoney(Number(player.release_clause_eur))}</span>
+              <span>Release clause {formatMoney(Number(player.release_clause_eur))}</span>
             )}
             <span>PAC {player.pace ?? "–"}</span>
             <span>SHO {player.shooting ?? "–"}</span>
@@ -888,7 +888,7 @@ function PlayerRow({
             size="icon"
             disabled={pending}
             onClick={onToggle}
-            aria-label={isTarget ? "Fjern som transfermål" : "Gem som transfermål"}
+            aria-label={isTarget ? "Remove from shortlist" : "Add to shortlist"}
           >
             {isTarget ? (
               <Star className="h-4 w-4 fill-primary text-primary" />
@@ -901,8 +901,8 @@ function PlayerRow({
             variant="ghost"
             size="icon"
             onClick={onSign}
-            aria-label="Hent til trup"
-            title="Hent til trup"
+            aria-label="Sign to squad"
+            title="Sign to squad"
           >
             <UserPlus className="h-4 w-4 text-muted-foreground" />
           </Button>

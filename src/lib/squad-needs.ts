@@ -116,27 +116,25 @@ export function analyseSquadNeeds(rows: SquadRow[]): PositionNeed[] {
       priority = "high";
       reason =
         capable.length > 0
-          ? `Ingen naturlig spiller — kun ${capable.length} der kan dække positionen.`
-          : "Ingen spiller i truppen kan dække positionen.";
+          ? `No natural player — only ${capable.length} who can cover the position.`
+          : "No player in the squad can cover the position.";
     } else if (qualityGap != null && qualityGap <= -5) {
       priority = "high";
-      reason = `Bedste spiller er ${Math.abs(qualityGap)} OVR under klubbens niveau (${level}).`;
+      reason = `Best player is ${Math.abs(qualityGap)} OVR below the club level (${level}).`;
     } else if (depth < required - 1) {
       priority = "high";
-      reason = `Kun ${natural.length} naturlig${natural.length === 1 ? "" : "e"} spiller${
-        natural.length === 1 ? "" : "e"
-      } — truppen mangler dybde (${required} anbefalet).`;
+      reason = `Only ${natural.length} natural player${natural.length === 1 ? "" : "s"} — the squad lacks depth (${required} recommended).`;
     } else if (depth < required) {
       priority = "medium";
-      reason = `Tynd dybde: ${natural.length} naturlig${natural.length === 1 ? "" : "e"} + ${
+      reason = `Thin depth: ${natural.length} natural + ${
         capable.length
-      } der kan dække (${required} anbefalet).`;
+      } who can cover (${required} recommended).`;
     } else if (qualityGap != null && qualityGap < 0) {
       priority = "medium";
-      reason = `Dækket, men bedste spiller (${bestOverall}) er under klubbens niveau (${level}).`;
+      reason = `Covered, but the best player (${bestOverall}) is below the club level (${level}).`;
     } else {
       priority = "low";
-      reason = `Godt dækket: ${natural.length} naturlige, bedste ${bestOverall ?? "–"} OVR.`;
+      reason = `Well covered: ${natural.length} natural, best ${bestOverall ?? "–"} OVR.`;
     }
 
     const baseline = bestOverall ?? level;
@@ -175,17 +173,17 @@ export function analyseSquadNeeds(rows: SquadRow[]): PositionNeed[] {
 export const PRIORITY_META: Record<NeedPriority, { dot: string; label: string; tone: string }> = {
   high: {
     dot: "🔴",
-    label: "Høj prioritet",
+    label: "High priority",
     tone: "border-destructive/50 bg-destructive/10 text-destructive",
   },
   medium: {
     dot: "🟡",
-    label: "Medium prioritet",
+    label: "Medium priority",
     tone: "border-amber-500/50 bg-amber-500/10 text-amber-400",
   },
   low: {
     dot: "🟢",
-    label: "Lav prioritet",
+    label: "Low priority",
     tone: "border-emerald-500/50 bg-emerald-500/10 text-emerald-400",
   },
 };

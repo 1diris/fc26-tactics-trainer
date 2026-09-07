@@ -51,15 +51,15 @@ export function SellPlayerDialog({
 
   const mutation = useMutation({
     mutationFn: async () => {
-      if (!playerId) throw new Error("Ingen spiller valgt.");
+      if (!playerId) throw new Error("No player selected.");
       return sell({ data: { careerId, playerId, fee: feeInvalid ? 0 : feeNumber } });
     },
     onSuccess: async (result) => {
       await queryClient.invalidateQueries({ queryKey: ["career", careerId] });
       await router.invalidate();
       toast.success(
-        `${result.name} solgt for ${formatMoney(result.fee)}` +
-          (result.budget != null ? ` — budget nu ${formatMoney(result.budget)}` : ""),
+        `${result.name} sold for ${formatMoney(result.fee)}` +
+          (result.budget != null ? ` — budget now ${formatMoney(result.budget)}` : ""),
       );
       onOpenChange(false);
       onSold?.();
@@ -71,10 +71,10 @@ export function SellPlayerDialog({
     <Dialog open={playerId !== null} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Sælg spiller</DialogTitle>
+          <DialogTitle>Sell player</DialogTitle>
           <DialogDescription>
             {playerName
-              ? `${playerName} fjernes fra truppen, og salgssummen lægges til transferbudgettet.`
+              ? `${playerName} will be removed from the squad, and the sale fee will be added to the transfer budget.`
               : ""}
           </DialogDescription>
         </DialogHeader>
@@ -82,7 +82,7 @@ export function SellPlayerDialog({
         <div className="space-y-3 text-sm">
           <label className="block space-y-1">
             <span className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
-              Solgt for (EUR)
+              Sold for (EUR)
             </span>
             <Input
               inputMode="numeric"
@@ -93,22 +93,22 @@ export function SellPlayerDialog({
           </label>
 
           <p className="text-xs text-muted-foreground">
-            Estimeret værdi {formatMoney(suggestedFee)} · Budget{" "}
+            Estimated value {formatMoney(suggestedFee)} · Budget{" "}
             {budget == null ? "–" : formatMoney(budget)}
             {budget != null && !feeInvalid ? ` → ${formatMoney(budget + feeNumber)}` : ""}
           </p>
 
           {feeInvalid && (
-            <p className="text-xs text-destructive">Salgssummen skal være et positivt tal.</p>
+            <p className="text-xs text-destructive">The sale fee must be a positive number.</p>
           )}
           <p className="text-xs text-muted-foreground">
-            Spilleren og hans historik slettes, og han fjernes fra gemte opstillinger.
+            The player and his history will be deleted, and he will be removed from saved lineups.
           </p>
         </div>
 
         <DialogFooter>
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-            Annuller
+            Cancel
           </Button>
           <Button
             type="button"
@@ -116,7 +116,7 @@ export function SellPlayerDialog({
             disabled={mutation.isPending || feeInvalid}
             onClick={() => mutation.mutate()}
           >
-            {mutation.isPending ? "Sælger…" : "Sælg spiller"}
+            {mutation.isPending ? "Selling…" : "Sell player"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -328,7 +328,7 @@ export const signMarketPlayer = createServerFn({ method: "POST" })
       .eq("id", data.fcPlayerId)
       .maybeSingle();
     if (fcError) throw new Error(fcError.message);
-    if (!fc) throw new Error("Spilleren findes ikke i FC 26-databasen.");
+    if (!fc) throw new Error("Player not found in the FC 26 database.");
 
     const name = fc.short_name.trim();
     const position = normalizePosition(fc.positions?.[0] ?? null);
@@ -374,7 +374,7 @@ export const signMarketPlayer = createServerFn({ method: "POST" })
         })
         .select("id")
         .single();
-      if (error || !inserted) throw new Error(error?.message ?? "Kunne ikke oprette spilleren.");
+      if (error || !inserted) throw new Error(error?.message ?? "Could not create the player.");
       playerId = inserted.id;
     }
 
