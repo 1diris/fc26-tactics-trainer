@@ -137,6 +137,209 @@ function PotentialRange({ row }: { row: YouthRow }) {
 }
 
 function AcademyPage() {
+  const { id } = useParams({ from: "/_authenticated/karrierer/$id" });
+  const queryClient = useQueryClient();
+  const listFn = useServerFn(listYouthPlayers);
+  const createFn = useServerFn(createYouthPlayer);
+  const deleteFn = useServerFn(deleteYouthPlayer);
+  const promoteFn = useServerFn(promoteYouthPlayer);
+
+  const careerQuery = useQuery(careerDataQuery(id));
+  const seasons = sortedSeasons(careerQuery.data?.seasons ?? []);
+  const activeSeasonId = careerQuery.data?.career.current_season_id ?? seasons[0]?.id ?? "";
+
+  const youth = useQuery({
+    queryKey: ["youth", id],
+    queryFn: () => listFn({ data: { careerId: id } }) as Promise<YouthRow[]>,
+  });
+
+  const [sortKey, setSortKey] = useState<SortKey>("potential");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
+
+  const rows = useMemo(() => {
+    const list = [...(youth.data ?? [])];
+    list.sort((a, b) => {
+      if (sortKey === "age") return (a.age ?? 99) - (b.age ?? 99);
+      if (sortKey === "name") return a.name.localeCompare(b.name, "da");
+      if (sortKey === "overall") return (b.overall ?? 0) - (a.overall ?? 0);
+      return (
+        (b.potential_max ?? b.potential_min ?? 0) - (a.potential_max ?? a.potential_min ?? 0)
+      );
+    });
+    return list;
+  }, [youth.data, sortKey]);
+
+  const selected = rows.find((row) => row.id === selectedId) ?? null;
+
+  const invalidate = () => {
+    void queryClient.invalidateQueries({ queryKey: ["youth", id] });
+    void queryClient.invalidateQueries({ queryKey: ["career", id] });
+  };
+
+  const promote = useMutation({
+    mutationFn: (youthId: string) =>
+      promoteFn({ data: { youthId, careerId: id, seasonId: activeSeasonId } }),
+    onSuccess: (result) => {
+      toast.success(`${result.name} er forfremmet til førsteholdet.`);
+      setSelectedId(null);
+      invalidate();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const release = useMutation({
+    mutationFn: (youthId: string) => deleteFn({ data: { youthId } }),
+    onSuccess: () => {
+      toast.success("Talentet er frigivet.");
+      setSelectedId(null);
+      invalidate();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const SORT_TEXT: Record<SortKey, string> = {
+    potential: "potential",
+    overall: "OVR",
+    age: "age",
+    name: "name",
+  };
+
+  const headerButton = (key: SortKey, label: string, extra = "") => (
+    <button
+      type="button"
+      onClick={() => setSortKey(key)}
+      className={`flex items-center gap-1 uppercase tracking-wider ${extra} ${
+        sortKey === key ? "text-foreground" : ""
+      }`}
+    >
+      {label}
+      {sortKey === key && <ChevronDown className="h-3 w-3" />}
+    </button>
+  );
+
+  return (
+    <div className="pb-24">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="font-display text-3xl font-bold tracking-tight">
+            Academy{" "}
+            <span className="font-stat text-lg font-normal text-muted-foreground">
+              {rows.length}
+            </span>
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {rows.length} {rows.length === 1 ? "talent" : "talents"} · sorted by {SORT_TEXT[sortKey]}
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => setAddOpen(true)}
+          className="border-emerald-500/50 text-emerald-300 hover:bg-emerald-500/10 hover:text-emerald-200"
+        >
+          <Plus className="mr-1 h-4 w-4" /> Add talent
+        </Button>
+      </div>
+
+      <div className="mt-6 overflow-x-auto rounded-xl border border-dash-border bg-dash-card">
+        <table className="w-full min-w-[42rem] border-collapse text-sm">
+          <thead>
+            <tr className="border-b border-dash-border text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <th className="px-4 py-2 text-left">{headerButton("name", "Name")}</th>
+              <th className="px-3 py-2 text-left font-semibold">Pos</th>
+              <th className="px-3 py-2 text-left">{headerButton("age", "Age")}</th>
+              <th className="px-3 py-2 text-left">{headerButton("overall", "OVR")}</th>
+              <th className="px-3 py-2 text-left">{headerButton("potential", "Potential")}</th>
+              <th className="px-4 py-2 text-left font-semibold">Plan</th>
+            </tr>
+          </thead>
+          <tbody>
+            {youth.isLoading && (
+              <tr>
+                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                  Henter talenter…
+                </td>
+              </tr>
+            )}
+            {!youth.isLoading && rows.length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
+                  Ingen talenter endnu. Tilføj dit første akademitalent.
+                </td>
+              </tr>
+            )}
+            {rows.map((row, index) => (
+              <tr
+                key={row.id}
+                onClick={() => setSelectedId(row.id)}
+                className={`cursor-pointer transition-colors hover:bg-dash-elevated/70 ${
+                  index % 2 === 1 ? "bg-dash-elevated/40" : ""
+                }`}
+              >
+                <td className="px-4 py-2 font-medium">{row.name}</td>
+                <td className="px-3 py-2">
+                  <PositionPill position={row.position} />
+                </td>
+                <td className="px-3 py-2 font-stat tabular-nums text-muted-foreground">
+                  {row.age ?? "–"}
+                </td>
+                <td className="px-3 py-2">
+                  <RatingBadge value={row.overall} />
+                </td>
+                <td className="px-3 py-2">
+                  <PotentialRange row={row} />
+                </td>
+                <td className="px-4 py-2">
+                  <span className="inline-flex items-center rounded-full bg-dash-elevated px-2.5 py-0.5 text-[11px] text-muted-foreground">
+                    {row.plan}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelectedId(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{selected?.name}</DialogTitle>
+            <DialogDescription>
+              {selected?.position} · {selected?.age} år · OVR {selected?.overall ?? "–"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-2">
+            <Button
+              disabled={!activeSeasonId || promote.isPending}
+              onClick={() => selected && promote.mutate(selected.id)}
+            >
+              <ArrowUpFromLine className="mr-2 h-4 w-4" /> Forfrem til førstehold
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={release.isPending}
+              onClick={() => selected && release.mutate(selected.id)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" /> Frigiv
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <AddTalentDialog
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        onSubmit={async (values) => {
+          await createFn({ data: { careerId: id, ...values } });
+          toast.success(`${values.name} er tilføjet til akademiet.`);
+          invalidate();
+        }}
+      />
+    </div>
+  );
+}
+
+
 
 type NewTalent = {
   name: string;
