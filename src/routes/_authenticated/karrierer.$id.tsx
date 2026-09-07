@@ -84,24 +84,44 @@ function CareerLayout() {
             )}
           </div>
 
-          <nav className="mt-5 flex gap-1">
-            {tabs.map((tab) => (
+          <nav className="mt-5 hidden border-b border-white/[0.06] sm:flex">
+            {NAV_ITEMS.map((item) => (
               <Link
-                key={tab.to}
-                to={tab.to}
+                key={item.to}
+                to={item.to}
                 params={{ id }}
-                activeOptions={{ exact: tab.exact }}
-                className="rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground data-[status=active]:bg-primary/10 data-[status=active]:text-primary"
+                activeOptions={{ exact: item.exact }}
+                className="group relative px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground/80 data-[status=active]:text-foreground"
               >
-                {tab.label}
+                {item.label}
+                <span className="absolute bottom-0 left-0 right-0 hidden h-0.5 rounded-t-full bg-primary group-data-[status=active]:block" />
               </Link>
             ))}
           </nav>
         </div>
       </div>
-      <main className="mx-auto max-w-6xl px-5 py-8">
+      <main className="mx-auto max-w-6xl px-5 py-8 pb-28 sm:pb-8">
         <Outlet />
       </main>
+
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-6 border-t border-white/[0.06] bg-dash-bg/90 backdrop-blur-md sm:hidden"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        {NAV_ITEMS.map((item) => (
+          <Link
+            key={item.to}
+            to={item.to}
+            params={{ id }}
+            activeOptions={{ exact: item.exact }}
+            className="flex flex-col items-center gap-0.5 py-2.5 text-muted-foreground transition-colors data-[status=active]:text-primary"
+          >
+            <item.Icon className="h-[18px] w-[18px]" />
+            <span className="text-[9px] font-medium">{item.label}</span>
+          </Link>
+        ))}
+      </nav>
+
     </div>
   );
 }
