@@ -17,14 +17,15 @@ export const Route = createFileRoute("/_authenticated/karrierer/$id")({
   component: CareerLayout,
 });
 
-const tabs = [
-  { to: "/karrierer/$id", label: "Overblik", exact: true },
-  { to: "/karrierer/$id/trup", label: "Trup", exact: false },
-  { to: "/karrierer/$id/taktik", label: "Taktik", exact: false },
-  { to: "/karrierer/$id/akademi", label: "Akademi", exact: false },
-  { to: "/karrierer/$id/marked", label: "Transfermarked", exact: false },
-  { to: "/karrierer/$id/import", label: "Import", exact: false },
+const NAV_ITEMS = [
+  { to: "/karrierer/$id", label: "Overview", exact: true, Icon: LayoutGrid },
+  { to: "/karrierer/$id/trup", label: "Squad", exact: false, Icon: Users },
+  { to: "/karrierer/$id/taktik", label: "Tactics", exact: false, Icon: Target },
+  { to: "/karrierer/$id/akademi", label: "Academy", exact: false, Icon: Star },
+  { to: "/karrierer/$id/marked", label: "Transfers", exact: false, Icon: ArrowLeftRight },
+  { to: "/karrierer/$id/import", label: "Import", exact: false, Icon: Upload },
 ] as const;
+
 
 function CareerLayout() {
   const { id } = useParams({ from: "/_authenticated/karrierer/$id" });
