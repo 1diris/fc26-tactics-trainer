@@ -35,16 +35,16 @@ import {
 export const Route = createFileRoute("/_authenticated/karrierer/$id/akademi")({
   head: () => ({
     meta: [
-      { title: "Ungdomsakademi — Career Chronicles" },
+      { title: "Youth academy — Career Chronicles" },
       {
         name: "description",
         content:
-          "Styr dine ungdomstalenter i FC 26 Career Mode: potentiale, udviklingsplan og forfremmelse til førsteholdet.",
+          "Manage your youth talents in FC 26 Career Mode: potential, growth plan and promotion to the first team.",
       },
-      { property: "og:title", content: "Ungdomsakademi — Career Chronicles" },
+      { property: "og:title", content: "Youth academy — Career Chronicles" },
       {
         property: "og:description",
-        content: "Overblik over dine unge talenter, deres potentiale og udviklingsplaner.",
+        content: "Overview of your young talents, their potential and growth plans.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -76,6 +76,8 @@ const GROUP_PILL: Record<string, string> = {
   Angreb: "border-red-500/40 bg-red-500/15 text-red-300",
   Ukendt: "border-dash-border bg-dash-elevated text-muted-foreground",
 };
+
+// NOTE: keys above are internal POSITION_GROUPS values, not user-facing text.
 
 function groupOfPosition(position: string | null): string {
   if (!position) return "Ukendt";
@@ -161,7 +163,7 @@ function AcademyPage() {
     const list = [...(youth.data ?? [])];
     list.sort((a, b) => {
       if (sortKey === "age") return (a.age ?? 99) - (b.age ?? 99);
-      if (sortKey === "name") return a.name.localeCompare(b.name, "da");
+      if (sortKey === "name") return a.name.localeCompare(b.name, "en");
       if (sortKey === "overall") return (b.overall ?? 0) - (a.overall ?? 0);
       return (
         (b.potential_max ?? b.potential_min ?? 0) - (a.potential_max ?? a.potential_min ?? 0)
@@ -181,7 +183,7 @@ function AcademyPage() {
     mutationFn: (youthId: string) =>
       promoteFn({ data: { youthId, careerId: id, seasonId: activeSeasonId } }),
     onSuccess: (result) => {
-      toast.success(`${result.name} er forfremmet til førsteholdet.`);
+      toast.success(`${result.name} has been promoted to the first team.`);
       setSelectedId(null);
       invalidate();
     },
@@ -191,7 +193,7 @@ function AcademyPage() {
   const release = useMutation({
     mutationFn: (youthId: string) => deleteFn({ data: { youthId } }),
     onSuccess: () => {
-      toast.success("Talentet er frigivet.");
+      toast.success("The talent has been released.");
       setSelectedId(null);
       invalidate();
     },
@@ -257,14 +259,14 @@ function AcademyPage() {
             {youth.isLoading && (
               <tr>
                 <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                  Henter talenter…
+                  Loading talents…
                 </td>
               </tr>
             )}
             {!youth.isLoading && rows.length === 0 && (
               <tr>
                 <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
-                  Ingen talenter endnu. Tilføj dit første akademitalent.
+                  No talents yet. Add your first academy talent.
                 </td>
               </tr>
             )}
@@ -313,14 +315,14 @@ function AcademyPage() {
               disabled={!activeSeasonId || promote.isPending}
               onClick={() => selected && promote.mutate(selected.id)}
             >
-              <ArrowUpFromLine className="mr-2 h-4 w-4" /> Forfrem til førstehold
+              <ArrowUpFromLine className="mr-2 h-4 w-4" /> Promote to first team
             </Button>
             <Button
               variant="destructive"
               disabled={release.isPending}
               onClick={() => selected && release.mutate(selected.id)}
             >
-              <Trash2 className="mr-2 h-4 w-4" /> Frigiv
+              <Trash2 className="mr-2 h-4 w-4" /> Release
             </Button>
           </div>
         </DialogContent>
@@ -331,7 +333,7 @@ function AcademyPage() {
         onOpenChange={setAddOpen}
         onSubmit={async (values) => {
           await createFn({ data: { careerId: id, ...values } });
-          toast.success(`${values.name} er tilføjet til akademiet.`);
+          toast.success(`${values.name} has been added to the academy.`);
           invalidate();
         }}
       />
@@ -368,7 +370,7 @@ function AddTalentDialog({
   const [overall, setOverall] = useState("");
   const [potMin, setPotMin] = useState("");
   const [potMax, setPotMax] = useState("");
-  const [plan, setPlan] = useState("Dynamisk");
+  const [plan, setPlan] = useState("Dynamic");
   const [photo, setPhoto] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -379,14 +381,14 @@ function AddTalentDialog({
     setOverall("");
     setPotMin("");
     setPotMax("");
-    setPlan("Dynamisk");
+    setPlan("Dynamic");
     setPhoto(null);
   };
 
   const pickPhoto = (file: File | undefined) => {
     if (!file) return;
     if (file.size > 2_000_000) {
-      toast.error("Billedet må højst være 2 MB.");
+      toast.error("The image must not exceed 2 MB.");
       return;
     }
     const reader = new FileReader();
@@ -396,12 +398,12 @@ function AddTalentDialog({
 
   const submit = async () => {
     if (!name.trim()) {
-      toast.error("Indtast et navn.");
+      toast.error("Enter a name.");
       return;
     }
     const ageValue = Number(age);
     if (!Number.isFinite(ageValue) || ageValue < 13 || ageValue > 18) {
-      toast.error("Alder skal være mellem 13 og 18.");
+      toast.error("Age must be between 13 and 18.");
       return;
     }
     setSaving(true);
@@ -413,13 +415,13 @@ function AddTalentDialog({
         overall: overall ? Number(overall) : null,
         potentialMin: potMin ? Number(potMin) : null,
         potentialMax: potMax ? Number(potMax) : null,
-        plan: plan.trim() || "Dynamisk",
+        plan: plan.trim() || "Dynamic",
         photoDataUrl: photo,
       });
       reset();
       onOpenChange(false);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Kunne ikke gemme talentet.");
+      toast.error(error instanceof Error ? error.message : "Could not save the talent.");
     } finally {
       setSaving(false);
     }
@@ -429,22 +431,22 @@ function AddTalentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Tilføj talent</DialogTitle>
-          <DialogDescription>Opret et nyt akademitalent i din karriere.</DialogDescription>
+          <DialogTitle>Add talent</DialogTitle>
+          <DialogDescription>Create a new academy talent in your career.</DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4">
           <div className="flex items-center gap-3">
             <span className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-border bg-muted">
               {photo ? (
-                <img src={photo} alt="Valgt portræt" className="h-full w-full object-cover" />
+                <img src={photo} alt="Selected portrait" className="h-full w-full object-cover" />
               ) : (
                 <User className="h-6 w-6 text-muted-foreground" />
               )}
             </span>
             <div>
               <Button type="button" variant="outline" onClick={() => fileRef.current?.click()}>
-                <ImagePlus className="mr-2 h-4 w-4" /> Vælg portræt
+                <ImagePlus className="mr-2 h-4 w-4" /> Select portrait
               </Button>
               <input
                 ref={fileRef}
@@ -458,7 +460,7 @@ function AddTalentDialog({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2 grid gap-1.5">
-              <Label htmlFor="youth-name">Navn</Label>
+              <Label htmlFor="youth-name">Name</Label>
               <Input
                 id="youth-name"
                 value={name}
@@ -482,7 +484,7 @@ function AddTalentDialog({
               </Select>
             </div>
             <div className="grid gap-1.5">
-              <Label htmlFor="youth-age">Alder</Label>
+              <Label htmlFor="youth-age">Age</Label>
               <Input
                 id="youth-age"
                 type="number"
@@ -493,7 +495,7 @@ function AddTalentDialog({
               />
             </div>
             <div className="grid gap-1.5">
-              <Label htmlFor="youth-ovr">SML (OVR)</Label>
+              <Label htmlFor="youth-ovr">OVR</Label>
               <Input
                 id="youth-ovr"
                 type="number"
@@ -528,12 +530,12 @@ function AddTalentDialog({
               </div>
             </div>
             <div className="col-span-2 grid gap-1.5">
-              <Label htmlFor="youth-plan">Udviklingsplan</Label>
+              <Label htmlFor="youth-plan">Growth plan</Label>
               <Input
                 id="youth-plan"
                 value={plan}
                 onChange={(event) => setPlan(event.target.value)}
-                placeholder="Dynamisk"
+                placeholder="Dynamic"
               />
             </div>
           </div>
@@ -541,10 +543,10 @@ function AddTalentDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Annuller
+            Cancel
           </Button>
           <Button onClick={submit} disabled={saving}>
-            {saving ? "Gemmer…" : "Gem talent"}
+            {saving ? "Saving…" : "Save talent"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -57,7 +57,7 @@ function CareerLayout() {
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                {data.career.league ?? "Karriere"}
+                {data.career.league ?? "Career"}
               </p>
               <h1 className="mt-1 font-display text-2xl font-bold tracking-tight">
                 {data.career.club}

@@ -849,28 +849,28 @@ function PlayerRow({
               </Badge>
             ))}
             {delta != null && delta > 0 && (
-              <span className="text-xs font-semibold text-primary">+{delta} vs. trup</span>
+              <span className="text-xs font-semibold text-primary">+{delta} vs. squad</span>
             )}
             {delta != null && delta <= 0 && (
-              <span className="text-xs text-muted-foreground">{delta} vs. trup</span>
+              <span className="text-xs text-muted-foreground">{delta} vs. squad</span>
             )}
           </div>
           <p className="mt-0.5 truncate text-xs text-muted-foreground">
-            {player.age} år · {player.club_name ?? "Uden klub"} · {player.league_name ?? "–"}
+            {player.age} yrs · {player.club_name ?? "No club"} · {player.league_name ?? "–"}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
             {formatMoney(player.value_eur == null ? null : Number(player.value_eur))} ·{" "}
-            {formatWage(player.wage_eur == null ? null : Number(player.wage_eur))} · Kontrakt{" "}
+            {formatWage(player.wage_eur == null ? null : Number(player.wage_eur))} · Contract expiry{" "}
             {player.contract_until ?? "–"} ·{" "}
-            {player.preferred_foot === "Left" ? "Venstrebenet" : "Højrebenet"}
+            {player.preferred_foot === "Left" ? "Left-footed" : "Right-footed"}
           </p>
           <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
             {growthOf(player) > 0 && (
-              <span className="font-semibold text-primary">+{growthOf(player)} vækst</span>
+              <span className="font-semibold text-primary">+{growthOf(player)} growth</span>
             )}
-            {pricePerPoint(player) && <span>{pricePerPoint(player)} pr. OVR-point</span>}
+            {pricePerPoint(player) && <span>{pricePerPoint(player)} per OVR point</span>}
             {player.release_clause_eur != null && (
-              <span>Klausul {formatMoney(Number(player.release_clause_eur))}</span>
+              <span>Release clause {formatMoney(Number(player.release_clause_eur))}</span>
             )}
             <span>PAC {player.pace ?? "–"}</span>
             <span>SHO {player.shooting ?? "–"}</span>
@@ -888,7 +888,7 @@ function PlayerRow({
             size="icon"
             disabled={pending}
             onClick={onToggle}
-            aria-label={isTarget ? "Fjern som transfermål" : "Gem som transfermål"}
+            aria-label={isTarget ? "Remove from shortlist" : "Add to shortlist"}
           >
             {isTarget ? (
               <Star className="h-4 w-4 fill-primary text-primary" />
@@ -901,8 +901,8 @@ function PlayerRow({
             variant="ghost"
             size="icon"
             onClick={onSign}
-            aria-label="Hent til trup"
-            title="Hent til trup"
+            aria-label="Sign to squad"
+            title="Sign to squad"
           >
             <UserPlus className="h-4 w-4 text-muted-foreground" />
           </Button>

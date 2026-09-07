@@ -201,7 +201,7 @@ export const createSeason = createServerFn({ method: "POST" })
       })
       .select("id")
       .single();
-    if (error || !season) throw new Error(error?.message ?? "Kunne ikke oprette sæson.");
+    if (error || !season) throw new Error(error?.message ?? "Could not create season.");
 
     if (data.copyFromSeasonId) {
       const { data: previous } = await supabase
@@ -349,7 +349,7 @@ export const savePlayers = createServerFn({ method: "POST" })
           })
           .select("id")
           .single();
-        if (error || !inserted) throw new Error(error?.message ?? "Kunne ikke gemme spiller.");
+        if (error || !inserted) throw new Error(error?.message ?? "Could not save player.");
         playerId = inserted.id;
         existing?.push({ id: playerId, name: input.name.trim() });
         created += 1;
@@ -494,7 +494,7 @@ export const sellPlayer = createServerFn({ method: "POST" })
       .maybeSingle();
     if (playerError) throw new Error(playerError.message);
     if (!player || player.career_id !== data.careerId)
-      throw new Error("Spilleren blev ikke fundet i denne karriere.");
+      throw new Error("Player not found in this career.");
 
     // Remove him from any saved lineups so tactics don't point at a sold player.
     const { data: tactics } = await supabase
