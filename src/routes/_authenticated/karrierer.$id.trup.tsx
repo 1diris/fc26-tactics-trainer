@@ -418,22 +418,42 @@ function SquadPage() {
                   <button
                     type="button"
                     onClick={() => setSelectedId(row.player.id)}
-                    className="flex w-full items-center gap-3 rounded-lg border border-dash-border bg-dash-card px-3 py-2 text-left"
+                    className="flex w-full flex-col gap-2.5 rounded-lg border border-dash-border bg-dash-card px-3 py-2.5 text-left"
                   >
-                    <PlayerAvatar name={row.player.name} src={row.fc?.face_url} size="sm" />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold">{row.player.name}</p>
-                      <div className="mt-1 flex items-center gap-1.5">
-                        <PositionPill position={row.position} />
-                        <span className={`font-stat text-[11px] ${contract ? contractTone[contract.tone] : "text-muted-foreground"}`}>
-                          {contract?.label ?? "–"}
-                        </span>
+                    <div className="flex w-full items-center gap-3">
+                      <PlayerAvatar name={row.player.name} src={row.fc?.face_url} size="sm" />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold">{row.player.name}</p>
+                        <div className="mt-1 flex items-center gap-1.5">
+                          <PositionPill position={row.position} />
+                          <StatusBadge row={row} />
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-1.5">
+                        <RatingBadge value={row.current?.overall} />
+                        <RatingBadge value={row.potential} />
                       </div>
                     </div>
-                    <div className="flex shrink-0 items-center gap-1.5">
-                      <RatingBadge value={row.current?.overall} />
-                      <RatingBadge value={row.potential} />
-                    </div>
+                    <dl className="grid grid-cols-2 gap-x-3 gap-y-2 border-t border-dash-border/60 pt-2 min-[420px]:grid-cols-4">
+                      <div>
+                        <dt className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Age</dt>
+                        <dd className="font-stat text-xs tabular-nums">{row.current?.age ?? "–"}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Value</dt>
+                        <dd className="font-stat text-xs tabular-nums">{formatMoney(row.estimatedValue)}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Wage</dt>
+                        <dd className="font-stat text-xs tabular-nums text-muted-foreground">{formatWage(row.current?.wage)}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Contract</dt>
+                        <dd className={`font-stat text-xs tabular-nums ${contract ? contractTone[contract.tone] : "text-muted-foreground"}`}>
+                          {contract?.label ?? row.current?.contract_until ?? "–"}
+                        </dd>
+                      </div>
+                    </dl>
                   </button>
                 </li>
               );
