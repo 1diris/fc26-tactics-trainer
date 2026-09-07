@@ -10,7 +10,7 @@ const youthInput = z.object({
   overall: z.number().int().min(30).max(99).nullable().optional(),
   potentialMin: z.number().int().min(30).max(99).nullable().optional(),
   potentialMax: z.number().int().min(30).max(99).nullable().optional(),
-  plan: z.string().min(1).default("Dynamisk"),
+  plan: z.string().min(1).default("Dynamic"),
   photoDataUrl: z.string().max(3_000_000).nullable().optional(),
 });
 
@@ -119,11 +119,11 @@ export const saveYouthPlayers = createServerFn({ method: "POST" })
             overall: player.overall ?? null,
             potential_min: player.potentialMin ?? null,
             potential_max: player.potentialMax ?? null,
-            plan: player.plan ?? "Dynamisk",
+            plan: player.plan ?? "Dynamic",
           })
           .select("id, name, position, age, overall, potential_min, potential_max, plan")
           .single();
-        if (error || !inserted) throw new Error(error?.message ?? "Kunne ikke gemme talentet.");
+        if (error || !inserted) throw new Error(error?.message ?? "Could not save the talent.");
         rows.push(inserted);
         created += 1;
       }
@@ -165,7 +165,7 @@ export const promoteYouthPlayer = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!youth || youth.career_id !== data.careerId)
-      throw new Error("Talentet blev ikke fundet i denne karriere.");
+      throw new Error("The talent was not found in this career.");
 
     const { data: player, error: playerError } = await supabase
       .from("players")
@@ -178,7 +178,7 @@ export const promoteYouthPlayer = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (playerError || !player)
-      throw new Error(playerError?.message ?? "Kunne ikke oprette spilleren i truppen.");
+      throw new Error(playerError?.message ?? "Could not create the player in the squad.");
 
     const { error: snapshotError } = await supabase.from("player_snapshots").upsert(
       {

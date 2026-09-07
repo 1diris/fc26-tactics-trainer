@@ -19,16 +19,16 @@ import { ArrowLeft, Trash2 } from "lucide-react";
 export const Route = createFileRoute("/_authenticated/karrierer/$id/spiller/$playerId")({
   head: () => ({
     meta: [
-      { title: "Spillerprofil — Career Chronicles" },
+      { title: "Player profile — Career Chronicles" },
       {
         name: "description",
         content:
-          "Følg en enkelt spillers udvikling gennem sæsoner: overall, potentiale, værdi, løn og kontrakt.",
+          "Follow a single player\'s development across seasons: overall, potential, value, wage and contract.",
       },
-      { property: "og:title", content: "Spillerprofil — Career Chronicles" },
+      { property: "og:title", content: "Player profile — Career Chronicles" },
       {
         property: "og:description",
-        content: "Sæson-for-sæson udvikling for din FC 26 spiller.",
+        content: "Season-by-season development for your FC 26 player.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -59,10 +59,10 @@ function PlayerPage() {
   if (!player) {
     return (
       <div className="rounded-xl border border-dashed border-border p-10 text-center">
-        <p className="font-display text-lg font-semibold">Spilleren blev ikke fundet</p>
+        <p className="font-display text-lg font-semibold">Player not found</p>
         <Button asChild variant="outline" className="mt-4">
           <Link to="/karrierer/$id/trup" params={{ id }}>
-            Tilbage til truppen
+            Back to squad
           </Link>
         </Button>
       </div>
@@ -116,7 +116,7 @@ function PlayerPage() {
 
   const updateMutation = useMutation({
     mutationFn: () => {
-      if (!activeSeason) throw new Error("Ingen aktiv sæson.");
+      if (!activeSeason) throw new Error("No active season.");
       return update({
         data: {
           careerId: id,
@@ -138,7 +138,7 @@ function PlayerPage() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["career", id] });
       setEditing(false);
-      toast.success("Spiller opdateret.");
+      toast.success("Player updated.");
     },
     onError: (error) => toast.error(error.message),
   });
@@ -147,7 +147,7 @@ function PlayerPage() {
     mutationFn: () => remove({ data: { playerId } }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["career", id] });
-      toast.success("Spiller slettet.");
+      toast.success("Player deleted.");
       void navigate({ to: "/karrierer/$id/trup", params: { id } });
     },
     onError: (error) => toast.error(error.message),
@@ -182,11 +182,11 @@ function PlayerPage() {
             params={{ id }}
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
           >
-            <ArrowLeft className="h-4 w-4" /> Truppen
+            <ArrowLeft className="h-4 w-4" /> Squad
           </Link>
           <h1 className="mt-2 font-display text-3xl font-bold tracking-tight">{player.name}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {current?.position ?? player.primary_position ?? "Ukendt position"}
+            {current?.position ?? player.primary_position ?? "Unknown position"}
             {current?.position || player.primary_position
               ? ` · ${positionGroup(current?.position ?? player.primary_position)}`
               : ""}
@@ -195,17 +195,17 @@ function PlayerPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => setEditing(!editing)}>
-            {editing ? "Luk" : "Ret data"}
+            {editing ? "Close" : "Edit data"}
           </Button>
           <Button variant="outline" onClick={() => setSelling(true)}>
-            Sælg
+            Sell
           </Button>
 
           <Button
             variant="ghost"
             className="text-destructive hover:text-destructive"
             onClick={() => {
-              if (window.confirm(`Slet ${player.name} og al historik?`)) deleteMutation.mutate();
+              if (window.confirm(`Delete ${player.name} and all history?`)) deleteMutation.mutate();
             }}
           >
             <Trash2 className="h-4 w-4" />
@@ -216,11 +216,11 @@ function PlayerPage() {
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {[
           { label: "Overall", value: current?.overall ?? "–" },
-          { label: "Potentiale (FC 26)", value: potential ?? "–" },
-          { label: "Alder", value: current?.age ?? "–" },
-          { label: "Værdi (est.)", value: formatMoney(estimatedValue) },
-          { label: "Løn", value: formatWage(current?.wage) },
-          { label: "Kontrakt", value: current?.contract_until ?? "–" },
+          { label: "Potential (FC 26)", value: potential ?? "–" },
+          { label: "Age", value: current?.age ?? "–" },
+          { label: "Value (est.)", value: formatMoney(estimatedValue) },
+          { label: "Wage", value: formatWage(current?.wage) },
+          { label: "Contract", value: current?.contract_until ?? "–" },
         ].map((stat) => (
           <div key={stat.label} className="rounded-xl border border-border/60 bg-card p-4">
             <p className="text-xs uppercase tracking-wider text-muted-foreground">{stat.label}</p>
@@ -231,38 +231,38 @@ function PlayerPage() {
 
       <section className="rounded-xl border border-border/60 bg-card p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="font-display text-lg font-semibold">FC 26-data</h2>
+          <h2 className="font-display text-lg font-semibold">FC 26 data</h2>
           <Button variant="outline" size="sm" onClick={() => setMatching(true)}>
-            {fc ? "Skift match" : "Match spiller"}
+            {fc ? "Change match" : "Match player"}
           </Button>
         </div>
         {fc ? (
           <>
             <p className="mt-1 text-sm text-muted-foreground">
-              Matchet med {fc.long_name ?? fc.short_name}
-              {player.fc_match_source === "manual" ? " (manuelt valgt)" : " (automatisk match)"}
+              Matched with {fc.long_name ?? fc.short_name}
+              {player.fc_match_source === "manual" ? " (manually selected)" : " (automatic match)"}
             </p>
             <div className="mt-4 overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border/60 text-xs uppercase tracking-wider text-muted-foreground">
-                    <th className="px-3 py-2 text-left font-medium">Nøgletal</th>
+                    <th className="px-3 py-2 text-left font-medium">Metric</th>
                     <th className="px-3 py-2 text-right font-medium">FC 26 (original)</th>
-                    <th className="px-3 py-2 text-right font-medium">Din karriere</th>
+                    <th className="px-3 py-2 text-right font-medium">Your career</th>
                   </tr>
                 </thead>
                 <tbody>
                   {[
                     { label: "OVR", original: fc.overall ?? "–", now: current?.overall ?? "–" },
                     { label: "POT", original: fc.potential ?? "–", now: potential ?? "–" },
-                    { label: "Alder", original: fc.age ?? "–", now: current?.age ?? "–" },
+                    { label: "Age", original: fc.age ?? "–", now: current?.age ?? "–" },
                     {
-                      label: "Værdi",
+                      label: "Value",
                       original: formatMoney(fc.value_eur),
                       now: formatMoney(estimatedValue),
                     },
                     {
-                      label: "Klub",
+                      label: "Club",
                       original: fc.club_name ?? "–",
                       now: data.career.club,
                     },
@@ -279,8 +279,8 @@ function PlayerPage() {
           </>
         ) : (
           <p className="mt-1 text-sm text-muted-foreground">
-            Spilleren er ikke koblet til FC 26-databasen endnu. Match den for at se original
-            potentiale og en estimeret karriereværdi.
+            The player is not linked to the FC 26 database yet. Match him to see the original
+            potential and an estimated career value.
           </p>
         )}
       </section>
@@ -297,7 +297,7 @@ function PlayerPage() {
       {editing && (
         <section className="rounded-xl border border-border/60 bg-card p-5">
           <h2 className="font-display text-lg font-semibold">
-            Ret data for {activeSeason?.label ?? "sæson"}
+            Edit data for {activeSeason?.label ?? "season"}
           </h2>
           <form
             className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
@@ -307,7 +307,7 @@ function PlayerPage() {
             }}
           >
             <div className="space-y-2">
-              <Label htmlFor="name">Navn</Label>
+              <Label htmlFor="name">Name</Label>
               <Input
                 id="name"
                 value={form.name}
@@ -323,12 +323,12 @@ function PlayerPage() {
               />
             </div>
             {numberInput("overall", "Overall")}
-            {numberInput("potential", "Potentiale")}
-            {numberInput("age", "Alder")}
-            {numberInput("market_value", "Markedsværdi (€)")}
-            {numberInput("wage", "Løn pr. uge (€)")}
+            {numberInput("potential", "Potential")}
+            {numberInput("age", "Age")}
+            {numberInput("market_value", "Market value (€)")}
+            {numberInput("wage", "Wage per week (€)")}
             <div className="space-y-2">
-              <Label htmlFor="contract">Kontrakt til</Label>
+              <Label htmlFor="contract">Contract until</Label>
               <Input
                 id="contract"
                 value={form.contract_until}
@@ -339,7 +339,7 @@ function PlayerPage() {
             </div>
             <div className="sm:col-span-2 lg:col-span-4">
               <Button type="submit" disabled={updateMutation.isPending}>
-                {updateMutation.isPending ? "Gemmer…" : "Gem ændringer"}
+                {updateMutation.isPending ? "Saving…" : "Save changes"}
               </Button>
             </div>
           </form>
@@ -347,9 +347,9 @@ function PlayerPage() {
       )}
 
       <section className="rounded-xl border border-border/60 bg-card p-5">
-        <h2 className="font-display text-lg font-semibold">Udvikling</h2>
+        <h2 className="font-display text-lg font-semibold">Development</h2>
         {history.length < 1 ? (
-          <p className="mt-3 text-sm text-muted-foreground">Ingen historik endnu.</p>
+          <p className="mt-3 text-sm text-muted-foreground">No history yet.</p>
         ) : (
           <>
             <div className="mt-5 flex items-end gap-3">
@@ -375,13 +375,13 @@ function PlayerPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border/60 text-xs uppercase tracking-wider text-muted-foreground">
-                    <th className="px-3 py-2 text-left font-medium">Sæson</th>
+                    <th className="px-3 py-2 text-left font-medium">Season</th>
                     <th className="px-3 py-2 text-right font-medium">OVR</th>
                     <th className="px-3 py-2 text-right font-medium">POT</th>
-                    <th className="px-3 py-2 text-right font-medium">Alder</th>
-                    <th className="px-3 py-2 text-right font-medium">Værdi</th>
-                    <th className="px-3 py-2 text-right font-medium">Løn</th>
-                    <th className="px-3 py-2 text-right font-medium">Kontrakt</th>
+                    <th className="px-3 py-2 text-right font-medium">Age</th>
+                    <th className="px-3 py-2 text-right font-medium">Value</th>
+                    <th className="px-3 py-2 text-right font-medium">Wage</th>
+                    <th className="px-3 py-2 text-right font-medium">Contract</th>
                   </tr>
                 </thead>
                 <tbody>

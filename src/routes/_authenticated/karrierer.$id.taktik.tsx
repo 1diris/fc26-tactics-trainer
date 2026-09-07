@@ -159,8 +159,8 @@ function TacticsPage() {
         role: found.id,
         focus: found.focuses.includes(prev[slotId]?.focus as RoleFocus)
           ? prev[slotId]!.focus
-          : found.focuses.includes("Balanceret")
-            ? "Balanceret"
+          : found.focuses.includes("Balanced")
+            ? "Balanced"
             : found.focuses[0]!,
         mastery: prev[slotId]?.mastery ?? "base",
       },
