@@ -21,16 +21,16 @@ import { Loader2, Trash2, Upload } from "lucide-react";
 export const Route = createFileRoute("/_authenticated/karrierer/$id/import")({
   head: () => ({
     meta: [
-      { title: "Importér screenshot — Career Chronicles" },
+      { title: "Import screenshot — Career Chronicles" },
       {
         name: "description",
         content:
-          "Upload et screenshot af FC 26 trupskærmen og få spillerdata læst automatisk, som du kan rette inden det gemmes.",
+          "Upload a screenshot of the FC 26 squad screen and get player data read automatically, which you can correct before saving.",
       },
-      { property: "og:title", content: "Importér screenshot — Career Chronicles" },
+      { property: "og:title", content: "Import screenshot — Career Chronicles" },
       {
         property: "og:description",
-        content: "Screenshot ind, spillerdata ud — med mulighed for at rette før du gemmer.",
+        content: "Screenshot in, player data out — with the option to correct before you save.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -48,7 +48,7 @@ type Draft = PlayerInput & {
   target?: "squad" | "youth";
 };
 
-/** Talenter genkendes på alder 13-18, POT-interval eller AI'ens akademi-hint. */
+/** Talents are recognised by age 13-18, POT range or the AI's academy hint. */
 function suggestTarget(draft: Draft): "squad" | "youth" {
   if (draft.target) return draft.target;
   if (draft.is_youth) return "youth";
@@ -128,8 +128,8 @@ function ImportPage() {
   const MAX_FILES = 10;
   const storageKey = `import-drafts-${id}`;
 
-  // Genskab en ikke-gemt godkendelsesliste, så den ikke forsvinder hvis siden
-  // genindlæses eller man skifter fane midt i gennemgangen.
+  // Restore an unsaved approval list, so it does not disappear if the page
+  // reloads or the user switches tabs mid-review.
   useEffect(() => {
     if (typeof window === "undefined") return;
     const stored = window.sessionStorage.getItem(storageKey);
@@ -162,7 +162,7 @@ function ImportPage() {
       if (existing === -1) {
         merged.push(player);
       } else {
-        // Same player seen again — behold felter og udfyld kun det nye.
+        // Same player seen again — keep fields and only fill in the new data.
         const previous = merged[existing];
         if (!previous) continue;
         const patch = Object.fromEntries(
@@ -180,7 +180,7 @@ function ImportPage() {
 
     const selected = files.slice(0, MAX_FILES);
     if (files.length > MAX_FILES) {
-      toast.error(`Der kan analyseres ${MAX_FILES} screenshots ad gangen — de første ${MAX_FILES} bruges.`);
+      toast.error(`You can analyse ${MAX_FILES} screenshots at a time — the first ${MAX_FILES} will be used.`);
     }
 
     setUploading(true);
@@ -192,7 +192,7 @@ function ImportPage() {
     try {
       const { data: session } = await supabase.auth.getUser();
       const userId = session.user?.id;
-      if (!userId) throw new Error("Du er ikke logget ind.");
+      if (!userId) throw new Error("You are not logged in.");
 
       for (const [index, file] of selected.entries()) {
         try {
@@ -217,7 +217,7 @@ function ImportPage() {
         } catch (error) {
           failures += 1;
           toast.error(
-            `${file.name}: ${error instanceof Error ? error.message : "analysen mislykkedes"}`,
+            `${file.name}: ${error instanceof Error ? error.message : "analysis failed"}`,
           );
         } finally {
           setProgress({ done: index + 1, total: selected.length });
@@ -226,15 +226,15 @@ function ImportPage() {
 
       setImportId(lastImportId);
       if (collected.length === 0) {
-        toast.error("AI kunne ikke finde spillere. Prøv tydeligere screenshots.");
+        toast.error("AI could not find any players. Try clearer screenshots.");
       } else {
         toast.success(
-          `${collected.length} spillere i listen${failures > 0 ? ` (${failures} billeder fejlede)` : ""}. Tjek dem igennem og gem.`,
+          `${collected.length} players in the list${failures > 0 ? ` (${failures} images failed)` : ""}. Review them and save.`,
         );
       }
       void imports.refetch();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Analysen mislykkedes.");
+      toast.error(error instanceof Error ? error.message : "Analysis failed.");
     } finally {
       setUploading(false);
       setProgress(null);
@@ -244,7 +244,7 @@ function ImportPage() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      if (!activeSeason || !drafts) throw new Error("Ingen data at gemme.");
+      if (!activeSeason || !drafts) throw new Error("No data to save.");
       let squadResult = { created: 0, updated: 0 };
       if (squadDrafts.length > 0) {
         squadResult = await save({
@@ -265,11 +265,11 @@ function ImportPage() {
             ),
           },
         });
-        // Kobl nye spillere til FC 26-databasen med det samme.
+        // Link new players to the FC 26 database right away.
         try {
           await runAutoMatch({ data: { careerId: id } });
         } catch {
-          // Match kan altid køres manuelt fra Trup-siden.
+          // Matching can always be run manually from the Squad page.
         }
       }
 
@@ -302,7 +302,7 @@ function ImportPage() {
       setDrafts(null);
       setImportId(null);
       toast.success(
-        `Trup: ${result.squad.created} nye, ${result.squad.updated} opdaterede · Akademi: ${result.youth.created} nye, ${result.youth.updated} opdaterede.`,
+        `Squad: ${result.squad.created} new, ${result.squad.updated} updated · Academy: ${result.youth.created} new, ${result.youth.updated} updated.`,
       );
       void navigate({
         to: squadTotal === 0 && youthTotal > 0 ? "/karrierer/$id/akademi" : "/karrierer/$id/trup",
@@ -343,19 +343,19 @@ function ImportPage() {
     <div className={`space-y-8 ${drafts && drafts.length > 0 ? "pb-24" : ""}`}>
       <section className="rounded-xl border border-border/60 bg-card p-6">
         <h2 className="font-display text-lg font-semibold">
-          Upload screenshots {activeSeason ? `til ${activeSeason.label}` : ""}
+          Upload screenshots {activeSeason ? `for ${activeSeason.label}` : ""}
         </h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Brug trupskærmen i FC 26, hvor navn, position, OVR, potentiale, alder, værdi, løn og
-          kontrakt er synlige. Du kan vælge op til {MAX_FILES} screenshots ad gangen — de analyseres
-          i kø og samles i én godkendelsesliste, hvor spillere med samme navn flettes.
+          Use the squad screen in FC 26, where name, position, OVR, potential, age, value, wage and
+          contract are visible. You can select up to {MAX_FILES} screenshots at a time — they are analysed
+          in a queue and merged into a single approval list, where players with the same name are merged.
         </p>
         {hasExistingSquad && (
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Du har allerede {data.players.length} spillere i truppen. Upload gerne opfølgende
-            screenshots efter en sæson — spillere du allerede har, bliver opdateret med nye OVR,
-            værdi, løn og kontrakt i {activeSeason?.label ?? "den aktive sæson"}, og kun helt nye
-            navne oprettes. Spillere der ikke er på billederne, står urørt.
+            You already have {data.players.length} players in the squad. Feel free to upload follow-up
+            screenshots after a season — players you already have will be updated with new OVR,
+            value, wage and contract in {activeSeason?.label ?? "the active season"}, and only completely new
+            names are created. Players not in the images are left untouched.
           </p>
         )}
 
@@ -374,13 +374,13 @@ function ImportPage() {
             ) : (
               <Upload className="mr-2 h-4 w-4" />
             )}
-            {uploading ? "Analyserer…" : "Vælg screenshots"}
+            {uploading ? "Analysing…" : "Select screenshots"}
           </Button>
           {uploading && (
             <span className="text-sm text-muted-foreground">
               {progress
-                ? `Analyserer billede ${Math.min(progress.done + 1, progress.total)} af ${progress.total} — det kan tage et minut pr. billede.`
-                : "AI læser billederne…"}
+                ? `Analysing image ${Math.min(progress.done + 1, progress.total)} of ${progress.total} — this can take a minute per image.`
+                : "AI is reading the images…"}
             </span>
           )}
         </div>
@@ -390,42 +390,42 @@ function ImportPage() {
         <section className="rounded-xl border border-border/60 bg-card">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 p-5">
             <div>
-              <h2 className="font-display text-lg font-semibold">Gennemgå {drafts.length} spillere</h2>
+              <h2 className="font-display text-lg font-semibold">Review {drafts.length} players</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Ret felter AI var usikker på (markeret med gul), før du gemmer.
+                Correct fields the AI was unsure about (marked in yellow), before you save.
               </p>
               <p className="mt-1 text-sm">
-                <span className="font-medium">{squadDrafts.length} til truppen</span>
+                <span className="font-medium">{squadDrafts.length} to the squad</span>
                 <span className="text-muted-foreground"> · </span>
-                <span className="font-medium text-violet-500">{youthDrafts.length} til akademiet</span>
+                <span className="font-medium text-violet-500">{youthDrafts.length} to the academy</span>
               </p>
               <p className="mt-1 text-sm">
-                <span className="font-medium text-primary">{counts.created} nye</span>
+                <span className="font-medium text-primary">{counts.created} new</span>
                 <span className="text-muted-foreground"> · </span>
-                <span className="font-medium">{counts.updated} opdateres</span>
-                <span className="text-muted-foreground"> · {counts.unchanged} uændrede</span>
+                <span className="font-medium">{counts.updated} updated</span>
+                <span className="text-muted-foreground"> · {counts.unchanged} unchanged</span>
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" onClick={() => setAllTargets("squad")}>
-                Alle til trup
+                All to squad
               </Button>
               <Button variant="outline" onClick={() => setAllTargets("youth")}>
-                Alle til akademi
+                All to academy
               </Button>
               {hasExistingSquad && (
                 <Button
                   variant={onlyChanges ? "secondary" : "outline"}
                   onClick={() => setOnlyChanges((value) => !value)}
                 >
-                  {onlyChanges ? "Vis alle" : "Vis kun ændringer"}
+                  {onlyChanges ? "Show all" : "Show only changes"}
                 </Button>
               )}
               <Button variant="ghost" onClick={() => setDrafts(null)}>
-                Annullér
+                Cancel
               </Button>
               <Button disabled={saveMutation.isPending} onClick={() => saveMutation.mutate()}>
-                {saveMutation.isPending ? "Gemmer…" : "Gem"}
+                {saveMutation.isPending ? "Saving…" : "Save"}
               </Button>
             </div>
           </div>
@@ -434,16 +434,16 @@ function ImportPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border/60 text-xs uppercase tracking-wider text-muted-foreground">
-                  <th className="px-3 py-2 text-left font-medium">Gemmes i</th>
+                  <th className="px-3 py-2 text-left font-medium">Saved to</th>
                   <th className="px-3 py-2 text-left font-medium">Status</th>
-                  <th className="px-3 py-2 text-left font-medium">Navn</th>
+                  <th className="px-3 py-2 text-left font-medium">Name</th>
                   <th className="px-3 py-2 text-left font-medium">Pos</th>
                   <th className="px-3 py-2 text-right font-medium">OVR</th>
                   <th className="px-3 py-2 text-right font-medium">POT</th>
-                  <th className="px-3 py-2 text-right font-medium">Alder</th>
-                  <th className="px-3 py-2 text-right font-medium">Værdi</th>
-                  <th className="px-3 py-2 text-right font-medium">Løn</th>
-                  <th className="px-3 py-2 text-left font-medium">Kontrakt</th>
+                  <th className="px-3 py-2 text-right font-medium">Age</th>
+                  <th className="px-3 py-2 text-right font-medium">Value</th>
+                  <th className="px-3 py-2 text-right font-medium">Wage</th>
+                  <th className="px-3 py-2 text-left font-medium">Contract</th>
                   <th className="px-3 py-2" />
                 </tr>
               </thead>
@@ -466,14 +466,14 @@ function ImportPage() {
                             className={`px-2 py-1 text-[11px] font-medium ${isYouth ? "text-muted-foreground" : "bg-primary/15 text-primary"}`}
                             onClick={() => patchDraft(index, { target: "squad" })}
                           >
-                            Trup
+                            Squad
                           </button>
                           <button
                             type="button"
                             className={`px-2 py-1 text-[11px] font-medium ${isYouth ? "bg-violet-500/20 text-violet-500" : "text-muted-foreground"}`}
                             onClick={() => patchDraft(index, { target: "youth" })}
                           >
-                            Akademi
+                            Academy
                           </button>
                         </div>
                       </td>
@@ -504,7 +504,7 @@ function ImportPage() {
                         />
                         {!isNew && diff?.playerName && diff.playerName !== draft.name && (
                           <div className="mt-1 text-[11px] text-muted-foreground">
-                            matcher {diff.playerName}
+                            matches {diff.playerName}
                           </div>
                         )}
                       </td>
@@ -553,7 +553,7 @@ function ImportPage() {
                       <td className="px-3 py-1.5 text-right">
                         <button
                           type="button"
-                          aria-label={`Fjern ${draft.name}`}
+                          aria-label={`Remove ${draft.name}`}
                           className="rounded-md p-2 text-muted-foreground hover:text-destructive"
                           onClick={() =>
                             setDrafts((current) =>
@@ -575,19 +575,19 @@ function ImportPage() {
 
       {imports.data && imports.data.length > 0 && (
         <section>
-          <h2 className="font-display text-lg font-semibold">Tidligere uploads</h2>
+          <h2 className="font-display text-lg font-semibold">Previous uploads</h2>
           <ul className="mt-3 divide-y divide-border/60 rounded-xl border border-border/60 bg-card">
             {imports.data.map((row) => (
               <li key={row.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
                 <span className="text-muted-foreground">
-                  {new Date(row.created_at).toLocaleString("da-DK")}
+                  {new Date(row.created_at).toLocaleString("en-GB")}
                 </span>
                 <span>
                   {row.status === "approved"
-                    ? `Gemt · ${row.player_count ?? 0} spillere`
+                    ? `Saved · ${row.player_count ?? 0} players`
                     : row.status === "failed"
-                      ? `Fejlede · ${row.error_message ?? "ukendt fejl"}`
-                      : `${row.status} · ${row.player_count ?? 0} spillere`}
+                      ? `Failed · ${row.error_message ?? "unknown error"}`
+                      : `${row.status} · ${row.player_count ?? 0} players`}
                 </span>
               </li>
             ))}
@@ -599,10 +599,10 @@ function ImportPage() {
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/60 bg-card/95 px-4 py-3 backdrop-blur">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
             <span className="text-sm text-muted-foreground">
-              {squadDrafts.length} til truppen · {youthDrafts.length} til akademiet — ikke gemt endnu
+              {squadDrafts.length} to the squad · {youthDrafts.length} to the academy — not saved yet
             </span>
             <Button disabled={saveMutation.isPending} onClick={() => saveMutation.mutate()}>
-              {saveMutation.isPending ? "Gemmer…" : "Gem"}
+              {saveMutation.isPending ? "Saving…" : "Save"}
             </Button>
           </div>
         </div>

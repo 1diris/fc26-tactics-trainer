@@ -85,11 +85,11 @@ export function normalizePosition(raw: string | null | undefined): string | null
 }
 
 export function positionGroup(position: string | null | undefined): string {
-  if (!position) return "Ukendt";
+  if (!position) return "Unknown";
   for (const [group, list] of Object.entries(POSITION_GROUPS)) {
     if (list.includes(position)) return group;
   }
-  return "Ukendt";
+  return "Unknown";
 }
 
 export function formatMoney(value: number | null | undefined): string {
@@ -104,8 +104,8 @@ export function formatMoney(value: number | null | undefined): string {
 
 export function formatWage(value: number | null | undefined): string {
   if (value === null || value === undefined) return "–";
-  if (value >= 1000) return `€${Math.round(value / 1000)}k/uge`;
-  return `€${Math.round(value)}/uge`;
+  if (value >= 1000) return `€${Math.round(value / 1000)}k/wk`;
+  return `€${Math.round(value)}/wk`;
 }
 
 export function ovrTone(overall: number | null | undefined): string {

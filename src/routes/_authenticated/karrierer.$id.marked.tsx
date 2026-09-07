@@ -214,10 +214,10 @@ function MarketPage() {
   const wage = range(minWage, maxWage);
   const invalidRanges = [
     ovr.invalid ? "OVR" : null,
-    pot.invalid ? "Potentiale" : null,
-    age.invalid ? "Alder" : null,
-    value.invalid ? "Værdi" : null,
-    wage.invalid ? "Løn" : null,
+    pot.invalid ? "Potential" : null,
+    age.invalid ? "Age" : null,
+    value.invalid ? "Value" : null,
+    wage.invalid ? "Wage" : null,
   ].filter((label): label is string => label != null);
 
   const filters: MarketSearchInput = {
@@ -341,8 +341,8 @@ function MarketPage() {
 
     <Tabs defaultValue="search" className="space-y-6">
       <TabsList>
-        <TabsTrigger value="search">Søg spillere</TabsTrigger>
-        <TabsTrigger value="targets">Mine mål ({targets.data?.length ?? 0})</TabsTrigger>
+        <TabsTrigger value="search">Search players</TabsTrigger>
+        <TabsTrigger value="targets">My targets ({targets.data?.length ?? 0})</TabsTrigger>
       </TabsList>
 
       <TabsContent value="search" className="space-y-5">
@@ -359,12 +359,12 @@ function MarketPage() {
             <Input
               value={term}
               onChange={(event) => setTerm(event.target.value)}
-              placeholder="Søg på navn eller klub"
+              placeholder="Search by name or club"
               className="pl-9"
-              aria-label="Søg på navn eller klub"
+              aria-label="Search by name or club"
             />
           </div>
-          <Button type="submit">Søg</Button>
+          <Button type="submit">Search</Button>
         </form>
 
         <div className="flex flex-wrap gap-1.5">
@@ -403,7 +403,7 @@ function MarketPage() {
                 setMaxValue(String(budget));
               }}
             >
-              Inden for budget ({formatMoney(budget)})
+              Within budget ({formatMoney(budget)})
             </Button>
           )}
           <Button
@@ -413,7 +413,7 @@ function MarketPage() {
             onClick={() => setNeedsOpen((open) => !open)}
             aria-expanded={needsOpen}
           >
-            Dæk mine huller
+            Cover my gaps
             {highNeeds > 0 && (
               <span className="ml-1.5 rounded bg-destructive/20 px-1 text-[10px] font-semibold text-destructive">
                 {highNeeds}
@@ -446,7 +446,7 @@ function MarketPage() {
               setPreset(null);
             }}
           >
-            Nulstil filtre
+            Reset filters
           </Button>
         </div>
 
@@ -454,16 +454,16 @@ function MarketPage() {
           <section className="space-y-2 rounded-lg border border-border/60 bg-card/40 p-3">
             <header className="flex flex-wrap items-baseline justify-between gap-2">
               <h2 className="font-display text-sm font-bold uppercase tracking-[0.15em]">
-                Trupanalyse
+                Squad analysis
               </h2>
               <p className="text-xs text-muted-foreground">
-                Klubniveau {level ?? "–"} OVR
-                {squadAvgAge != null ? ` · gennemsnitsalder ${squadAvgAge} år` : ""}
+                Club level {level ?? "–"} OVR
+                {squadAvgAge != null ? ` · average age ${squadAvgAge} yrs` : ""}
               </p>
             </header>
             <p className="text-xs text-muted-foreground">
-              Tryk på en position for automatisk at filtrere markedet til relevante,
-              realistiske spillere til netop den rolle.
+              Click a position to automatically filter the market to relevant,
+              realistic players for that role.
             </p>
             <ul className="space-y-2">
               {needs.map((need) => {
@@ -491,12 +491,12 @@ function MarketPage() {
                       </span>
                       <span className="mt-1 block text-xs text-muted-foreground">{need.reason}</span>
                       <span className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
-                        <span>{need.naturalCount} naturlige</span>
-                        <span>{need.capableCount} kan dække</span>
-                        <span>Bedste {need.bestOverall ?? "–"} OVR</span>
-                        <span>Snit {need.averageOverall ?? "–"} OVR</span>
+                        <span>{need.naturalCount} natural</span>
+                        <span>{need.capableCount} can cover</span>
+                        <span>Best {need.bestOverall ?? "–"} OVR</span>
+                        <span>Avg {need.averageOverall ?? "–"} OVR</span>
                         <span>
-                          Dybde {need.depth} / {need.required}
+                          Depth {need.depth} / {need.required}
                         </span>
                       </span>
                     </button>
