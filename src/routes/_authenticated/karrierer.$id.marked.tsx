@@ -42,17 +42,17 @@ export const Route = createFileRoute("/_authenticated/karrierer/$id/marked")({
   },
   head: () => ({
     meta: [
-      { title: "Transfermarked — Career Chronicles" },
+      { title: "Transfer Market — Career Chronicles" },
       {
         name: "description",
         content:
-          "Søg blandt over 18.000 FC 26-spillere på position, overall, potentiale, alder, værdi og løn — og gem dine transfermål.",
+          "Search over 18,000 FC 26 players by position, overall, potential, age, value and wage — and save your transfer targets.",
       },
-      { property: "og:title", content: "Transfermarked — Career Chronicles" },
+      { property: "og:title", content: "Transfer Market — Career Chronicles" },
       {
         property: "og:description",
         content:
-          "Find spillere du kan købe inden for dit transferbudget, og se om de er en opgradering af truppen.",
+          "Find players you can buy within your transfer budget, and see if they are an upgrade on the squad.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -62,30 +62,30 @@ export const Route = createFileRoute("/_authenticated/karrierer/$id/marked")({
 });
 
 const SORT_LABELS: Record<NonNullable<MarketSearchInput["sort"]>, string> = {
-  overall: "Højeste OVR",
-  potential: "Højeste potentiale",
-  value_desc: "Dyreste først",
-  value_asc: "Billigste først",
-  age: "Yngste først",
+  overall: "Highest OVR",
+  potential: "Highest potential",
+  value_desc: "Most expensive first",
+  value_asc: "Cheapest first",
+  age: "Youngest first",
 };
 
 const PRESET_LABELS: Record<MarketPreset, string> = {
   wonderkids: "Wonderkids",
-  gems: "Talenter",
+  gems: "Gems",
   bargains: "Bargains",
-  expiring: "Kontrakt udløber",
+  expiring: "Expiring",
   free_agents: "Free agents",
 };
 
 const PRESET_HINTS: Record<MarketPreset, string> = {
-  wonderkids: "Maks 21 år med mindst +10 i vækstpotentiale, rangeret efter potentiale pr. krone.",
-  gems: "22-26 år der stadig kan udvikle sig, og som er billige i forhold til deres potentiale.",
-  bargains: "OVR 70+ rangeret efter mest kvalitet pr. krone.",
-  expiring: "Kontrakt udløber i år — kan hentes billigt eller gratis.",
-  free_agents: "Spillere uden klub lige nu.",
+  wonderkids: "Max 21 years old with at least +10 growth potential, ranked by potential per euro.",
+  gems: "22-26 years old who can still develop, and who are cheap relative to their potential.",
+  bargains: "OVR 70+ ranked by the most quality per euro.",
+  expiring: "Contract expires this year — can be signed cheaply or for free.",
+  free_agents: "Players without a club right now.",
 };
 
-const PRIORITY_LABELS: Record<number, string> = { 1: "Høj", 2: "Mellem", 3: "Lav" };
+const PRIORITY_LABELS: Record<number, string> = { 1: "High", 2: "Medium", 3: "Low" };
 
 /**
  * Turns two optional numeric text inputs into filter bounds.
@@ -140,13 +140,13 @@ function RangeField({
           inputMode="numeric"
           value={max}
           onChange={(event) => onMax(clean(event.target.value))}
-          placeholder={maxPlaceholder ?? "Maks."}
-          aria-label={`${label} maksimum`}
+          placeholder={maxPlaceholder ?? "Max."}
+          aria-label={`${label} maximum`}
           aria-invalid={invalid}
         />
       </div>
       {invalid && (
-        <p className="text-xs text-destructive">Minimum må ikke være større end maksimum.</p>
+        <p className="text-xs text-destructive">Minimum must not be greater than maximum.</p>
       )}
     </div>
   );
