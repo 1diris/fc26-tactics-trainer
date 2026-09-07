@@ -7,17 +7,17 @@ import { Camera, LineChart, ShieldAlert, Users } from "lucide-react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Career Chronicles — assistent til FC 26 Career Mode" },
+      { title: "Career Chronicles — FC 26 Career Mode assistant" },
       {
         name: "description",
         content:
-          "Upload screenshots fra din FC 26 karriere, få truppen læst automatisk af AI og hold styr på udvikling, kontrakter og huller i truppen.",
+          "Upload screenshots from your FC 26 career, let AI read your squad automatically and keep track of growth, contracts and gaps in the squad.",
       },
-      { property: "og:title", content: "Career Chronicles — assistent til FC 26 Career Mode" },
+      { property: "og:title", content: "Career Chronicles — FC 26 Career Mode assistant" },
       {
         property: "og:description",
         content:
-          "Screenshot ind, trupdata ud. Følg spillerudvikling, kontraktudløb og svagheder i din FC 26 karriere.",
+          "Screenshots in, squad data out. Track player growth, contract expiry and weaknesses in your FC 26 career.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

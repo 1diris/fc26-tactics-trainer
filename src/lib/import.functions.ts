@@ -36,7 +36,7 @@ export const analyzeScreenshot = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (importError || !importRow) {
-      throw new Error(importError?.message ?? "Kunne ikke oprette import.");
+      throw new Error(importError?.message ?? "Could not create import.");
     }
 
     try {
@@ -44,11 +44,11 @@ export const analyzeScreenshot = createServerFn({ method: "POST" })
         .from(BUCKET)
         .download(data.storagePath);
       if (downloadError || !file) {
-        throw new Error(downloadError?.message ?? "Kunne ikke hente det uploadede billede.");
+        throw new Error(downloadError?.message ?? "Could not download the uploaded image.");
       }
 
       const bytes = new Uint8Array(await file.arrayBuffer());
-      if (bytes.byteLength === 0) throw new Error("Billedet er tomt.");
+      if (bytes.byteLength === 0) throw new Error("The image is empty.");
       let binary = "";
       const chunkSize = 0x8000;
       for (let offset = 0; offset < bytes.length; offset += chunkSize) {
@@ -70,7 +70,7 @@ export const analyzeScreenshot = createServerFn({ method: "POST" })
 
       return { importId: importRow.id, players };
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Ukendt fejl under analysen.";
+      const message = error instanceof Error ? error.message : "Unknown error during analysis.";
       await supabase
         .from("screenshot_imports")
         .update({ status: "failed", error_message: message })
