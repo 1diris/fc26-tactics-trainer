@@ -25,10 +25,10 @@ export const Route = createFileRoute("/_authenticated/karrierer/")({
       { title: "Mine karrierer — Career Chronicles" },
       {
         name: "description",
-        content: "Overblik over dine FC 26 karrierer, klubber og trupstørrelser.",
+        content: "Overview of your FC 26 careers, clubs and squad sizes.",
       },
       { property: "og:title", content: "Mine karrierer — Career Chronicles" },
-      { property: "og:description", content: "Alle dine FC 26 karrierer på ét sted." },
+      { property: "og:description", content: "All your FC 26 careers in one place." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -91,7 +91,7 @@ function CareersPage() {
           <div>
             <h1 className="font-display text-3xl font-bold tracking-tight">Mine karrierer</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Én karriere pr. gemt spil. Hver sæson får sit eget snapshot af truppen.
+              One career per save. Every season gets its own squad snapshot.
             </p>
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
@@ -104,7 +104,7 @@ function CareersPage() {
               <DialogHeader>
                 <DialogTitle>Ny karriere</DialogTitle>
                 <DialogDescription>
-                  Angiv klub og startsæson. Du kan tilføje flere sæsoner senere.
+                  Enter club and starting season. You can add more seasons later.
                 </DialogDescription>
               </DialogHeader>
               <form
@@ -120,12 +120,12 @@ function CareersPage() {
                     id="club"
                     required
                     value={club}
-                    placeholder="fx FC København"
+                    placeholder="e.g. Wolves"
                     onChange={(event) => setClub(event.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="name">Navn på karriere (valgfrit)</Label>
+                  <Label htmlFor="name">Career name (optional)</Label>
                   <Input
                     id="name"
                     value={name}
@@ -143,7 +143,7 @@ function CareersPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="season">Startsæson</Label>
+                    <Label htmlFor="season">Starting season</Label>
                     <Input
                       id="season"
                       required
@@ -164,7 +164,7 @@ function CareersPage() {
           <div className="mt-10 rounded-xl border border-dashed border-border bg-card/50 p-10 text-center">
             <p className="font-display text-lg font-semibold">Ingen karrierer endnu</p>
             <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-              Opret din første karriere, upload et screenshot af trupskærmen, og få hele holdet ind
+              Create your first career, upload a screenshot of the squad screen, and get the whole team in
               automatisk.
             </p>
           </div>
