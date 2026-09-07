@@ -27,12 +27,12 @@ export const Route = createFileRoute("/_authenticated/karrierer/$id/trup")({
       {
         name: "description",
         content:
-          "Hele din FC 26 trup i én tabel: overall, potentiale, alder, markedsværdi, løn og kontraktudløb.",
+          "Your entire FC 26 squad in one table: overall, potential, age, market value, wage and contract expiry.",
       },
       { property: "og:title", content: "Squad — Career Chronicles" },
       {
         property: "og:description",
-        content: "Sortér og filtrér din FC 26 trup på position, alder, potentiale og værdi.",
+        content: "Sort and filter your FC 26 squad by position, age, potential and value.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
