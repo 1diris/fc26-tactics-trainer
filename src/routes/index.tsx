@@ -80,18 +80,18 @@ function Landing() {
       <main className="mx-auto max-w-6xl px-5 pb-20">
         <section className="py-16 sm:py-24">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-            Til FC 26 Career Mode
+            For FC 26 Career Mode
           </p>
           <h1 className="mt-4 max-w-3xl font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
-            Dit eksterne managementværktøj til karrieren
+            Your external management tool for the career
           </h1>
           <p className="mt-5 max-w-2xl text-base text-muted-foreground sm:text-lg">
-            Tag et screenshot af din trup, upload det, og få hele holdet ind i en database du kan
-            analysere sæson efter sæson. Ingen manuel indtastning, ingen regneark.
+            Take a screenshot of your squad, upload it, and get the whole team into a database you
+            can analyse season after season. No manual typing, no spreadsheets.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button asChild size="lg">
-              <Link to={signedIn ? "/karrierer" : "/auth"}>Kom i gang</Link>
+              <Link to={signedIn ? "/karrierer" : "/auth"}>Get started</Link>
             </Button>
           </div>
         </section>
