@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { POSITIONS } from "@/lib/football";
+import { POSITIONS, POSITION_GROUPS } from "@/lib/football";
 import { careerDataQuery } from "@/lib/career-queries";
 import { sortedSeasons } from "@/lib/squad";
 import {
