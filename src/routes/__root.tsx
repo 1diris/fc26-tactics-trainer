@@ -80,11 +80,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Career Chronicles — styr din FC-karriere" },
+      { title: "Career Chronicles — manage your FC 26 career" },
       {
         name: "description",
         content:
-          "Gem din trup fra screenshots, følg spillernes udvikling og hold overblik over din fodbold-karriere sæson efter sæson.",
+          "Save your squad from screenshots, track player growth and keep an overview of your football career season after season.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

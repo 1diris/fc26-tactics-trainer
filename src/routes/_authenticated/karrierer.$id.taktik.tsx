@@ -114,7 +114,7 @@ function TacticsPage() {
         },
       }),
     onSuccess: () => {
-      toast.success("Taktik gemt");
+      toast.success("Tactics saved");
       queryClient.invalidateQueries({ queryKey: ["tactic", id, seasonId] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -189,7 +189,7 @@ function TacticsPage() {
     setRoles((prev) => normalizeRoles(shape.slots, { ...result.roles, ...prev }));
     setSuggestion(result);
     setActiveSlot(null);
-    toast.success("Stærkeste opstilling foreslået");
+    toast.success("Strongest lineup suggested");
   }
 
   const startersOvr = shape.slots
@@ -241,16 +241,16 @@ function TacticsPage() {
   async function copyCode() {
     try {
       await navigator.clipboard.writeText(code);
-      toast.success("Taktikkode kopieret");
+      toast.success("Tactic code copied");
     } catch {
-      toast.error("Kunne ikke kopiere koden");
+      toast.error("Could not copy the code");
     }
   }
 
   function importTactic() {
     const parsed = decodeTactic(importCode);
     if (!parsed) {
-      toast.error("Ugyldig taktikkode");
+      toast.error("Invalid tactic code");
       return;
     }
     const nextShape = findFormation(parsed.formation);
@@ -261,7 +261,7 @@ function TacticsPage() {
     setSuggestion(null);
     setImportCode("");
     setTab("team");
-    toast.success(`Taktik importeret (${nextShape.name})`);
+    toast.success(`Tactic imported (${nextShape.name})`);
   }
 
   return (
@@ -271,24 +271,24 @@ function TacticsPage() {
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-lime-400">
             <Sparkles className="h-3.5 w-3.5" /> FC IQ
           </p>
-          <h2 className="font-display text-xl font-bold">Taktik</h2>
+          <h2 className="font-display text-xl font-bold">Tactics</h2>
           <p className="text-sm text-muted-foreground">
-            Byg din opstilling, giv hver plads en rolle og gem taktikken.
+            Build your lineup, give each slot a role and save the tactic.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="secondary" onClick={autoFill} disabled={rows.length === 0}>
-            Foreslå opstilling
+            Suggest lineup
           </Button>
           <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
-            {saveMutation.isPending ? "Gemmer…" : "Gem taktik"}
+            {saveMutation.isPending ? "Saving…" : "Save tactics"}
           </Button>
         </div>
       </div>
 
       {rows.length === 0 && (
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4 text-sm text-zinc-400">
-          Importér din trup først, så kan du placere spillerne på banen.
+          Import your squad first, then you can place the players on the pitch.
         </div>
       )}
 
@@ -297,20 +297,20 @@ function TacticsPage() {
           <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-zinc-200">
-                <Users className="h-4 w-4 text-lime-400" /> Opstilling
+                <Users className="h-4 w-4 text-lime-400" /> Lineup
               </h3>
               <div className="flex flex-wrap items-center gap-2 text-[11px] text-zinc-400">
                 <span className="rounded-full border border-zinc-800 bg-zinc-950 px-2 py-0.5">
                   {formation}
                 </span>
                 <span className="rounded-full border border-zinc-800 bg-zinc-950 px-2 py-0.5">
-                  Snit OVR <strong className="text-lime-400">{avgOvr ?? "–"}</strong>
+                  Avg OVR <strong className="text-lime-400">{avgOvr ?? "–"}</strong>
                 </span>
                 <span className="rounded-full border border-zinc-800 bg-zinc-950 px-2 py-0.5">
-                  <Shield className="mr-1 inline h-3 w-3" /> Besat {filled}/11
+                  <Shield className="mr-1 inline h-3 w-3" /> Filled {filled}/11
                 </span>
                 <span className="rounded-full border border-zinc-800 bg-zinc-950 px-2 py-0.5">
-                  <Target className="mr-1 inline h-3 w-3" /> Ude af pos. {outOfPosition}
+                  <Target className="mr-1 inline h-3 w-3" /> Out of pos. {outOfPosition}
                 </span>
               </div>
             </div>
@@ -326,15 +326,15 @@ function TacticsPage() {
 
             <div className="mt-3 flex flex-wrap gap-3 text-[11px] text-zinc-400">
               <span className="flex items-center gap-1">
-                <i className="h-2 w-2 rounded-full bg-lime-400" /> Naturlig
+                <i className="h-2 w-2 rounded-full bg-lime-400" /> Natural
               </span>
               <span className="flex items-center gap-1">
-                <i className="h-2 w-2 rounded-full bg-amber-400" /> Kan spille
+                <i className="h-2 w-2 rounded-full bg-amber-400" /> Can play
               </span>
               <span className="flex items-center gap-1">
-                <i className="h-2 w-2 rounded-full bg-red-500" /> Ude af position
+                <i className="h-2 w-2 rounded-full bg-red-500" /> Out of position
               </span>
-              <span className="ml-auto">Klik på en plads for at redigere</span>
+              <span className="ml-auto">Click a slot to edit</span>
             </div>
 
             {hints.length > 0 && (
@@ -351,32 +351,32 @@ function TacticsPage() {
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
                   <h3 className="font-display text-sm font-semibold text-zinc-100">
-                    Anbefalet start-11 ({shape.name})
+                    Recommended starting XI ({shape.name})
                   </h3>
                   <p className="text-xs text-zinc-400">
-                    Din stærkeste opstilling baseret på den nuværende trup.
+                    Your strongest lineup based on the current squad.
                   </p>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => setSuggestion(null)}>
-                  Skjul
+                  Hide
                 </Button>
               </div>
 
               <div className="flex flex-wrap gap-4 text-xs text-zinc-400">
                 <span>
-                  Samlet OVR: <strong className="text-zinc-100">{suggestion.totalOvr}</strong>
+                  Total OVR: <strong className="text-zinc-100">{suggestion.totalOvr}</strong>
                 </span>
                 <span>
-                  Snit OVR: <strong className="text-zinc-100">{suggestion.avgOvr ?? "–"}</strong>
+                  Avg OVR: <strong className="text-zinc-100">{suggestion.avgOvr ?? "–"}</strong>
                 </span>
                 <span>
-                  Naturlig: <strong className="text-lime-400">{suggestion.naturalCount}</strong>
+                  Natural: <strong className="text-lime-400">{suggestion.naturalCount}</strong>
                 </span>
                 <span>
-                  Sekundær: <strong className="text-amber-400">{suggestion.okCount}</strong>
+                  Secondary: <strong className="text-amber-400">{suggestion.okCount}</strong>
                 </span>
                 <span>
-                  Ude af position: <strong className="text-red-400">{suggestion.outCount}</strong>
+                  Out of position: <strong className="text-red-400">{suggestion.outCount}</strong>
                 </span>
               </div>
 
@@ -395,9 +395,9 @@ function TacticsPage() {
           <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
             <Tabs value={tab} onValueChange={setTab}>
               <TabsList className="grid w-full grid-cols-3 bg-zinc-950">
-                <TabsTrigger value="team">Holdtaktik</TabsTrigger>
-                <TabsTrigger value="player">Spillerrolle</TabsTrigger>
-                <TabsTrigger value="export">Eksport</TabsTrigger>
+                <TabsTrigger value="team">Team tactics</TabsTrigger>
+                <TabsTrigger value="player">Player role</TabsTrigger>
+                <TabsTrigger value="export">Export</TabsTrigger>
               </TabsList>
 
               <TabsContent value="team" className="mt-4 space-y-5">
@@ -410,7 +410,7 @@ function TacticsPage() {
                       setActiveSlot(null);
                     }}
                   >
-                    <SelectTrigger className="border-zinc-800 bg-zinc-950" aria-label="Vælg formation">
+                    <SelectTrigger className="border-zinc-800 bg-zinc-950" aria-label="Select formation">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -485,11 +485,11 @@ function TacticsPage() {
                   ))}
                 </Tabs>
 
-                <Field label="Noter">
+                <Field label="Notes">
                   <Textarea
                     value={notes}
                     onChange={(event) => setNotes(event.target.value)}
-                    placeholder="F.eks. instruktioner til kanterne, dødboldtagere…"
+                    placeholder="E.g. instructions for wingers, set-piece takers…"
                     rows={3}
                     className="border-zinc-800 bg-zinc-950"
                   />
@@ -499,7 +499,7 @@ function TacticsPage() {
               <TabsContent value="player" className="mt-4 space-y-5">
                 {!activeSlotShape ? (
                   <p className="text-sm text-zinc-400">
-                    Klik på en plads på banen for at vælge spiller, rolle og fokus.
+                    Click a slot on the pitch to choose a player, role and focus.
                   </p>
                 ) : (
                   <>
@@ -524,7 +524,7 @@ function TacticsPage() {
               </TabsContent>
 
               <TabsContent value="export" className="mt-4 space-y-5">
-                <Field label="Din taktikkode">
+                <Field label="Your tactic code">
                   <code className="block w-full break-all rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 font-mono text-xs text-lime-400">
                     {code}
                   </code>
@@ -534,10 +534,10 @@ function TacticsPage() {
                   className="w-full bg-lime-500 text-zinc-950 hover:bg-lime-400"
                   onClick={copyCode}
                 >
-                  <Copy className="mr-2 h-4 w-4" /> Kopiér taktikkode
+                  <Copy className="mr-2 h-4 w-4" /> Copy tactic code
                 </Button>
 
-                <Field label="Importér taktikkode">
+                <Field label="Import tactic code">
                   <div className="flex gap-2">
                     <Input
                       value={importCode}
@@ -550,17 +550,17 @@ function TacticsPage() {
                       className="border-zinc-800 bg-zinc-950"
                       onClick={importTactic}
                     >
-                      <Download className="mr-2 h-4 w-4" /> Importér
+                      <Download className="mr-2 h-4 w-4" /> Import
                     </Button>
                   </div>
                 </Field>
 
                 <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-xs text-zinc-400">
-                  <p className="mb-2 font-medium text-zinc-200">Opsummering</p>
+                  <p className="mb-2 font-medium text-zinc-200">Summary</p>
                   <ul className="space-y-1">
                     <li>Formation: {formation}</li>
-                    <li>Besatte pladser: {filled}/11</li>
-                    <li>Roller med mastery: {masteryCount}/11</li>
+                    <li>Filled slots: {filled}/11</li>
+                    <li>Roles with mastery: {masteryCount}/11</li>
                   </ul>
                 </div>
               </TabsContent>
@@ -568,7 +568,7 @@ function TacticsPage() {
           </div>
 
           <div className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
-            <h3 className="text-sm font-semibold text-zinc-200">Bænk og resten af truppen</h3>
+            <h3 className="text-sm font-semibold text-zinc-200">Bench and rest of squad</h3>
             <ul className="mt-2 max-h-72 space-y-1 overflow-y-auto text-sm">
               {bench.map((row) => (
                 <li key={row.player.id} className="flex items-center justify-between gap-2 text-zinc-300">
@@ -582,7 +582,7 @@ function TacticsPage() {
                 </li>
               ))}
               {bench.length === 0 && (
-                <li className="text-zinc-500">Alle spillere er i startopstillingen.</li>
+                <li className="text-zinc-500">All players are in the starting lineup.</li>
               )}
             </ul>
           </div>
@@ -625,10 +625,10 @@ function SlotPicker({
   return (
     <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3">
       <div className="mb-2 flex items-center justify-between">
-        <p className="text-sm font-medium text-zinc-200">Vælg spiller til {slotPosition}</p>
+        <p className="text-sm font-medium text-zinc-200">Choose a player for {slotPosition}</p>
         {selectedId && (
           <Button variant="ghost" size="sm" onClick={() => onPick(null)}>
-            Ryd plads
+            Clear slot
           </Button>
         )}
       </div>
@@ -647,7 +647,7 @@ function SlotPicker({
                 <span className="truncate">
                   {row.player.name}
                   {usedIds.has(row.player.id) && row.player.id !== selectedId && (
-                    <span className="ml-1 text-[11px] text-zinc-500">(i opstilling)</span>
+                    <span className="ml-1 text-[11px] text-zinc-500">(in lineup)</span>
                   )}
                 </span>
                 <span className="shrink-0 text-xs text-zinc-500">
@@ -661,7 +661,7 @@ function SlotPicker({
                           : "text-red-400"
                     }
                   >
-                    {fit === "natural" ? "naturlig" : fit === "ok" ? "ok" : "ude af pos."}
+                    {fit === "natural" ? "natural" : fit === "ok" ? "ok" : "out of pos."}
                   </span>
                 </span>
               </button>
@@ -689,18 +689,18 @@ function RoleEditor({
   const options = rolesFor(slotPosition);
   const active = findRole(slotPosition, value?.role) ?? options[0] ?? null;
   if (!active) return null;
-  const allFocuses: RoleFocus[] = ["Forsvar", "Balanceret", "Angreb"];
+  const allFocuses: RoleFocus[] = ["Defend", "Balanced", "Attack"];
   const mastery = value?.mastery ?? "base";
 
   return (
     <div className="space-y-4 rounded-xl border border-zinc-800 bg-zinc-950 p-3">
       <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-        Spillerrolle · {slotPosition}
+        Player role · {slotPosition}
       </p>
 
-      <Field label="Rolle">
+      <Field label="Role">
         <Select value={active.id} onValueChange={onRoleChange}>
-          <SelectTrigger className="border-zinc-800 bg-zinc-900" aria-label="Vælg rolle">
+          <SelectTrigger className="border-zinc-800 bg-zinc-900" aria-label="Select role">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -714,7 +714,7 @@ function RoleEditor({
         <p className="text-xs text-zinc-500">{active.description}</p>
       </Field>
 
-      <Field label="Fokus">
+      <Field label="Focus">
         <div className="grid grid-cols-3 gap-2">
           {allFocuses.map((focus) => {
             const enabled = active.focuses.includes(focus);
@@ -738,13 +738,13 @@ function RoleEditor({
         </div>
       </Field>
 
-      <Field label="Rolle-mastery">
+      <Field label="Role mastery">
         <div className="grid grid-cols-3 gap-2">
           {(
             [
               ["base", "Standard"],
-              ["+", "Rolle (+)"],
-              ["++", "Rolle (++)"],
+              ["+", "Role (+)"],
+              ["++", "Role (++)"],
             ] as [RoleMastery, string][]
           ).map(([id, label]) => (
             <button
