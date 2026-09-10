@@ -23,6 +23,21 @@ const playerInput = z.object({
 
 export type PlayerInput = z.infer<typeof playerInput>;
 
+export type SnapshotRow = {
+  id: string;
+  player_id: string;
+  season_id: string;
+  overall: number | null;
+  potential: number | null;
+  age: number | null;
+  position: string | null;
+  market_value: number | null;
+  wage: number | null;
+  contract_until: string | null;
+  form: number | null;
+  stats: Json;
+};
+
 export const listCareers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
