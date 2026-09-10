@@ -133,6 +133,7 @@ function PlayerPage() {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["career", id] });
+      void queryClient.invalidateQueries({ queryKey: ["player-history", id, playerId] });
       setEditing(false);
       toast.success("Player updated.");
     },
