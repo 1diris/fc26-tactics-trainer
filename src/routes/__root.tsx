@@ -107,14 +107,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Archivo:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap",
         media: "print",
-        onLoad: "this.media='all'",
-      },
+        "data-font-css": "true",
+      } as unknown as { rel: string },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
       {
         rel: "apple-touch-icon",
         href: "/career-chronicles-icon-2026.png",
         sizes: "180x180",
         type: "image/png",
+      },
+    ],
+    scripts: [
+      {
+        children:
+          "requestAnimationFrame(function(){document.querySelectorAll('link[data-font-css]').forEach(function(l){l.media='all'})})",
       },
     ],
   }),
