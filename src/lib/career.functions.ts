@@ -205,6 +205,24 @@ export const getCareerData = createServerFn({ method: "GET" })
     };
   });
 
+/** Full season-by-season history for a single player (used on the profile page). */
+export const getPlayerHistory = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ careerId: z.string().uuid(), playerId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase
+      .from("player_snapshots")
+      .select(
+        "id, player_id, season_id, overall, potential, age, position, market_value, wage, contract_until, form, stats",
+      )
+      .eq("career_id", data.careerId)
+      .eq("player_id", data.playerId);
+    if (error) throw new Error(error.message);
+    return (rows ?? []) as SnapshotRow[];
+  });
+
 export const createSeason = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
