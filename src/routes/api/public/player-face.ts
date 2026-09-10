@@ -19,6 +19,17 @@ export const Route = createFileRoute("/api/public/player-face")({
           return new Response("Not found", { status: 404 });
         }
 
+        // Portraits never change, so serve them from the edge cache when possible.
+        const cacheKey = new Request(
+          `https://player-face.local/${encodeURIComponent(target.toString())}`,
+          { method: "GET" },
+        );
+        const cache = (globalThis as { caches?: { default?: Cache } }).caches?.default;
+        if (cache) {
+          const hit = await cache.match(cacheKey);
+          if (hit) return hit;
+        }
+
         const upstream = await fetch(target.toString(), {
           headers: {
             Referer: "https://sofifa.com/",
