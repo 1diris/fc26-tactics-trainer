@@ -74,17 +74,11 @@ function PlayerPage() {
   const history = seasons
     .map((season) => ({
       season,
-      snapshot:
-        data.snapshots.find(
-          (entry) => entry.player_id === playerId && entry.season_id === season.id,
-        ) ?? null,
+      snapshot: allSnapshots.find((entry) => entry.season_id === season.id) ?? null,
     }))
     .filter((entry) => entry.snapshot !== null);
 
-  const current =
-    data.snapshots.find(
-      (entry) => entry.player_id === playerId && entry.season_id === activeSeason?.id,
-    ) ?? null;
+  const current = allSnapshots.find((entry) => entry.season_id === activeSeason?.id) ?? null;
 
   const fc: FcOriginal | null = player.fc_player_id
     ? ((data.fcPlayers.find((entry) => entry.id === player.fc_player_id) as FcOriginal | undefined) ??
