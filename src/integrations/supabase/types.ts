@@ -578,6 +578,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      fc_league_names: {
+        Args: never
+        Returns: {
+          league_level: number
+          league_name: string
+        }[]
+      }
       fix_mojibake: { Args: { t: string }; Returns: string }
     }
     Enums: {

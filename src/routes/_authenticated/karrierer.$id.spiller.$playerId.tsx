@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { careerDataQuery } from "@/lib/career-queries";
+import { careerDataQuery, playerHistoryQuery } from "@/lib/career-queries";
 import { deletePlayer, updatePlayer } from "@/lib/career.functions";
 import { sortedSeasons } from "@/lib/squad";
 import { formatMoney, formatWage, positionGroup } from "@/lib/football";
@@ -42,6 +42,8 @@ function PlayerPage() {
     from: "/_authenticated/karrierer/$id/spiller/$playerId",
   });
   const { data } = useSuspenseQuery(careerDataQuery(id));
+  // Full history is only needed here, so it is fetched per player.
+  const { data: allSnapshots } = useSuspenseQuery(playerHistoryQuery(id, playerId));
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const update = useServerFn(updatePlayer);
@@ -72,17 +74,11 @@ function PlayerPage() {
   const history = seasons
     .map((season) => ({
       season,
-      snapshot:
-        data.snapshots.find(
-          (entry) => entry.player_id === playerId && entry.season_id === season.id,
-        ) ?? null,
+      snapshot: allSnapshots.find((entry) => entry.season_id === season.id) ?? null,
     }))
     .filter((entry) => entry.snapshot !== null);
 
-  const current =
-    data.snapshots.find(
-      (entry) => entry.player_id === playerId && entry.season_id === activeSeason?.id,
-    ) ?? null;
+  const current = allSnapshots.find((entry) => entry.season_id === activeSeason?.id) ?? null;
 
   const fc: FcOriginal | null = player.fc_player_id
     ? ((data.fcPlayers.find((entry) => entry.id === player.fc_player_id) as FcOriginal | undefined) ??
@@ -137,6 +133,7 @@ function PlayerPage() {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["career", id] });
+      void queryClient.invalidateQueries({ queryKey: ["player-history", id, playerId] });
       setEditing(false);
       toast.success("Player updated.");
     },

@@ -36,7 +36,7 @@ export type MarketPreset = NonNullable<NonNullable<MarketSearchInput["preset"]>>
 const PAGE_SIZE = 50;
 /** Presets rank on a derived score, so we score a candidate pool server-side. */
 const RANKED_PRESETS = new Set<string>(["wonderkids", "gems", "bargains"]);
-const CANDIDATE_LIMIT = 1500;
+const CANDIDATE_LIMIT = 400;
 
 type Row = {
   overall: number | null;
@@ -192,12 +192,15 @@ export type MarketPlayer = Awaited<
 export const listLeagues = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
-      .from("fc_players")
-      .select("league_name, league_level")
-      .not("league_name", "is", null)
-      .order("league_level", { ascending: true })
-      .limit(20000);
+    // A grouped lookup in the database instead of scanning every player row.
+    const { data, error } = await (
+      context.supabase.rpc as unknown as (
+        fn: string,
+      ) => Promise<{
+        data: { league_name: string | null; league_level: number | null }[] | null;
+        error: { message: string } | null;
+      }>
+    )("fc_league_names");
     if (error) throw new Error(error.message);
     const seen = new Map<string, number>();
     for (const row of data ?? []) {
