@@ -118,7 +118,7 @@ export const getCareerData = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     if (!career) throw new Error("Career not found.");
 
-    const [seasonsRes, playersRes, snapshotsRes] = await Promise.all([
+    const [seasonsRes, playersRes] = await Promise.all([
       supabase
         .from("seasons")
         .select("id, label, sort_order, notes")
@@ -131,16 +131,36 @@ export const getCareerData = createServerFn({ method: "GET" })
         )
         .eq("career_id", career.id)
         .order("name", { ascending: true }),
-      supabase
-        .from("player_snapshots")
-        .select(
-          "id, player_id, season_id, overall, potential, age, position, market_value, wage, contract_until, form, stats",
-        )
-        .eq("career_id", career.id),
     ]);
 
     if (seasonsRes.error) throw new Error(seasonsRes.error.message);
     if (playersRes.error) throw new Error(playersRes.error.message);
+
+    // Only the active season (and the one before it, for growth deltas) is
+    // needed to render the app; the full history is fetched per player.
+    const seasons = seasonsRes.data ?? [];
+    const activeIndex = Math.max(
+      0,
+      seasons.findIndex((season) => season.id === career.current_season_id),
+    );
+    const relevantSeasonIds = [seasons[activeIndex]?.id, seasons[activeIndex - 1]?.id].filter(
+      (value): value is string => !!value,
+    );
+
+    let snapshotsRes: {
+      data: SnapshotRow[] | null;
+      error: { message: string } | null;
+    } = { data: [], error: null };
+    if (relevantSeasonIds.length > 0) {
+      snapshotsRes = await supabase
+        .from("player_snapshots")
+        .select(
+          "id, player_id, season_id, overall, potential, age, position, market_value, wage, contract_until, form, stats",
+        )
+        .eq("career_id", career.id)
+        .in("season_id", relevantSeasonIds);
+    }
+
     if (snapshotsRes.error) throw new Error(snapshotsRes.error.message);
 
     const fcIds = [
