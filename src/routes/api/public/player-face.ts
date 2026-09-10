@@ -43,13 +43,23 @@ export const Route = createFileRoute("/api/public/player-face")({
           return new Response("Not found", { status: 404 });
         }
 
-        return new Response(upstream.body, {
+        const response = new Response(upstream.body, {
           status: 200,
           headers: {
             "Content-Type": upstream.headers.get("content-type") ?? "image/png",
             "Cache-Control": "public, max-age=31536000, immutable",
           },
         });
+
+        if (cache) {
+          try {
+            await cache.put(cacheKey, response.clone());
+          } catch {
+            // Caching is best-effort.
+          }
+        }
+
+        return response;
       },
     },
   },
