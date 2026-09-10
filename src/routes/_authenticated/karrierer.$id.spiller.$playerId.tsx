@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { careerDataQuery } from "@/lib/career-queries";
+import { careerDataQuery, playerHistoryQuery } from "@/lib/career-queries";
 import { deletePlayer, updatePlayer } from "@/lib/career.functions";
 import { sortedSeasons } from "@/lib/squad";
 import { formatMoney, formatWage, positionGroup } from "@/lib/football";
@@ -42,6 +42,8 @@ function PlayerPage() {
     from: "/_authenticated/karrierer/$id/spiller/$playerId",
   });
   const { data } = useSuspenseQuery(careerDataQuery(id));
+  // Full history is only needed here, so it is fetched per player.
+  const { data: allSnapshots } = useSuspenseQuery(playerHistoryQuery(id, playerId));
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const update = useServerFn(updatePlayer);
