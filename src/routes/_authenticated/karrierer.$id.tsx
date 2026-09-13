@@ -100,13 +100,13 @@ function CareerLayout() {
           </nav>
         </div>
       </div>
-      <main className="mx-auto max-w-6xl px-5 py-8 pb-28 sm:pb-8">
+      <main className="mx-auto max-w-6xl px-5 pt-8 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:pb-8">
         <Outlet />
       </main>
 
       <nav
-        className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-6 border-t border-white/[0.06] bg-dash-bg/90 backdrop-blur-md sm:hidden"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-6 border-t border-white/[0.06] bg-dash-bg/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md sm:hidden"
+        style={{ minHeight: "calc(3.5rem + env(safe-area-inset-bottom))" }}
       >
         {NAV_ITEMS.map((item) => (
           <Link
@@ -114,10 +114,10 @@ function CareerLayout() {
             to={item.to}
             params={{ id }}
             activeOptions={{ exact: item.exact }}
-            className="flex flex-col items-center gap-0.5 py-2.5 text-muted-foreground transition-colors data-[status=active]:text-primary"
+            className="flex min-h-11 flex-col items-center justify-center gap-1 py-2 text-muted-foreground transition-colors data-[status=active]:text-primary"
           >
-            <item.Icon className="h-[18px] w-[18px]" />
-            <span className="text-[9px] font-medium">{item.label}</span>
+            <item.Icon className="h-5 w-5" />
+            <span className="text-[10px] font-medium">{item.label}</span>
           </Link>
         ))}
       </nav>
