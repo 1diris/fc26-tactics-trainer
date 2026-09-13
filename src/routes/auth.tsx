@@ -11,13 +11,13 @@ import { BrandLogo } from "@/components/brand-logo";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Log ind — Career Chronicles" },
+      { title: "Sign in — Career Chronicles" },
       {
         name: "description",
         content:
           "Log in or sign up to save your FC 26 careers, squad data and player growth in the cloud.",
       },
-      { property: "og:title", content: "Log in — Career Chronicles" },
+      { property: "og:title", content: "Sign in — Career Chronicles" },
       {
         property: "og:description",
         content: "Access your FC 26 careers, squads and season history.",
@@ -85,37 +85,14 @@ function AuthPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-5 py-12">
       <div className="w-full max-w-sm">
-        <Link
-          to="/"
-          className="flex items-center gap-2.5 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground"
-        >
-          <BrandLogo size={36} className="h-9 w-9 shrink-0" />
-          Career Chronicles
-        </Link>
-        <h1 className="mt-4 font-display text-2xl font-bold tracking-tight">
-          {mode === "login" ? "Log in" : "Sign up"}
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Your careers and squad data are saved, so you can track growth across multiple seasons.
-        </p>
-
-        <Button
-          type="button"
-          variant="outline"
-          className="mt-6 w-full"
-          disabled={busy}
-          onClick={() => void handleGoogle()}
-        >
-          Continue with Google
-        </Button>
-
-        <div className="my-5 flex items-center gap-3 text-xs uppercase tracking-wider text-muted-foreground">
-          <span className="h-px flex-1 bg-border" />
-          or
-          <span className="h-px flex-1 bg-border" />
+        <div className="flex flex-col items-center">
+          <BrandLogo size={44} className="h-11 w-11 shrink-0" />
+          <span className="mt-3 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            Career Chronicles
+          </span>
         </div>
 
-        <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
+        <form className="mt-8 space-y-4" onSubmit={(event) => void handleSubmit(event)}>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -128,7 +105,16 @@ function AuthPage() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
+              <button
+                type="button"
+                className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                onClick={() => toast.info("Password reset is coming soon.")}
+              >
+                Forgot password?
+              </button>
+            </div>
             <Input
               id="password"
               type="password"
@@ -139,18 +125,37 @@ function AuthPage() {
               onChange={(event) => setPassword(event.target.value)}
             />
           </div>
-          <Button type="submit" className="w-full" disabled={busy}>
-            {mode === "login" ? "Log in" : "Sign up"}
+          <Button type="submit" className="w-full bg-lime-600 hover:bg-lime-700" disabled={busy}>
+            {mode === "login" ? "Sign in" : "Sign up"}
           </Button>
         </form>
 
-        <button
+        <div className="my-5 flex items-center gap-3 text-xs uppercase tracking-wider text-muted-foreground">
+          <span className="h-px flex-1 bg-border" />
+          or
+          <span className="h-px flex-1 bg-border" />
+        </div>
+
+        <Button
           type="button"
-          className="mt-5 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-          onClick={() => setMode(mode === "login" ? "signup" : "login")}
+          variant="outline"
+          className="w-full"
+          disabled={busy}
+          onClick={() => void handleGoogle()}
         >
-          {mode === "login" ? "No account? Sign up" : "Already have an account? Log in"}
-        </button>
+          Continue with Google
+        </Button>
+
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          {mode === "login" ? "New to Career Chronicles?" : "Already have an account?"}{" "}
+          <button
+            type="button"
+            className="font-medium text-foreground underline-offset-4 hover:underline"
+            onClick={() => setMode(mode === "login" ? "signup" : "login")}
+          >
+            {mode === "login" ? "Create account" : "Sign in"}
+          </button>
+        </p>
       </div>
     </div>
   );
