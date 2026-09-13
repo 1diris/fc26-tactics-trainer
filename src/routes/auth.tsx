@@ -105,16 +105,7 @@ function AuthPage() {
             />
           </div>
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
-              <button
-                type="button"
-                className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-                onClick={() => toast.info("Password reset is coming soon.")}
-              >
-                Forgot password?
-              </button>
-            </div>
+            <Label htmlFor="password">Password</Label>
             <Input
               id="password"
               type="password"
@@ -124,6 +115,15 @@ function AuthPage() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
             />
+            <div className="flex justify-end">
+              <button
+                type="button"
+                className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                onClick={() => toast.info("Password reset is coming soon.")}
+              >
+                Forgot password?
+              </button>
+            </div>
           </div>
           <Button type="submit" className="w-full bg-lime-600 hover:bg-lime-700" disabled={busy}>
             {mode === "login" ? "Sign in" : "Sign up"}
