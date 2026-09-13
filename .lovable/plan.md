@@ -11,17 +11,17 @@ Ombyg `src/routes/auth.tsx`, så login-siden følger den ønskede rækkefølge o
 ## Ny rækkefølge på login-flowet
 
 1. CC-logo + "Career Chronicles" (centreret).
-2. "Welcome back" + kort undertekst.
-3. Email-felt.
-4. Password-felt med "Forgot password?" til højre.
-5. Grøn fuldbredde "Sign in"-knap.
-6. Divider med teksten "or".
-7. Google-knap: "Continue with Google".
-8. Nederst: "New to Career Chronicles? Create account".
+2. Email-felt.
+3. Password-felt med "Forgot password?" til højre.
+4. Grøn fuldbredde "Sign in"-knap.
+5. Divider med teksten "or".
+6. Google-knap: "Continue with Google".
+7. Nederst: "New to Career Chronicles? Create account".
 
 ## Tekniske detaljer
 
 - Fjern Google-knappen fra toppen af formularen.
+- Fjern "Welcome back"-teksten og dens undertekst.
 - Email/password er primær loginmetode; Google er sekundær under "Sign in".
 - Behold eksisterende formularhåndtering, validering og `mode`-skift mellem login/signup.
 - "Forgot password?" vises som et link uden at ændre den nuværende adgangskodegendannelseslogik (hvis den findes; ellers vises den som inaktiv/placeholder indtil funktionalitet tilføjes).
