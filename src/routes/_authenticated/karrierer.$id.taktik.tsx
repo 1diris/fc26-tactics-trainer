@@ -116,22 +116,74 @@ function TacticsPage() {
     setRoles((prev) => normalizeRoles(shape.slots, prev));
   }, [formation]);
 
+  const tacticList = tacticListQuery.data ?? [];
+  const activeTactic = tacticList.find((item) => item.name === tacticName) ?? null;
+
+  function currentPayload(name: string) {
+    return {
+      careerId: id,
+      seasonId,
+      name,
+      formation,
+      lineup,
+      settings,
+      roles,
+      notes: notes.trim() ? notes.trim() : null,
+    };
+  }
+
+  function refreshTactics() {
+    queryClient.invalidateQueries({ queryKey: ["tactic", id, seasonId] });
+    queryClient.invalidateQueries({ queryKey: ["tactic-list", id, seasonId] });
+  }
+
   const saveMutation = useMutation({
-    mutationFn: () =>
-      persist({
-        data: {
-          careerId: id,
-          seasonId,
-          formation,
-          lineup,
-          settings,
-          roles,
-          notes: notes.trim() ? notes.trim() : null,
-        },
-      }),
+    mutationFn: () => persist({ data: currentPayload(tacticName) }),
     onSuccess: () => {
       toast.success("Tactics saved");
-      queryClient.invalidateQueries({ queryKey: ["tactic", id, seasonId] });
+      refreshTactics();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const saveAsMutation = useMutation({
+    mutationFn: (name: string) => persist({ data: currentPayload(name) }),
+    onSuccess: (_result, name) => {
+      toast.success(`Saved as "${name}"`);
+      setTacticName(name);
+      setNameDialog("none");
+      setNewName("");
+      refreshTactics();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const renameMutation = useMutation({
+    mutationFn: async (name: string) => {
+      await persist({ data: currentPayload(name) });
+      if (activeTactic) await removeTactic({ data: { id: activeTactic.id } });
+      return name;
+    },
+    onSuccess: (name) => {
+      toast.success(`Renamed to "${name}"`);
+      setTacticName(name);
+      setNameDialog("none");
+      setRenameName("");
+      refreshTactics();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      if (!activeTactic) throw new Error("Nothing to delete");
+      await removeTactic({ data: { id: activeTactic.id } });
+    },
+    onSuccess: () => {
+      toast.success("Tactic deleted");
+      const next = tacticList.find((item) => item.name !== tacticName);
+      setTacticName(next?.name ?? "Standard");
+      refreshTactics();
     },
     onError: (error: Error) => toast.error(error.message),
   });
