@@ -365,6 +365,50 @@ function TacticsPage() {
         </h1>
 
         <div className="flex flex-wrap items-center gap-2">
+          <Select value={tacticName} onValueChange={setTacticName}>
+            <SelectTrigger
+              className="h-9 w-44 border-zinc-800 bg-zinc-950"
+              aria-label="Select tactic"
+            >
+              <SelectValue placeholder="Standard" />
+            </SelectTrigger>
+            <SelectContent className="border-zinc-800 bg-zinc-950">
+              {(tacticList.length > 0
+                ? tacticList.map((item) => item.name)
+                : [tacticName]
+              ).map((name) => (
+                <SelectItem key={name} value={name}>
+                  {name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setNewName("");
+              setNameDialog("new");
+            }}
+          >
+            Save as new
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setRenameName(tacticName);
+              setNameDialog("rename");
+            }}
+            disabled={!activeTactic}
+          >
+            Rename
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => deleteMutation.mutate()}
+            disabled={!activeTactic || tacticList.length <= 1 || deleteMutation.isPending}
+          >
+            Delete
+          </Button>
           <Button variant="secondary" onClick={autoFill} disabled={rows.length === 0}>
             Suggest lineup
           </Button>
@@ -373,6 +417,42 @@ function TacticsPage() {
           </Button>
         </div>
       </div>
+
+      {nameDialog !== "none" && (
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-900 p-3">
+          <span className="text-sm text-zinc-300">
+            {nameDialog === "new" ? "Name for the new tactic" : "New name for this tactic"}
+          </span>
+          <Input
+            autoFocus
+            value={nameDialog === "new" ? newName : renameName}
+            onChange={(event) =>
+              nameDialog === "new"
+                ? setNewName(event.target.value)
+                : setRenameName(event.target.value)
+            }
+            placeholder="e.g. Home – high press"
+            className="h-9 w-56 border-zinc-800 bg-zinc-950"
+          />
+          <Button
+            onClick={() => {
+              const value = (nameDialog === "new" ? newName : renameName).trim();
+              if (!value) {
+                toast.error("Enter a name");
+                return;
+              }
+              if (nameDialog === "new") saveAsMutation.mutate(value);
+              else renameMutation.mutate(value);
+            }}
+            disabled={saveAsMutation.isPending || renameMutation.isPending}
+          >
+            {nameDialog === "new" ? "Save" : "Rename"}
+          </Button>
+          <Button variant="ghost" onClick={() => setNameDialog("none")}>
+            Cancel
+          </Button>
+        </div>
+      )}
 
       {rows.length === 0 && (
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4 text-sm text-zinc-400">
