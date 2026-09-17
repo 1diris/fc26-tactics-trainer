@@ -39,7 +39,7 @@ import {
   type SlotRole,
 } from "@/lib/roles";
 import { decodeTactic, encodeTactic } from "@/lib/tactic-code";
-import { suggestLineup, type LineupSuggestion } from "@/lib/lineup";
+import { lineupAverageAge, lineupLineAverages, suggestLineup, type LineupSuggestion } from "@/lib/lineup";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/taktik")({
   component: TacticsPage,
@@ -133,9 +133,11 @@ function TacticsPage() {
       const row = lineup[slot.id] ? rowById.get(lineup[slot.id]!) : null;
       if (!row) return null;
       const hint = roleHint(slot.position, roles[slot.id], coveredPositions(row));
-      return hint ? `${slot.position} – ${row.player.name}: ${hint}` : null;
+      return hint
+        ? { slotId: slot.id, text: `${slot.position} – ${row.player.name}: ${hint}` }
+        : null;
     })
-    .filter((value): value is string => Boolean(value));
+    .filter((value): value is { slotId: string; text: string } => Boolean(value));
 
   function assign(slotId: string, playerId: string | null) {
     setLineup((prev) => {
