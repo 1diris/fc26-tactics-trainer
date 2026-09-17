@@ -222,6 +222,25 @@ function TacticsPage() {
     .filter((row) => !usedIds.has(row.player.id))
     .sort((a, b) => (b.current?.overall ?? 0) - (a.current?.overall ?? 0));
 
+  const visibleBench = useMemo(() => {
+    const query = benchSearch.trim().toLowerCase();
+    const filtered = query
+      ? bench.filter((row) => row.player.name.toLowerCase().includes(query))
+      : bench;
+    if (benchSort === "ovr") return filtered;
+    return [...filtered].sort((a, b) => {
+      if (benchSort === "age") {
+        const aAge = a.current?.age ?? Number.POSITIVE_INFINITY;
+        const bAge = b.current?.age ?? Number.POSITIVE_INFINITY;
+        return aAge - bAge;
+      }
+      if (benchSort === "position") {
+        return (a.position ?? "~").localeCompare(b.position ?? "~");
+      }
+      return a.player.name.localeCompare(b.player.name);
+    });
+  }, [bench, benchSearch, benchSort]);
+
   const nodes: PitchNode[] = shape.slots.map((slot) => {
     const row = lineup[slot.id] ? rowById.get(lineup[slot.id]!) : undefined;
     return {
