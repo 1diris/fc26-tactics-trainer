@@ -648,8 +648,27 @@ function TacticsPage() {
 
           <div className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
             <h3 className="text-sm font-semibold text-zinc-200">Bench and rest of squad</h3>
+            <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+              <Input
+                value={benchSearch}
+                onChange={(event) => setBenchSearch(event.target.value)}
+                placeholder="Search players…"
+                className="h-9 border-zinc-800 bg-zinc-950"
+              />
+              <Select value={benchSort} onValueChange={(value) => setBenchSort(value as typeof benchSort)}>
+                <SelectTrigger className="h-9 w-full border-zinc-800 bg-zinc-950 sm:w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="border-zinc-800 bg-zinc-950">
+                  <SelectItem value="ovr">OVR (highest first)</SelectItem>
+                  <SelectItem value="age">Age (youngest first)</SelectItem>
+                  <SelectItem value="position">Position (A–Z)</SelectItem>
+                  <SelectItem value="name">Name (A–Z)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <ul className="mt-2 max-h-72 space-y-1 overflow-y-auto text-sm">
-              {bench.map((row) => (
+              {visibleBench.map((row) => (
                 <li key={row.player.id} className="flex items-center justify-between gap-2 text-zinc-300">
                   <span className="flex min-w-0 items-center gap-2">
                     <PlayerAvatar name={row.player.name} src={row.fc?.face_url} size="sm" />
