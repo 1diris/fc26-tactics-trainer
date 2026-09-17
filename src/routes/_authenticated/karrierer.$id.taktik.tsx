@@ -318,7 +318,7 @@ function TacticsPage() {
                     {label}
                   </p>
                   <p className="font-display text-3xl font-bold leading-tight text-lime-400">
-                    {value ?? "–"}
+                    {typeof value === "number" ? Math.round(value) : "–"}
                   </p>
                 </div>
               ))}
