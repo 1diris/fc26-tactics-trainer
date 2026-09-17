@@ -19,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PitchView, type PitchNode } from "@/components/tactics/pitch-view";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { careerDataQuery } from "@/lib/career-queries";
-import { getTactic, saveTactic } from "@/lib/tactics.functions";
+import { deleteTactic, getTactic, listTactics, saveTactic } from "@/lib/tactics.functions";
 import { buildSquad, sortedSeasons, type SquadRow } from "@/lib/squad";
 import {
   FORMATIONS,
@@ -52,13 +52,25 @@ function TacticsPage() {
   const queryClient = useQueryClient();
   const fetchTactic = useServerFn(getTactic);
   const persist = useServerFn(saveTactic);
+  const fetchTacticList = useServerFn(listTactics);
+  const removeTactic = useServerFn(deleteTactic);
 
   const seasons = sortedSeasons(data.seasons);
   const seasonId = data.career.current_season_id ?? seasons[0]?.id ?? null;
 
+  const [tacticName, setTacticName] = useState("Standard");
+  const [newName, setNewName] = useState("");
+  const [renameName, setRenameName] = useState("");
+  const [nameDialog, setNameDialog] = useState<"none" | "new" | "rename">("none");
+
+  const tacticListQuery = useQuery({
+    queryKey: ["tactic-list", id, seasonId],
+    queryFn: () => fetchTacticList({ data: { careerId: id, seasonId } }),
+  });
+
   const tacticQuery = useQuery({
-    queryKey: ["tactic", id, seasonId],
-    queryFn: () => fetchTactic({ data: { careerId: id, seasonId } }),
+    queryKey: ["tactic", id, seasonId, tacticName],
+    queryFn: () => fetchTactic({ data: { careerId: id, seasonId, name: tacticName } }),
   });
 
   const [formation, setFormation] = useState("4-3-3");
@@ -104,22 +116,74 @@ function TacticsPage() {
     setRoles((prev) => normalizeRoles(shape.slots, prev));
   }, [formation]);
 
+  const tacticList = tacticListQuery.data ?? [];
+  const activeTactic = tacticList.find((item) => item.name === tacticName) ?? null;
+
+  function currentPayload(name: string) {
+    return {
+      careerId: id,
+      seasonId,
+      name,
+      formation,
+      lineup,
+      settings,
+      roles,
+      notes: notes.trim() ? notes.trim() : null,
+    };
+  }
+
+  function refreshTactics() {
+    queryClient.invalidateQueries({ queryKey: ["tactic", id, seasonId] });
+    queryClient.invalidateQueries({ queryKey: ["tactic-list", id, seasonId] });
+  }
+
   const saveMutation = useMutation({
-    mutationFn: () =>
-      persist({
-        data: {
-          careerId: id,
-          seasonId,
-          formation,
-          lineup,
-          settings,
-          roles,
-          notes: notes.trim() ? notes.trim() : null,
-        },
-      }),
+    mutationFn: () => persist({ data: currentPayload(tacticName) }),
     onSuccess: () => {
       toast.success("Tactics saved");
-      queryClient.invalidateQueries({ queryKey: ["tactic", id, seasonId] });
+      refreshTactics();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const saveAsMutation = useMutation({
+    mutationFn: (name: string) => persist({ data: currentPayload(name) }),
+    onSuccess: (_result, name) => {
+      toast.success(`Saved as "${name}"`);
+      setTacticName(name);
+      setNameDialog("none");
+      setNewName("");
+      refreshTactics();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const renameMutation = useMutation({
+    mutationFn: async (name: string) => {
+      await persist({ data: currentPayload(name) });
+      if (activeTactic) await removeTactic({ data: { id: activeTactic.id } });
+      return name;
+    },
+    onSuccess: (name) => {
+      toast.success(`Renamed to "${name}"`);
+      setTacticName(name);
+      setNameDialog("none");
+      setRenameName("");
+      refreshTactics();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      if (!activeTactic) throw new Error("Nothing to delete");
+      await removeTactic({ data: { id: activeTactic.id } });
+    },
+    onSuccess: () => {
+      toast.success("Tactic deleted");
+      const next = tacticList.find((item) => item.name !== tacticName);
+      setTacticName(next?.name ?? "Standard");
+      refreshTactics();
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -301,6 +365,50 @@ function TacticsPage() {
         </h1>
 
         <div className="flex flex-wrap items-center gap-2">
+          <Select value={tacticName} onValueChange={setTacticName}>
+            <SelectTrigger
+              className="h-9 w-44 border-zinc-800 bg-zinc-950"
+              aria-label="Select tactic"
+            >
+              <SelectValue placeholder="Standard" />
+            </SelectTrigger>
+            <SelectContent className="border-zinc-800 bg-zinc-950">
+              {(tacticList.length > 0
+                ? tacticList.map((item) => item.name)
+                : [tacticName]
+              ).map((name) => (
+                <SelectItem key={name} value={name}>
+                  {name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setNewName("");
+              setNameDialog("new");
+            }}
+          >
+            Save as new
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setRenameName(tacticName);
+              setNameDialog("rename");
+            }}
+            disabled={!activeTactic}
+          >
+            Rename
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => deleteMutation.mutate()}
+            disabled={!activeTactic || tacticList.length <= 1 || deleteMutation.isPending}
+          >
+            Delete
+          </Button>
           <Button variant="secondary" onClick={autoFill} disabled={rows.length === 0}>
             Suggest lineup
           </Button>
@@ -309,6 +417,42 @@ function TacticsPage() {
           </Button>
         </div>
       </div>
+
+      {nameDialog !== "none" && (
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-900 p-3">
+          <span className="text-sm text-zinc-300">
+            {nameDialog === "new" ? "Name for the new tactic" : "New name for this tactic"}
+          </span>
+          <Input
+            autoFocus
+            value={nameDialog === "new" ? newName : renameName}
+            onChange={(event) =>
+              nameDialog === "new"
+                ? setNewName(event.target.value)
+                : setRenameName(event.target.value)
+            }
+            placeholder="e.g. Home – high press"
+            className="h-9 w-56 border-zinc-800 bg-zinc-950"
+          />
+          <Button
+            onClick={() => {
+              const value = (nameDialog === "new" ? newName : renameName).trim();
+              if (!value) {
+                toast.error("Enter a name");
+                return;
+              }
+              if (nameDialog === "new") saveAsMutation.mutate(value);
+              else renameMutation.mutate(value);
+            }}
+            disabled={saveAsMutation.isPending || renameMutation.isPending}
+          >
+            {nameDialog === "new" ? "Save" : "Rename"}
+          </Button>
+          <Button variant="ghost" onClick={() => setNameDialog("none")}>
+            Cancel
+          </Button>
+        </div>
+      )}
 
       {rows.length === 0 && (
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4 text-sm text-zinc-400">
