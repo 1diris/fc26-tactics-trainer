@@ -272,7 +272,10 @@ function TacticsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div />
+        <h1 className="flex items-center gap-2 text-2xl font-bold tracking-wide text-lime-400">
+          <Target className="h-6 w-6 text-lime-400" />
+          Tactics
+        </h1>
 
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="secondary" onClick={autoFill} disabled={rows.length === 0}>
