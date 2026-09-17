@@ -69,6 +69,8 @@ function TacticsPage() {
   const [suggestion, setSuggestion] = useState<LineupSuggestion | null>(null);
   const [tab, setTab] = useState("team");
   const [importCode, setImportCode] = useState("");
+  const [benchSearch, setBenchSearch] = useState("");
+  const [benchSort, setBenchSort] = useState<"ovr" | "age" | "position" | "name">("ovr");
 
   useEffect(() => {
     const tactic = tacticQuery.data;
@@ -219,6 +221,25 @@ function TacticsPage() {
   const bench = rows
     .filter((row) => !usedIds.has(row.player.id))
     .sort((a, b) => (b.current?.overall ?? 0) - (a.current?.overall ?? 0));
+
+  const visibleBench = useMemo(() => {
+    const query = benchSearch.trim().toLowerCase();
+    const filtered = query
+      ? bench.filter((row) => row.player.name.toLowerCase().includes(query))
+      : bench;
+    if (benchSort === "ovr") return filtered;
+    return [...filtered].sort((a, b) => {
+      if (benchSort === "age") {
+        const aAge = a.current?.age ?? Number.POSITIVE_INFINITY;
+        const bAge = b.current?.age ?? Number.POSITIVE_INFINITY;
+        return aAge - bAge;
+      }
+      if (benchSort === "position") {
+        return (a.position ?? "~").localeCompare(b.position ?? "~");
+      }
+      return a.player.name.localeCompare(b.player.name);
+    });
+  }, [bench, benchSearch, benchSort]);
 
   const nodes: PitchNode[] = shape.slots.map((slot) => {
     const row = lineup[slot.id] ? rowById.get(lineup[slot.id]!) : undefined;
@@ -627,8 +648,27 @@ function TacticsPage() {
 
           <div className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
             <h3 className="text-sm font-semibold text-zinc-200">Bench and rest of squad</h3>
+            <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+              <Input
+                value={benchSearch}
+                onChange={(event) => setBenchSearch(event.target.value)}
+                placeholder="Search players…"
+                className="h-9 border-zinc-800 bg-zinc-950"
+              />
+              <Select value={benchSort} onValueChange={(value) => setBenchSort(value as typeof benchSort)}>
+                <SelectTrigger className="h-9 w-full border-zinc-800 bg-zinc-950 sm:w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="border-zinc-800 bg-zinc-950">
+                  <SelectItem value="ovr">OVR (highest first)</SelectItem>
+                  <SelectItem value="age">Age (youngest first)</SelectItem>
+                  <SelectItem value="position">Position (A–Z)</SelectItem>
+                  <SelectItem value="name">Name (A–Z)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <ul className="mt-2 max-h-72 space-y-1 overflow-y-auto text-sm">
-              {bench.map((row) => (
+              {visibleBench.map((row) => (
                 <li key={row.player.id} className="flex items-center justify-between gap-2 text-zinc-300">
                   <span className="flex min-w-0 items-center gap-2">
                     <PlayerAvatar name={row.player.name} src={row.fc?.face_url} size="sm" />
@@ -641,6 +681,9 @@ function TacticsPage() {
               ))}
               {bench.length === 0 && (
                 <li className="text-zinc-500">All players are in the starting lineup.</li>
+              )}
+              {bench.length > 0 && visibleBench.length === 0 && (
+                <li className="text-zinc-500">No players match your search.</li>
               )}
             </ul>
           </div>
