@@ -8,6 +8,13 @@
       "when": 1789644937290,
       "tag": "0000_tactics_unique_per_name",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789645881824,
+      "tag": "0001_tactics_unique_per_name",
+      "breakpoints": true
     }
   ]
 }
