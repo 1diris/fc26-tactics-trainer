@@ -2,7 +2,7 @@ import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
-import { Star, StarOff, Search, Loader2, UserPlus } from "lucide-react";
+import { ArrowLeftRight, Star, StarOff, Search, Loader2, UserPlus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -338,8 +338,13 @@ function MarketPage() {
   }, [results.data, focusPosition]);
 
   return (
+    <div className="space-y-6">
+      <h1 className="flex items-center gap-2 text-2xl font-bold tracking-wide text-lime-400">
+        <ArrowLeftRight className="h-6 w-6 text-lime-400" />
+        Transfers
+      </h1>
 
-    <Tabs defaultValue="search" className="space-y-6">
+      <Tabs defaultValue="search" className="space-y-6">
       <TabsList>
         <TabsTrigger value="search">Search players</TabsTrigger>
         <TabsTrigger value="targets">My targets ({targets.data?.length ?? 0})</TabsTrigger>
@@ -788,7 +793,8 @@ function MarketPage() {
           if (!open) setSigning(null);
         }}
       />
-    </Tabs>
+      </Tabs>
+    </div>
   );
 }
 

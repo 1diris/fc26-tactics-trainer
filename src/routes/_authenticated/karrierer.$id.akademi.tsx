@@ -3,7 +3,7 @@ import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ArrowUpFromLine, ChevronDown, ImagePlus, Plus, Trash2, User } from "lucide-react";
+import { ArrowUpFromLine, ChevronDown, ImagePlus, Plus, Star, Trash2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -224,11 +224,9 @@ function AcademyPage() {
     <div className="pb-24">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">
-            Academy{" "}
-            <span className="font-stat text-lg font-normal text-muted-foreground">
-              {rows.length}
-            </span>
+          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-wide text-lime-400">
+            <Star className="h-6 w-6 text-lime-400" />
+            Academy
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {rows.length} {rows.length === 1 ? "talent" : "talents"} · sorted by {SORT_TEXT[sortKey]}

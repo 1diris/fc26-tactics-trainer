@@ -341,6 +341,11 @@ function ImportPage() {
 
   return (
     <div className={`space-y-8 ${drafts && drafts.length > 0 ? "pb-24" : ""}`}>
+      <h1 className="flex items-center gap-2 text-2xl font-bold tracking-wide text-lime-400">
+        <Upload className="h-6 w-6 text-lime-400" />
+        Import
+      </h1>
+
       <section className="rounded-xl border border-border/60 bg-card p-6">
         <h2 className="font-display text-lg font-semibold">
           Upload screenshots {activeSeason ? `for ${activeSeason.label}` : ""}

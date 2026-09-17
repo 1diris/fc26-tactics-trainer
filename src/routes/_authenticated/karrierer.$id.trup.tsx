@@ -3,7 +3,7 @@ import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-q
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ArrowDownWideNarrow, ArrowLeft, ArrowUpNarrowWide, ArrowUpRight, Check, TriangleAlert } from "lucide-react";
+import { ArrowDownWideNarrow, ArrowLeft, ArrowUpNarrowWide, ArrowUpRight, Check, TriangleAlert, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { careerDataQuery } from "@/lib/career-queries";
@@ -317,6 +317,11 @@ function SquadPage() {
 
   return (
     <div className="space-y-4 pb-20 font-body">
+      <h1 className="flex items-center gap-2 text-2xl font-bold tracking-wide text-lime-400">
+        <Users className="h-6 w-6 text-lime-400" />
+        Squad
+      </h1>
+
       {/* Filters */}
       <div className="space-y-3 rounded-xl border border-dash-border bg-dash-card p-3 sm:p-4">
         <div className="flex flex-wrap items-center gap-2">
