@@ -1,0 +1,130 @@
+import type { TacticSettings } from "./formations";
+
+export interface TacticalVision {
+  id: string;
+  label: string;
+  description: string;
+  settings: TacticSettings;
+}
+
+export const TACTICAL_VISIONS: readonly TacticalVision[] = [
+  {
+    id: "standard",
+    label: "Standard",
+    description: "A balanced approach that adapts to any opponent without overcommitting.",
+    settings: {
+      buildUp: "Balanced",
+      chanceCreation: "Balanced",
+      width: 5,
+      playersInBox: 3,
+      corners: 2,
+      freeKicks: 2,
+      defensiveApproach: "Balanced",
+      defensiveWidth: 5,
+      depth: 5,
+      aggression: 5,
+    },
+  },
+  {
+    id: "counter-attack",
+    label: "Counter Attack",
+    description: "Defend deep and compact, then break quickly when you win the ball back.",
+    settings: {
+      buildUp: "Counter Attack",
+      chanceCreation: "Direct Passing",
+      width: 4,
+      playersInBox: 2,
+      corners: 2,
+      freeKicks: 2,
+      defensiveApproach: "Deep",
+      defensiveWidth: 4,
+      depth: 3,
+      aggression: 4,
+    },
+  },
+  {
+    id: "high-pressing",
+    label: "High Pressing",
+    description: "Win the ball high up the pitch with relentless pressure on the opposition.",
+    settings: {
+      buildUp: "Balanced",
+      chanceCreation: "Direct Passing",
+      width: 5,
+      playersInBox: 4,
+      corners: 2,
+      freeKicks: 2,
+      defensiveApproach: "Aggressive Press",
+      defensiveWidth: 5,
+      depth: 8,
+      aggression: 9,
+    },
+  },
+  {
+    id: "kick-and-rush",
+    label: "Kick and Rush",
+    description: "Go direct and long, rushing numbers forward to overwhelm the defence.",
+    settings: {
+      buildUp: "Long Ball",
+      chanceCreation: "Direct Passing",
+      width: 4,
+      playersInBox: 5,
+      corners: 2,
+      freeKicks: 2,
+      defensiveApproach: "Balanced",
+      defensiveWidth: 5,
+      depth: 5,
+      aggression: 6,
+    },
+  },
+  {
+    id: "park-the-bus",
+    label: "Park the Bus",
+    description: "Sit deep in a compact block and protect the result at all costs.",
+    settings: {
+      buildUp: "Short Passing",
+      chanceCreation: "Balanced",
+      width: 3,
+      playersInBox: 2,
+      corners: 2,
+      freeKicks: 2,
+      defensiveApproach: "Deep",
+      defensiveWidth: 3,
+      depth: 2,
+      aggression: 3,
+    },
+  },
+  {
+    id: "possession",
+    label: "Possession",
+    description: "Keep the ball moving patiently to slowly break the opposition down.",
+    settings: {
+      buildUp: "Short Passing",
+      chanceCreation: "Possession",
+      width: 4,
+      playersInBox: 3,
+      corners: 2,
+      freeKicks: 2,
+      defensiveApproach: "Balanced",
+      defensiveWidth: 4,
+      depth: 6,
+      aggression: 4,
+    },
+  },
+  {
+    id: "wing-play",
+    label: "Wing Play",
+    description: "Stretch the pitch wide and attack through the flanks with crosses.",
+    settings: {
+      buildUp: "Balanced",
+      chanceCreation: "Wing Play",
+      width: 9,
+      playersInBox: 4,
+      corners: 3,
+      freeKicks: 2,
+      defensiveApproach: "Balanced",
+      defensiveWidth: 8,
+      depth: 5,
+      aggression: 5,
+    },
+  },
+];
