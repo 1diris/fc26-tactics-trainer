@@ -300,6 +300,70 @@ function TacticsPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <section className="lg:col-span-7">
           <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
+            <h3 className="text-sm font-semibold text-zinc-200">Team overview</h3>
+
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              {(
+                [
+                  ["DEFENCE", lineAverages.defense],
+                  ["MIDFIELD", lineAverages.midfield],
+                  ["ATTACK", lineAverages.attack],
+                ] as const
+              ).map(([label, value]) => (
+                <div
+                  key={label}
+                  className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-3 text-center"
+                >
+                  <p className="font-display text-[11px] uppercase tracking-widest text-zinc-400">
+                    {label}
+                  </p>
+                  <p className="font-display text-3xl font-bold leading-tight text-lime-400">
+                    {value ?? "–"}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(
+                [
+                  ["GK", lineAverages.gk],
+                  ["Avg age", avgAge],
+                  ["Empty slots", emptySlots],
+                  ["Out of pos.", outOfPosition],
+                ] as const
+              ).map(([label, value]) => (
+                <div
+                  key={label}
+                  className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-center"
+                >
+                  <p className="text-[10px] uppercase tracking-widest text-zinc-500">{label}</p>
+                  <p className="font-display text-xl font-bold text-lime-400">{value ?? "–"}</p>
+                </div>
+              ))}
+            </div>
+
+            {hints.length > 0 && (
+              <ul className="mt-3 space-y-1 rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-[11px] text-zinc-300">
+                {hints.map((hint) => (
+                  <li key={hint.slotId}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveSlot(hint.slotId);
+                        setTab("player");
+                      }}
+                      className="w-full text-left underline-offset-2 hover:text-lime-300 hover:underline"
+                    >
+                      {hint.text}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-zinc-200">
                 <Users className="h-4 w-4 text-lime-400" /> Lineup
