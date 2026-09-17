@@ -39,7 +39,7 @@ import {
   type SlotRole,
 } from "@/lib/roles";
 import { decodeTactic, encodeTactic } from "@/lib/tactic-code";
-import { suggestLineup, type LineupSuggestion } from "@/lib/lineup";
+import { lineupAverageAge, lineupLineAverages, suggestLineup, type LineupSuggestion } from "@/lib/lineup";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/taktik")({
   component: TacticsPage,
@@ -133,9 +133,11 @@ function TacticsPage() {
       const row = lineup[slot.id] ? rowById.get(lineup[slot.id]!) : null;
       if (!row) return null;
       const hint = roleHint(slot.position, roles[slot.id], coveredPositions(row));
-      return hint ? `${slot.position} – ${row.player.name}: ${hint}` : null;
+      return hint
+        ? { slotId: slot.id, text: `${slot.position} – ${row.player.name}: ${hint}` }
+        : null;
     })
-    .filter((value): value is string => Boolean(value));
+    .filter((value): value is { slotId: string; text: string } => Boolean(value));
 
   function assign(slotId: string, playerId: string | null) {
     setLineup((prev) => {
@@ -205,6 +207,9 @@ function TacticsPage() {
   }).length;
 
   const filled = shape.slots.filter((slot) => lineup[slot.id]).length;
+  const emptySlots = shape.slots.length - filled;
+  const lineAverages = lineupLineAverages(shape.slots, lineup, rowById);
+  const avgAge = lineupAverageAge(shape.slots, lineup, rowById);
 
   function numValue(key: string, fallback: number) {
     const raw = Number(settings[key]);
@@ -337,10 +342,57 @@ function TacticsPage() {
               <span className="ml-auto">Click a slot to edit</span>
             </div>
 
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
+            <h3 className="text-sm font-semibold text-zinc-200">Team overview</h3>
+
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(
+                [
+                  ["GK", lineAverages.gk],
+                  ["Defense", lineAverages.defense],
+                  ["Midfield", lineAverages.midfield],
+                  ["Attack", lineAverages.attack],
+                ] as const
+              ).map(([label, value]) => (
+                <div
+                  key={label}
+                  className="rounded-full border border-zinc-800 bg-zinc-950 px-2 py-1 text-center text-[11px] text-zinc-400"
+                >
+                  {label} <strong className="text-lime-400">{value ?? "–"}</strong>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-zinc-400">
+              <span className="rounded-full border border-zinc-800 bg-zinc-950 px-2 py-0.5">
+                Avg age <strong className="text-lime-400">{avgAge ?? "–"}</strong>
+              </span>
+              <span className="rounded-full border border-zinc-800 bg-zinc-950 px-2 py-0.5">
+                Empty slots <strong className="text-lime-400">{emptySlots}</strong>
+              </span>
+              <span className="rounded-full border border-zinc-800 bg-zinc-950 px-2 py-0.5">
+                <Target className="mr-1 inline h-3 w-3" /> Out of pos.{" "}
+                <strong className="text-lime-400">{outOfPosition}</strong>
+              </span>
+            </div>
+
             {hints.length > 0 && (
               <ul className="mt-3 space-y-1 rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-[11px] text-zinc-300">
                 {hints.map((hint) => (
-                  <li key={hint}>{hint}</li>
+                  <li key={hint.slotId}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveSlot(hint.slotId);
+                        setTab("player");
+                      }}
+                      className="w-full text-left underline-offset-2 hover:text-lime-300 hover:underline"
+                    >
+                      {hint.text}
+                    </button>
+                  </li>
                 ))}
               </ul>
             )}
