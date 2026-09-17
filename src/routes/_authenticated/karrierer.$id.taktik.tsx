@@ -3,7 +3,7 @@ import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Copy, Download, Shield, Sparkles, Target, Users } from "lucide-react";
+import { Copy, Download, Shield, Target, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -272,15 +272,8 @@ function TacticsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-lime-400">
-            <Sparkles className="h-3.5 w-3.5" /> Tactics
-          </p>
-          <h2 className="font-display text-xl font-bold">Tactics</h2>
-          <p className="text-sm text-muted-foreground">
-            Build your lineup, give each slot a role and save the tactic.
-          </p>
-        </div>
+        <div />
+
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="secondary" onClick={autoFill} disabled={rows.length === 0}>
             Suggest lineup
