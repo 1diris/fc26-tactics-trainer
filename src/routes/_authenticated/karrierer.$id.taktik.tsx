@@ -274,7 +274,7 @@ function TacticsPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-lime-400">
-            <Sparkles className="h-3.5 w-3.5" /> FC IQ
+            <Sparkles className="h-3.5 w-3.5" /> Tactics
           </p>
           <h2 className="font-display text-xl font-bold">Tactics</h2>
           <p className="text-sm text-muted-foreground">

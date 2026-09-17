@@ -19,13 +19,13 @@ export const Route = createFileRoute("/fc-iq")({
   component: FcIqPage,
   head: () => ({
     meta: [
-      { title: "FC IQ – Tactic Builder for FC 26 Career Mode" },
+      { title: "Tactics – Tactic Builder for FC 26 Career Mode" },
       {
         name: "description",
         content:
           "Build and visualise your FC 26 tactics: formations, player roles, focus, role mastery and shareable tactic codes.",
       },
-      { property: "og:title", content: "FC IQ – Tactic Builder for FC 26" },
+      { property: "og:title", content: "Tactics – Tactic Builder for FC 26" },
       {
         property: "og:description",
         content:
@@ -260,7 +260,7 @@ function FcIqPage() {
         <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-lime-400">
-              <Sparkles className="h-3.5 w-3.5" /> FC IQ
+              <Sparkles className="h-3.5 w-3.5" /> Tactics
             </p>
             <h1 className="mt-1 font-display text-3xl font-bold tracking-tight">
               Tactic Builder &amp; Visualizer
