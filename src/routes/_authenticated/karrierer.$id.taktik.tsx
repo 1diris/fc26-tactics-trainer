@@ -40,6 +40,7 @@ import {
 } from "@/lib/roles";
 import { decodeTactic, encodeTactic } from "@/lib/tactic-code";
 import { lineupAverageAge, lineupLineAverages, suggestLineup, type LineupSuggestion } from "@/lib/lineup";
+import { TACTICAL_VISIONS } from "@/lib/tactical-visions";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/taktik")({
   component: TacticsPage,
