@@ -69,6 +69,7 @@ function TacticsPage() {
   const [activeSlot, setActiveSlot] = useState<string | null>(null);
   const [suggestion, setSuggestion] = useState<LineupSuggestion | null>(null);
   const [tab, setTab] = useState("team");
+  const [activeVision, setActiveVision] = useState<string | null>(null);
   const [importCode, setImportCode] = useState("");
   const [benchSearch, setBenchSearch] = useState("");
   const [benchSort, setBenchSort] = useState<"ovr" | "age" | "position" | "name">("ovr");
