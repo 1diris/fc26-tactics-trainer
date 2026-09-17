@@ -22,6 +22,7 @@ import {
   CheckCircle2,
   Coins,
   GraduationCap,
+  LayoutGrid,
   Lightbulb,
   ShieldAlert,
   Star,
@@ -300,6 +301,11 @@ function CareerOverview() {
 
   return (
     <div className="space-y-8 pb-24 lg:pb-8">
+      <h1 className="flex items-center gap-2 text-2xl font-bold tracking-wide text-lime-400">
+        <LayoutGrid className="h-6 w-6 text-lime-400" />
+        Overview
+      </h1>
+
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
         <Kpi value={String(rows.length)} label="Players" hint="in squad" icon={Users} />
         <Kpi
