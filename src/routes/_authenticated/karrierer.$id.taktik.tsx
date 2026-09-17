@@ -19,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PitchView, type PitchNode } from "@/components/tactics/pitch-view";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { careerDataQuery } from "@/lib/career-queries";
-import { getTactic, saveTactic } from "@/lib/tactics.functions";
+import { deleteTactic, getTactic, listTactics, saveTactic } from "@/lib/tactics.functions";
 import { buildSquad, sortedSeasons, type SquadRow } from "@/lib/squad";
 import {
   FORMATIONS,
@@ -52,13 +52,25 @@ function TacticsPage() {
   const queryClient = useQueryClient();
   const fetchTactic = useServerFn(getTactic);
   const persist = useServerFn(saveTactic);
+  const fetchTacticList = useServerFn(listTactics);
+  const removeTactic = useServerFn(deleteTactic);
 
   const seasons = sortedSeasons(data.seasons);
   const seasonId = data.career.current_season_id ?? seasons[0]?.id ?? null;
 
+  const [tacticName, setTacticName] = useState("Standard");
+  const [newName, setNewName] = useState("");
+  const [renameName, setRenameName] = useState("");
+  const [nameDialog, setNameDialog] = useState<"none" | "new" | "rename">("none");
+
+  const tacticListQuery = useQuery({
+    queryKey: ["tactic-list", id, seasonId],
+    queryFn: () => fetchTacticList({ data: { careerId: id, seasonId } }),
+  });
+
   const tacticQuery = useQuery({
-    queryKey: ["tactic", id, seasonId],
-    queryFn: () => fetchTactic({ data: { careerId: id, seasonId } }),
+    queryKey: ["tactic", id, seasonId, tacticName],
+    queryFn: () => fetchTactic({ data: { careerId: id, seasonId, name: tacticName } }),
   });
 
   const [formation, setFormation] = useState("4-3-3");
