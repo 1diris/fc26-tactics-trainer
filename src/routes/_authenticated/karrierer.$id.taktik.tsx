@@ -682,6 +682,9 @@ function TacticsPage() {
               {bench.length === 0 && (
                 <li className="text-zinc-500">All players are in the starting lineup.</li>
               )}
+              {bench.length > 0 && visibleBench.length === 0 && (
+                <li className="text-zinc-500">No players match your search.</li>
+              )}
             </ul>
           </div>
         </section>
