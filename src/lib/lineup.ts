@@ -176,3 +176,55 @@ export function suggestLineup(formation: Formation, rows: SquadRow[]): LineupSug
     reasons,
   };
 }
+
+export type LineupSlotRef = { id: string; position: string };
+
+export type LineAverages = {
+  gk: number | null;
+  defense: number | null;
+  midfield: number | null;
+  attack: number | null;
+};
+
+const DEFENSE_POSITIONS = new Set(["CB", "LB", "RB", "LWB", "RWB"]);
+const MIDFIELD_POSITIONS = new Set(["CDM", "CM", "CAM", "LM", "RM"]);
+const ATTACK_POSITIONS = new Set(["LW", "RW", "ST", "CF"]);
+
+function roundAvg(values: (number | null | undefined)[]): number | null {
+  const avg = averageOf(values);
+  return avg === null ? null : Math.round(avg * 10) / 10;
+}
+
+/** Average OVR per line (GK shown separately) for the current lineup. */
+export function lineupLineAverages(
+  slots: LineupSlotRef[],
+  lineup: Record<string, string | null>,
+  rowById: Map<string, SquadRow>,
+): LineAverages {
+  const gk: number[] = [];
+  const defense: number[] = [];
+  const midfield: number[] = [];
+  const attack: number[] = [];
+
+  for (const slot of slots) {
+    const row = rowById.get(lineup[slot.id] ?? "");
+    const ovr = row?.current?.overall;
+    if (ovr == null) continue;
+    if (slot.position === "GK") gk.push(ovr);
+    else if (DEFENSE_POSITIONS.has(slot.position)) defense.push(ovr);
+    else if (MIDFIELD_POSITIONS.has(slot.position)) midfield.push(ovr);
+    else if (ATTACK_POSITIONS.has(slot.position)) attack.push(ovr);
+  }
+
+  return { gk: roundAvg(gk), defense: roundAvg(defense), midfield: roundAvg(midfield), attack: roundAvg(attack) };
+}
+
+/** Average age of the occupied slots in the current lineup. */
+export function lineupAverageAge(
+  slots: LineupSlotRef[],
+  lineup: Record<string, string | null>,
+  rowById: Map<string, SquadRow>,
+): number | null {
+  const ages = slots.map((slot) => rowById.get(lineup[slot.id] ?? "")?.current?.age);
+  return roundAvg(ages);
+}
