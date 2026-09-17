@@ -69,6 +69,8 @@ function TacticsPage() {
   const [suggestion, setSuggestion] = useState<LineupSuggestion | null>(null);
   const [tab, setTab] = useState("team");
   const [importCode, setImportCode] = useState("");
+  const [benchSearch, setBenchSearch] = useState("");
+  const [benchSort, setBenchSort] = useState<"ovr" | "age" | "position" | "name">("ovr");
 
   useEffect(() => {
     const tactic = tacticQuery.data;
