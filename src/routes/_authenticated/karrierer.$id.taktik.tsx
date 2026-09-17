@@ -482,6 +482,34 @@ function TacticsPage() {
               </TabsList>
 
               <TabsContent value="team" className="mt-4 space-y-5">
+                <Field label="Tactical Vision">
+                  <div className="flex flex-wrap gap-1.5">
+                    {TACTICAL_VISIONS.map((vision) => (
+                      <button
+                        key={vision.id}
+                        type="button"
+                        title={vision.description}
+                        onClick={() => {
+                          setSettings(vision.settings);
+                          setActiveVision(vision.id);
+                        }}
+                        className={`rounded-full border border-zinc-800 bg-zinc-950 px-3 py-1.5 text-xs font-medium transition-colors hover:border-zinc-700 ${
+                          activeVision === vision.id
+                            ? "text-lime-400 ring-1 ring-lime-400"
+                            : "text-zinc-300"
+                        }`}
+                      >
+                        {vision.label}
+                      </button>
+                    ))}
+                  </div>
+                  {activeVision ? (
+                    <p className="text-[11px] leading-snug text-zinc-500">
+                      {TACTICAL_VISIONS.find((vision) => vision.id === activeVision)?.description}
+                    </p>
+                  ) : null}
+                </Field>
+
                 <Field label="Formation">
                   <Select
                     value={formation}
