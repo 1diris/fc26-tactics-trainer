@@ -1,6 +1,6 @@
 import { positionFit, type Fit, type Formation } from "./formations";
 import { defaultRole, type SlotRole } from "./roles";
-import type { SquadRow } from "./squad";
+import { averageOf, type SquadRow } from "./squad";
 
 export type LineupEntry = {
   slotId: string;
