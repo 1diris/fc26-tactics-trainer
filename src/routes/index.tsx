@@ -79,34 +79,58 @@ function Landing() {
 
       <main className="mx-auto max-w-6xl px-5 pb-20">
         <section className="py-16 sm:py-24">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-            For FC 26 Career Mode
-          </p>
-          <h1 className="mt-4 max-w-3xl font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
-            Your external management tool for the career
-          </h1>
-          <p className="mt-5 max-w-2xl text-base text-muted-foreground sm:text-lg">
-            Take a screenshot of your squad, upload it, and get the whole team into a database you
-            can analyse season after season. No manual typing, no spreadsheets.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button asChild size="lg">
+          <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
+            <BrandLogo size={56} className="h-14 w-14" />
+            <h1 className="mt-8 font-display text-5xl font-bold leading-tight tracking-tight text-primary sm:text-6xl">
+              Manage your career.
+              <br />
+              Outside the game.
+            </h1>
+            <p className="mt-6 text-base text-muted-foreground sm:text-lg">
+              Upload a squad screenshot. We handle the rest.
+            </p>
+            <p className="mt-4 text-sm">
+              <span className="font-bold text-foreground">24</span>
+              <span className="text-muted-foreground"> players imported</span>
+              <span className="mx-2 text-muted-foreground">·</span>
+              <span className="font-bold text-foreground">Season 2025/26</span>
+              <span className="mx-2 text-muted-foreground">·</span>
+              <span className="font-bold text-foreground">€647m</span>
+              <span className="text-muted-foreground"> squad value</span>
+            </p>
+            <Button asChild size="lg" className="mt-8 rounded-full px-10">
               <Link to={signedIn ? "/karrierer" : "/auth"}>Get started</Link>
             </Button>
           </div>
         </section>
 
-        <section className="grid gap-4 sm:grid-cols-2">
-          {features.map((feature) => (
-            <div
-              key={feature.title}
-              className="rounded-xl border border-border/60 bg-card p-6 shadow-sm"
-            >
-              <feature.icon className="h-5 w-5 text-primary" aria-hidden />
-              <h2 className="mt-4 font-display text-lg font-semibold">{feature.title}</h2>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{feature.text}</p>
+        <section className="space-y-4">
+          {featured && (
+            <div className="rounded-xl border border-border/60 bg-card p-6 shadow-sm sm:p-8">
+              <featured.icon className="h-6 w-6 text-primary" aria-hidden />
+              <h2 className="mt-4 font-display text-xl font-semibold text-primary">
+                {featured.title}
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                {featured.text}
+              </p>
             </div>
-          ))}
+          )}
+
+          <div className="grid gap-4 sm:grid-cols-3">
+            {gridFeatures.map((feature) => (
+              <div
+                key={feature.title}
+                className="rounded-xl border border-border/60 bg-card p-6 shadow-sm"
+              >
+                <feature.icon className="h-5 w-5 text-primary" aria-hidden />
+                <h2 className="mt-4 font-display text-lg font-semibold text-primary">
+                  {feature.title}
+                </h2>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{feature.text}</p>
+              </div>
+            ))}
+          </div>
         </section>
       </main>
     </div>
