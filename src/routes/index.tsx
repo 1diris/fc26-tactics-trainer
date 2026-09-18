@@ -62,6 +62,7 @@ function Landing() {
       active = false;
     };
   }, []);
+  const [featured, gridFeatures] = [features[0], features.slice(1)] as const;
 
   return (
     <div className="landing-dark min-h-screen">
