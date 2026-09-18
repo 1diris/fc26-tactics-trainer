@@ -514,12 +514,11 @@ function ImportPage() {
                         )}
                       </td>
                       <td className={`px-3 py-1.5 ${cell("position") ?? ""}`}>
-                        <Input
-                          className="h-8 w-20"
-                          value={draft.position ?? ""}
-                          onChange={(event) =>
-                            patchDraft(index, { position: event.target.value || null })
-                          }
+                        <PositionSelect
+                          className="h-8 w-24"
+                          value={draft.position ?? null}
+                          allowEmpty
+                          onChange={(next) => patchDraft(index, { position: next })}
                         />
                         {changeBadge("position", index)}
                       </td>
