@@ -42,9 +42,11 @@ export function PositionSelect({
   const suggested = suggestedPositions(suggestFrom ?? value);
   const suggestedSet = new Set(suggested);
 
+  const selected = value ? value : allowEmpty ? NONE : "";
+
   return (
     <Select
-      value={value ? value : allowEmpty ? NONE : undefined}
+      {...(selected ? { value: selected } : {})}
       onValueChange={(next) => onChange(next === NONE ? null : next)}
     >
       <SelectTrigger id={id} className={className}>
