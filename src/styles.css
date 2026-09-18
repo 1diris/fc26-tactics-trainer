@@ -111,12 +111,26 @@
 @layer base {
   * {
     border-color: var(--color-border);
+    scroll-behavior: smooth;
+  }
+
+  html,
+  body {
+    width: 100%;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    background-color: #09090b;
+  }
+
+  #root {
+    width: 100%;
+    min-height: 100dvh;
+    background-color: #09090b;
   }
 
   body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
-    font-family: var(--font-sans);
+    font-family: "Inter", system-ui, sans-serif;
+    color: #f4f4f5;
     -webkit-font-smoothing: antialiased;
   }
 
@@ -127,7 +141,62 @@
     font-family: var(--font-display);
     letter-spacing: 0.01em;
   }
+
+  ::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #27272a;
+    border-radius: 2px;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+    width: 100%;
+  }
+  input[type="range"]::-webkit-slider-track {
+    background: #27272a;
+    height: 3px;
+    border-radius: 2px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    background: #22c55e;
+    height: 14px;
+    width: 14px;
+    border-radius: 50%;
+    margin-top: -5.5px;
+  }
+  input[type="range"]::-moz-range-track {
+    background: #27272a;
+    height: 3px;
+    border-radius: 2px;
+  }
+  input[type="range"]::-moz-range-thumb {
+    background: #22c55e;
+    height: 14px;
+    width: 14px;
+    border-radius: 50%;
+    border: none;
+  }
 }
+
+@utility font-display {
+  font-family: "Barlow Condensed", sans-serif;
+}
+
+@utility font-mono {
+  font-family: "DM Mono", ui-monospace, monospace;
+}
+
 
 @utility stat-number {
   font-family: var(--font-display);
