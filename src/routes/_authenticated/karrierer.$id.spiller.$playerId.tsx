@@ -13,6 +13,7 @@ import { formatMoney, formatWage, positionGroup } from "@/lib/football";
 import { estimateCareerValue, originalPotential, type FcOriginal } from "@/lib/valuation";
 import { FcMatchDialog } from "@/components/fc-match-dialog";
 import { SellPlayerDialog } from "@/components/sell-player-dialog";
+import { PositionSelect } from "@/components/position-select";
 
 import { ArrowLeft, Trash2 } from "lucide-react";
 
@@ -313,10 +314,12 @@ function PlayerPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="position">Position</Label>
-              <Input
+              <PositionSelect
                 id="position"
                 value={form.position}
-                onChange={(event) => setForm((prev) => ({ ...prev, position: event.target.value }))}
+                suggestFrom={current?.position ?? player.primary_position ?? null}
+                allowEmpty
+                onChange={(next) => setForm((prev) => ({ ...prev, position: next ?? "" }))}
               />
             </div>
             {numberInput("overall", "Overall")}
