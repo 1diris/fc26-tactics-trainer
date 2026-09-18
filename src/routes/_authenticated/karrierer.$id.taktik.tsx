@@ -855,7 +855,11 @@ function TacticsPage() {
             </Tabs>
           </div>
 
-          <div className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
+          <div
+            className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-4"
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={handleDropOnBench}
+          >
             <h3 className="text-sm font-semibold text-zinc-200">Bench and rest of squad</h3>
             <div className="mt-2 flex flex-col gap-2 sm:flex-row">
               <Input
@@ -878,7 +882,18 @@ function TacticsPage() {
             </div>
             <ul className="mt-2 max-h-72 space-y-1 overflow-y-auto text-sm">
               {visibleBench.map((row) => (
-                <li key={row.player.id} className="flex items-center justify-between gap-2 text-zinc-300">
+                <li
+                  key={row.player.id}
+                  draggable
+                  onDragStart={(event) => {
+                    event.dataTransfer.setData(
+                      "application/json",
+                      JSON.stringify({ playerId: row.player.id, sourceSlotId: null }),
+                    );
+                    event.dataTransfer.effectAllowed = "move";
+                  }}
+                  className="flex cursor-grab items-center justify-between gap-2 text-zinc-300 active:cursor-grabbing"
+                >
                   <span className="flex min-w-0 items-center gap-2">
                     <PlayerAvatar name={row.player.name} src={row.fc?.face_url} size="sm" />
                     <span className="truncate">{row.player.name}</span>
