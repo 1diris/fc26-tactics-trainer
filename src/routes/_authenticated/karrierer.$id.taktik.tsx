@@ -588,6 +588,7 @@ function TacticsPage() {
                 setActiveSlot(slotId);
                 setTab("player");
               }}
+              onDropOnSlot={handleDropOnSlot}
             />
 
             <div className="mt-3 flex flex-wrap gap-3 text-[11px] text-zinc-400">
