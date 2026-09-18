@@ -15,6 +15,7 @@ import { sortedSeasons } from "@/lib/squad";
 import { findMatchingPlayerIndex } from "@/lib/player-matching";
 import { diffCounts, diffDrafts, type DiffField } from "@/lib/import-diff";
 import { formatMoney, formatWage } from "@/lib/football";
+import { PositionSelect } from "@/components/position-select";
 import { Loader2, Trash2, Upload } from "lucide-react";
 
 
