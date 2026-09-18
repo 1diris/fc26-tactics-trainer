@@ -119,19 +119,25 @@
     width: 100%;
     min-height: 100dvh;
     overflow-x: hidden;
-    background-color: #09090b;
+    background-color: var(--color-background);
   }
 
   #root {
     width: 100%;
     min-height: 100dvh;
-    background-color: #09090b;
+    background-color: var(--color-background);
   }
 
   body {
     font-family: "Inter", system-ui, sans-serif;
-    color: #f4f4f5;
+    color: var(--color-foreground);
     -webkit-font-smoothing: antialiased;
+  }
+
+  /* Scoped dark landing-page look — do not apply globally. */
+  .landing-dark {
+    background-color: #09090b;
+    color: #f4f4f5;
   }
 
   h1,
