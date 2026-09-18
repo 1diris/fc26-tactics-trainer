@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Fit } from "@/lib/formations";
 import { PlayerAvatar } from "@/components/player-avatar";
 
@@ -7,6 +8,7 @@ export type PitchNode = {
   /** Percentages: x from left, y from own goal line (0) to opponent goal (100). */
   x: number;
   y: number;
+  playerId: string | null;
   playerName: string | null;
   playerFullName?: string | null;
   faceUrl?: string | null;
@@ -14,6 +16,11 @@ export type PitchNode = {
   roleLabel: string;
   mastery: "base" | "+" | "++";
   fit: Fit | null;
+};
+
+export type DropPayload = {
+  playerId: string;
+  sourceSlotId: string | null;
 };
 
 const fitRing: Record<Fit, string> = {
@@ -26,11 +33,29 @@ export function PitchView({
   nodes,
   selectedId,
   onSelect,
+  onDropOnSlot,
 }: {
   nodes: PitchNode[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  onDropOnSlot: (targetSlotId: string, payload: DropPayload) => void;
 }) {
+  const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
+
+  function handleDrop(targetSlotId: string, event: React.DragEvent) {
+    event.preventDefault();
+    setDragOverSlot(null);
+    try {
+      const raw = event.dataTransfer.getData("application/json");
+      if (!raw) return;
+      const payload = JSON.parse(raw) as DropPayload;
+      if (!payload.playerId) return;
+      onDropOnSlot(targetSlotId, payload);
+    } catch {
+      // Ignore malformed drag payloads.
+    }
+  }
+
   return (
     <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl border border-zinc-800 bg-[radial-gradient(ellipse_at_center,#123a1e_0%,#0a1f11_60%,#08150c_100%)]">
       <div className="pointer-events-none absolute inset-0 opacity-30 [background:repeating-linear-gradient(180deg,rgba(255,255,255,0.05)_0_8%,transparent_8%_16%)]" />
@@ -45,13 +70,30 @@ export function PitchView({
 
       {nodes.map((node) => {
         const active = node.id === selectedId;
+        const dragOver = node.id === dragOverSlot;
+        const occupied = Boolean(node.playerName && node.playerId);
         return (
           <button
             key={node.id}
             type="button"
             onClick={() => onSelect(node.id)}
+            draggable={occupied}
+            onDragStart={(event) => {
+              if (!occupied) return;
+              event.dataTransfer.setData(
+                "application/json",
+                JSON.stringify({ playerId: node.playerId, sourceSlotId: node.id }),
+              );
+              event.dataTransfer.effectAllowed = "move";
+            }}
+            onDragOver={(event) => event.preventDefault()}
+            onDragEnter={() => setDragOverSlot(node.id)}
+            onDragLeave={() => setDragOverSlot((prev) => (prev === node.id ? null : prev))}
+            onDrop={(event) => handleDrop(node.id, event)}
             style={{ left: `${node.x}%`, bottom: `${node.y}%` }}
-            className="absolute flex -translate-x-1/2 translate-y-1/2 flex-col items-center gap-1 focus:outline-none"
+            className={`absolute flex -translate-x-1/2 translate-y-1/2 flex-col items-center gap-1 focus:outline-none ${
+              occupied ? "cursor-grab active:cursor-grabbing" : ""
+            }`}
           >
             <span
               className={`relative flex h-11 w-11 items-center justify-center rounded-full border text-xs font-bold transition-all ${
@@ -60,7 +102,7 @@ export function PitchView({
                   : `bg-zinc-900/90 text-zinc-100 hover:border-lime-400/60 ${
                       node.fit ? fitRing[node.fit] : "border-zinc-700"
                     }`
-              }`}
+              } ${dragOver ? "ring-2 ring-lime-400" : ""}`}
             >
               {node.playerName ? (
                 <>

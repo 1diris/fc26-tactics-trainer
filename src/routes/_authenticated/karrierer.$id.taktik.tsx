@@ -220,6 +220,39 @@ function TacticsPage() {
     });
   }
 
+  function swapSlotPlayers(sourceSlotId: string, targetSlotId: string) {
+    if (sourceSlotId === targetSlotId) return;
+    setLineup((prev) => ({
+      ...prev,
+      [sourceSlotId]: prev[targetSlotId] ?? null,
+      [targetSlotId]: prev[sourceSlotId] ?? null,
+    }));
+  }
+
+  function handleDropOnSlot(
+    targetSlotId: string,
+    payload: { playerId: string; sourceSlotId: string | null },
+  ) {
+    if (payload.sourceSlotId) {
+      swapSlotPlayers(payload.sourceSlotId, targetSlotId);
+    } else {
+      assign(targetSlotId, payload.playerId);
+    }
+  }
+
+  function handleDropOnBench(event: React.DragEvent) {
+    event.preventDefault();
+    try {
+      const raw = event.dataTransfer.getData("application/json");
+      if (!raw) return;
+      const payload = JSON.parse(raw) as { playerId: string; sourceSlotId: string | null };
+      if (!payload.sourceSlotId) return;
+      setLineup((prev) => ({ ...prev, [payload.sourceSlotId!]: null }));
+    } catch {
+      // Ignore malformed drag payloads.
+    }
+  }
+
   function setSlotRole(slotId: string, position: string, roleId: string) {
     const found = findRole(position, roleId);
     if (!found) return;
@@ -314,6 +347,7 @@ function TacticsPage() {
       position: slot.position,
       x: slot.x,
       y: slot.y,
+      playerId: row?.player.id ?? null,
       playerName: row ? (row.player.name.split(" ").slice(-1)[0] ?? row.player.name) : null,
       playerFullName: row?.player.name ?? null,
       faceUrl: row?.fc?.face_url ?? null,
@@ -554,6 +588,7 @@ function TacticsPage() {
                 setActiveSlot(slotId);
                 setTab("player");
               }}
+              onDropOnSlot={handleDropOnSlot}
             />
 
             <div className="mt-3 flex flex-wrap gap-3 text-[11px] text-zinc-400">
@@ -820,7 +855,11 @@ function TacticsPage() {
             </Tabs>
           </div>
 
-          <div className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
+          <div
+            className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-4"
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={handleDropOnBench}
+          >
             <h3 className="text-sm font-semibold text-zinc-200">Bench and rest of squad</h3>
             <div className="mt-2 flex flex-col gap-2 sm:flex-row">
               <Input
@@ -843,7 +882,18 @@ function TacticsPage() {
             </div>
             <ul className="mt-2 max-h-72 space-y-1 overflow-y-auto text-sm">
               {visibleBench.map((row) => (
-                <li key={row.player.id} className="flex items-center justify-between gap-2 text-zinc-300">
+                <li
+                  key={row.player.id}
+                  draggable
+                  onDragStart={(event) => {
+                    event.dataTransfer.setData(
+                      "application/json",
+                      JSON.stringify({ playerId: row.player.id, sourceSlotId: null }),
+                    );
+                    event.dataTransfer.effectAllowed = "move";
+                  }}
+                  className="flex cursor-grab items-center justify-between gap-2 text-zinc-300 active:cursor-grabbing"
+                >
                   <span className="flex min-w-0 items-center gap-2">
                     <PlayerAvatar name={row.player.name} src={row.fc?.face_url} size="sm" />
                     <span className="truncate">{row.player.name}</span>
