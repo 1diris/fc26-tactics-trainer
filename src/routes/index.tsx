@@ -48,9 +48,7 @@ const features = [
     title: "Alerts",
     text: "Missing positions, no backup and expiring contracts are highlighted automatically.",
   },
-];
-
-function Landing() {
+const [featured, gridFeatures] = [features[0], features.slice(1)] as const;
   const [signedIn, setSignedIn] = useState(false);
 
   useEffect(() => {
