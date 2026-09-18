@@ -220,6 +220,39 @@ function TacticsPage() {
     });
   }
 
+  function swapSlotPlayers(sourceSlotId: string, targetSlotId: string) {
+    if (sourceSlotId === targetSlotId) return;
+    setLineup((prev) => ({
+      ...prev,
+      [sourceSlotId]: prev[targetSlotId] ?? null,
+      [targetSlotId]: prev[sourceSlotId] ?? null,
+    }));
+  }
+
+  function handleDropOnSlot(
+    targetSlotId: string,
+    payload: { playerId: string; sourceSlotId: string | null },
+  ) {
+    if (payload.sourceSlotId) {
+      swapSlotPlayers(payload.sourceSlotId, targetSlotId);
+    } else {
+      assign(targetSlotId, payload.playerId);
+    }
+  }
+
+  function handleDropOnBench(event: React.DragEvent) {
+    event.preventDefault();
+    try {
+      const raw = event.dataTransfer.getData("application/json");
+      if (!raw) return;
+      const payload = JSON.parse(raw) as { playerId: string; sourceSlotId: string | null };
+      if (!payload.sourceSlotId) return;
+      setLineup((prev) => ({ ...prev, [payload.sourceSlotId!]: null }));
+    } catch {
+      // Ignore malformed drag payloads.
+    }
+  }
+
   function setSlotRole(slotId: string, position: string, roleId: string) {
     const found = findRole(position, roleId);
     if (!found) return;
@@ -314,6 +347,7 @@ function TacticsPage() {
       position: slot.position,
       x: slot.x,
       y: slot.y,
+      playerId: row?.player.id ?? null,
       playerName: row ? (row.player.name.split(" ").slice(-1)[0] ?? row.player.name) : null,
       playerFullName: row?.player.name ?? null,
       faceUrl: row?.fc?.face_url ?? null,
