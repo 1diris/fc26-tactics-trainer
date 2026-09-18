@@ -313,10 +313,12 @@ function PlayerPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="position">Position</Label>
-              <Input
+              <PositionSelect
                 id="position"
                 value={form.position}
-                onChange={(event) => setForm((prev) => ({ ...prev, position: event.target.value }))}
+                suggestFrom={current?.position ?? player.primary_position ?? null}
+                allowEmpty
+                onChange={(next) => setForm((prev) => ({ ...prev, position: next ?? "" }))}
               />
             </div>
             {numberInput("overall", "Overall")}
