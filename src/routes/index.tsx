@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { BrandLogo } from "@/components/brand-logo";
+import { SiteFooter } from "@/components/site-footer";
 import { supabase } from "@/integrations/supabase/client";
 import { Camera, LineChart, ShieldAlert, Users } from "lucide-react";
 
@@ -135,6 +136,8 @@ function Landing() {
           </div>
         </section>
       </main>
+
+      <SiteFooter />
     </div>
   );
 }

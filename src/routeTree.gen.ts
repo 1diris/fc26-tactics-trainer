@@ -13,6 +13,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as FcIqRouteImport } from './routes/fc-iq'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedKarriererIndexRouteImport } from './routes/_authenticated/karrierer.index'
 import { Route as AuthenticatedKarriererIdRouteImport } from './routes/_authenticated/karrierer.$id'
 import { Route as ApiPublicPlayerFaceRouteImport } from './routes/api/public/player-face'
@@ -41,6 +43,16 @@ const AuthRoute = AuthRouteImport.update({
 const FcIqRoute = FcIqRouteImport.update({
   id: '/fc-iq',
   path: '/fc-iq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedKarriererIndexRoute =
@@ -107,6 +119,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/fc-iq': typeof FcIqRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/karrierer/$id': typeof AuthenticatedKarriererIdRouteWithChildren
   '/api/public/player-face': typeof ApiPublicPlayerFaceRoute
   '/karrierer/': typeof AuthenticatedKarriererIndexRoute
@@ -122,6 +136,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/fc-iq': typeof FcIqRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/api/public/player-face': typeof ApiPublicPlayerFaceRoute
   '/karrierer': typeof AuthenticatedKarriererIndexRoute
   '/karrierer/$id/akademi': typeof AuthenticatedKarriererIdAkademiRoute
@@ -138,6 +154,8 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/fc-iq': typeof FcIqRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/_authenticated/karrierer/$id': typeof AuthenticatedKarriererIdRouteWithChildren
   '/api/public/player-face': typeof ApiPublicPlayerFaceRoute
   '/_authenticated/karrierer/': typeof AuthenticatedKarriererIndexRoute
@@ -155,6 +173,8 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/fc-iq'
+    | '/privacy'
+    | '/terms'
     | '/karrierer/$id'
     | '/api/public/player-face'
     | '/karrierer/'
@@ -170,6 +190,8 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/fc-iq'
+    | '/privacy'
+    | '/terms'
     | '/api/public/player-face'
     | '/karrierer'
     | '/karrierer/$id/akademi'
@@ -185,6 +207,8 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/fc-iq'
+    | '/privacy'
+    | '/terms'
     | '/_authenticated/karrierer/$id'
     | '/api/public/player-face'
     | '/_authenticated/karrierer/'
@@ -202,6 +226,8 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   FcIqRoute: typeof FcIqRoute
+  PrivacyRoute: typeof PrivacyRoute
+  TermsRoute: typeof TermsRoute
   ApiPublicPlayerFaceRoute: typeof ApiPublicPlayerFaceRoute
 }
 
@@ -233,6 +259,20 @@ declare module '@tanstack/react-router' {
       path: '/fc-iq'
       fullPath: '/fc-iq'
       preLoaderRoute: typeof FcIqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/karrierer/': {
@@ -353,6 +393,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   FcIqRoute: FcIqRoute,
+  PrivacyRoute: PrivacyRoute,
+  TermsRoute: TermsRoute,
   ApiPublicPlayerFaceRoute: ApiPublicPlayerFaceRoute,
 }
 export const routeTree = rootRouteImport
