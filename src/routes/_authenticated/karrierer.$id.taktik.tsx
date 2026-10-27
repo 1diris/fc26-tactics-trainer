@@ -1054,7 +1054,7 @@ function SlotPicker({
                 type="button"
                 onClick={() => onPick(row.player.id)}
                 className={`flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm text-ov-text hover:bg-ov-card ${
-                  row.player.id === selectedId ? "bg-lime-500/10" : ""
+                  row.player.id === selectedId ? "bg-[#141414]" : ""
                 }`}
               >
                 <span className="truncate">
@@ -1070,8 +1070,8 @@ function SlotPicker({
                       fit === "natural"
                         ? "text-ov-text"
                         : fit === "ok"
-                          ? "text-amber-400"
-                          : "text-red-400"
+                          ? "text-ov-warn"
+                          : "text-ov-warn"
                     }
                   >
                     {fit === "natural" ? "natural" : fit === "ok" ? "ok" : "out of pos."}
@@ -1140,7 +1140,7 @@ function RoleEditor({
                 onClick={() => onFocusChange(focus)}
                 className={`rounded-lg border px-2 py-2 text-xs font-medium transition-colors ${
                   isActive
-                    ? "border-lime-400 bg-lime-500/15 text-lime-300 ring-1 ring-ov-accent"
+                    ? "border-ov-text bg-[#1f1f1f] text-ov-text"
                     : "border-ov-border bg-ov-card text-ov-text hover:border-ov-control"
                 } ${enabled ? "" : "cursor-not-allowed opacity-35"}`}
               >
@@ -1166,7 +1166,7 @@ function RoleEditor({
               onClick={() => onMasteryChange(id)}
               className={`rounded-lg border px-2 py-2 text-xs font-medium transition-colors ${
                 mastery === id
-                  ? "border-lime-400 bg-lime-500/15 text-lime-300 ring-1 ring-ov-accent"
+                  ? "border-ov-text bg-[#1f1f1f] text-ov-text"
                   : "border-ov-border bg-ov-card text-ov-text hover:border-ov-control"
               }`}
             >

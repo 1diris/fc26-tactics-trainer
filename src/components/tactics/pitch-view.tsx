@@ -1,6 +1,5 @@
 import { useState } from "react";
 import type { Fit } from "@/lib/formations";
-import { PlayerAvatar } from "@/components/player-avatar";
 
 export type PitchNode = {
   id: string;
@@ -16,6 +15,8 @@ export type PitchNode = {
   roleLabel: string;
   mastery: "base" | "+" | "++";
   fit: Fit | null;
+  /** Ring colour: top rated (green), weak spot (orange) or normal (grey). */
+  tone?: "top" | "weak" | "normal";
 };
 
 export type DropPayload = {
@@ -23,11 +24,13 @@ export type DropPayload = {
   sourceSlotId: string | null;
 };
 
-const fitRing: Record<Fit, string> = {
-  natural: "border-lime-400/70",
-  ok: "border-amber-400/70",
-  out: "border-red-500/70",
-};
+const toneRing = {
+  top: "border-ov-accent",
+  weak: "border-ov-warn",
+  normal: "border-[#3a3a3a]",
+} as const;
+
+const LINE = "pointer-events-none absolute border-[#262626]";
 
 export function PitchView({
   nodes,
@@ -57,21 +60,20 @@ export function PitchView({
   }
 
   return (
-    <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl border border-zinc-800 bg-[radial-gradient(ellipse_at_center,#123a1e_0%,#0a1f11_60%,#08150c_100%)]">
-      <div className="pointer-events-none absolute inset-0 opacity-30 [background:repeating-linear-gradient(180deg,rgba(255,255,255,0.05)_0_8%,transparent_8%_16%)]" />
-      <div className="pointer-events-none absolute inset-2 rounded-md border border-lime-200/20" />
-      <div className="pointer-events-none absolute inset-x-2 top-1/2 h-px bg-lime-200/20" />
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full border border-lime-200/20" />
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-lime-200/30" />
-      <div className="pointer-events-none absolute inset-x-[22%] top-2 h-[15%] border-x border-b border-lime-200/20" />
-      <div className="pointer-events-none absolute inset-x-[34%] top-2 h-[6%] border-x border-b border-lime-200/20" />
-      <div className="pointer-events-none absolute inset-x-[22%] bottom-2 h-[15%] border-x border-t border-lime-200/20" />
-      <div className="pointer-events-none absolute inset-x-[34%] bottom-2 h-[6%] border-x border-t border-lime-200/20" />
+    <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl bg-[#0d0d0d]">
+      <div className={`${LINE} inset-3 rounded-sm border`} />
+      <div className={`${LINE} inset-x-3 top-1/2 border-t`} />
+      <div className={`${LINE} left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full border`} />
+      <div className={`${LINE} inset-x-[22%] top-3 h-[15%] border-x border-b`} />
+      <div className={`${LINE} inset-x-[36%] top-3 h-[6%] border-x border-b`} />
+      <div className={`${LINE} inset-x-[22%] bottom-3 h-[15%] border-x border-t`} />
+      <div className={`${LINE} inset-x-[36%] bottom-3 h-[6%] border-x border-t`} />
 
       {nodes.map((node) => {
         const active = node.id === selectedId;
         const dragOver = node.id === dragOverSlot;
         const occupied = Boolean(node.playerName && node.playerId);
+        const ring = occupied ? toneRing[node.tone ?? "normal"] : "border-dashed border-[#3a3a3a]";
         return (
           <button
             key={node.id}
@@ -90,53 +92,26 @@ export function PitchView({
             onDragEnter={() => setDragOverSlot(node.id)}
             onDragLeave={() => setDragOverSlot((prev) => (prev === node.id ? null : prev))}
             onDrop={(event) => handleDrop(node.id, event)}
+            title={node.playerFullName ? `${node.playerFullName} · ${node.position} · ${node.roleLabel}` : node.position}
             style={{ left: `${node.x}%`, bottom: `${node.y}%` }}
             className={`absolute flex -translate-x-1/2 translate-y-1/2 flex-col items-center gap-1 focus:outline-none ${
               occupied ? "cursor-grab active:cursor-grabbing" : ""
             }`}
           >
             <span
-              className={`relative flex h-11 w-11 items-center justify-center rounded-full border text-xs font-bold transition-all ${
-                active
-                  ? "border-lime-400 bg-lime-500 text-zinc-950 shadow-[0_0_22px_rgba(163,230,53,0.65)] ring-2 ring-lime-400"
-                  : `bg-zinc-900/90 text-zinc-100 hover:border-lime-400/60 ${
-                      node.fit ? fitRing[node.fit] : "border-zinc-700"
-                    }`
-              } ${dragOver ? "ring-2 ring-lime-400" : ""}`}
+              className={`relative flex h-10 w-10 items-center justify-center rounded-full border-2 bg-black font-tight text-sm font-semibold text-ov-text transition ${ring} ${
+                active ? "ring-2 ring-ov-text ring-offset-2 ring-offset-[#0d0d0d]" : ""
+              } ${dragOver ? "ring-2 ring-ov-accent" : ""}`}
             >
-              {node.playerName ? (
-                <>
-                  <PlayerAvatar
-                    name={node.playerFullName ?? node.playerName}
-                    src={node.faceUrl}
-                    size="sm"
-                    className="h-full w-full border-0 bg-zinc-900/80"
-                  />
-                  <span className="absolute -bottom-1 -left-1 rounded-full border border-zinc-700 bg-zinc-950 px-1 text-[9px] font-bold text-zinc-200">
-                    {node.position}
-                  </span>
-                </>
-              ) : (
-                node.position
-              )}
+              {occupied ? (node.overall ?? "–") : <span className="text-[10px] text-ov-muted">{node.position}</span>}
               {node.mastery !== "base" && (
-                <span className="absolute -right-1 -top-1 rounded-full border border-lime-400/60 bg-zinc-950 px-1 text-[9px] font-bold text-lime-400">
+                <span className="absolute -right-1.5 -top-1.5 rounded-full border border-ov-control bg-black px-1 text-[9px] font-bold text-ov-muted">
                   {node.mastery}
                 </span>
               )}
             </span>
-            <span
-              className={`max-w-[96px] truncate rounded px-1 text-[11px] font-medium leading-tight ${
-                active ? "text-lime-300" : "text-zinc-100"
-              }`}
-            >
+            <span className={`max-w-[90px] truncate text-xs leading-tight ${occupied ? "text-ov-text" : "text-ov-muted"}`}>
               {node.playerName ?? "Empty"}
-              {node.overall != null && (
-                <span className="ml-1 text-lime-400">{node.overall}</span>
-              )}
-            </span>
-            <span className="max-w-[96px] truncate text-[10px] leading-tight text-zinc-400">
-              {node.roleLabel}
             </span>
           </button>
         );
