@@ -43,6 +43,7 @@ import { lineupAverageAge, lineupLineAverages, suggestLineup, type LineupSuggest
 import { TACTICAL_VISIONS } from "@/lib/tactical-visions";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/taktik")({
+  head: () => ({ meta: [{ title: "Tactics — Career Chronicles" }, { name: "description", content: "Build and save your Career Mode formations, player roles and team tactics." }, { property: "og:title", content: "Tactics — Career Chronicles" }, { property: "og:description", content: "Plan your lineup and manage team tactics." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }),
   component: TacticsPage,
 });
 
