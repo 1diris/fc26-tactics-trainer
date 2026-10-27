@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { createFileRoute, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -761,9 +761,9 @@ function TacticsPage() {
         </section>
 
         <section className="space-y-6 lg:col-span-5">
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
+          <div className="rounded-2xl border border-ov-border bg-ov-card p-4">
             <Tabs value={tab} onValueChange={setTab}>
-              <TabsList className="grid w-full grid-cols-3 bg-zinc-950">
+              <TabsList className="grid w-full grid-cols-3 bg-ov-bg">
                 <TabsTrigger value="team">Team tactics</TabsTrigger>
                 <TabsTrigger value="player">Player role</TabsTrigger>
                 <TabsTrigger value="export">Export</TabsTrigger>
@@ -781,10 +781,10 @@ function TacticsPage() {
                           setSettings(vision.settings);
                           setActiveVision(vision.id);
                         }}
-                        className={`rounded-full border border-zinc-800 bg-zinc-950 px-3 py-1.5 text-xs font-medium transition-colors hover:border-zinc-700 ${
+                        className={`rounded-full border border-ov-border bg-ov-bg px-3 py-1.5 text-xs font-medium transition-colors hover:border-ov-control ${
                           activeVision === vision.id
-                            ? "text-lime-400 ring-1 ring-lime-400"
-                            : "text-zinc-300"
+                            ? "text-ov-text ring-1 ring-ov-accent"
+                            : "text-ov-text"
                         }`}
                       >
                         {vision.label}
@@ -792,7 +792,7 @@ function TacticsPage() {
                     ))}
                   </div>
                   {activeVision ? (
-                    <p className="text-[11px] leading-snug text-zinc-500">
+                    <p className="text-[11px] leading-snug text-ov-muted">
                       {TACTICAL_VISIONS.find((vision) => vision.id === activeVision)?.description}
                     </p>
                   ) : null}
@@ -800,7 +800,7 @@ function TacticsPage() {
 
 
                 <Tabs defaultValue="attack">
-                  <TabsList className="w-full bg-zinc-950">
+                  <TabsList className="w-full bg-ov-bg">
                     {TACTIC_SETTING_GROUPS.map((group) => (
                       <TabsTrigger key={group.key} value={group.key} className="flex-1">
                         {group.label}
@@ -818,7 +818,7 @@ function TacticsPage() {
                                 setSettings((prev) => ({ ...prev, [item.key]: value }))
                               }
                             >
-                              <SelectTrigger className="border-zinc-800 bg-zinc-950" aria-label={item.label}>
+                              <SelectTrigger className="border-ov-border bg-ov-bg" aria-label={item.label}>
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -846,11 +846,11 @@ function TacticsPage() {
                                   }))
                                 }
                               />
-                              <span className="w-8 text-right text-sm font-semibold text-lime-400">
+                              <span className="w-8 text-right text-sm font-semibold text-ov-text">
                                 {numValue(item.key, item.defaultValue)}
                               </span>
                             </div>
-                            <div className="flex justify-between text-[10px] text-zinc-500">
+                            <div className="flex justify-between text-[10px] text-ov-muted">
                               <span>{item.minLabel}</span>
                               <span>{item.maxLabel}</span>
                             </div>
@@ -867,14 +867,14 @@ function TacticsPage() {
                     onChange={(event) => setNotes(event.target.value)}
                     placeholder="E.g. instructions for wingers, set-piece takers…"
                     rows={3}
-                    className="border-zinc-800 bg-zinc-950"
+                    className="border-ov-border bg-ov-bg"
                   />
                 </Field>
               </TabsContent>
 
               <TabsContent value="player" className="mt-4 space-y-5">
                 {!activeSlotShape ? (
-                  <p className="text-sm text-zinc-400">
+                  <p className="text-sm text-ov-muted">
                     Click a slot on the pitch to choose a player, role and focus.
                   </p>
                 ) : (
@@ -901,13 +901,13 @@ function TacticsPage() {
 
               <TabsContent value="export" className="mt-4 space-y-5">
                 <Field label="Your tactic code">
-                  <code className="block w-full break-all rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 font-mono text-xs text-lime-400">
+                  <code className="block w-full break-all rounded-lg border border-ov-border bg-ov-bg px-3 py-2 font-mono text-xs text-ov-text">
                     {code}
                   </code>
                 </Field>
 
                 <Button
-                  className="w-full bg-lime-500 text-zinc-950 hover:bg-lime-400"
+                  className="w-full bg-ov-accent text-black hover:opacity-90 rounded-[10px]"
                   onClick={copyCode}
                 >
                   <Copy className="mr-2 h-4 w-4" /> Copy tactic code
@@ -919,11 +919,11 @@ function TacticsPage() {
                       value={importCode}
                       onChange={(event) => setImportCode(event.target.value)}
                       placeholder="fc26-…"
-                      className="border-zinc-800 bg-zinc-950"
+                      className="border-ov-border bg-ov-bg"
                     />
                     <Button
                       variant="outline"
-                      className="border-zinc-800 bg-zinc-950"
+                      className="border-ov-border bg-ov-bg"
                       onClick={importTactic}
                     >
                       <Download className="mr-2 h-4 w-4" /> Import
@@ -931,8 +931,8 @@ function TacticsPage() {
                   </div>
                 </Field>
 
-                <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-xs text-zinc-400">
-                  <p className="mb-2 font-medium text-zinc-200">Summary</p>
+                <div className="rounded-xl border border-ov-border bg-ov-bg p-3 text-xs text-ov-muted">
+                  <p className="mb-2 font-medium text-ov-text">Summary</p>
                   <ul className="space-y-1">
                     <li>Formation: {formation}</li>
                     <li>Filled slots: {filled}/11</li>
@@ -944,23 +944,23 @@ function TacticsPage() {
           </div>
 
           <div
-            className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-4"
+            className="rounded-2xl border border-ov-border bg-ov-card p-4"
             onDragOver={(event) => event.preventDefault()}
             onDrop={handleDropOnBench}
           >
-            <h3 className="text-sm font-semibold text-zinc-200">Bench and rest of squad</h3>
+            <h3 className="text-sm font-semibold text-ov-text">Bench and rest of squad</h3>
             <div className="mt-2 flex flex-col gap-2 sm:flex-row">
               <Input
                 value={benchSearch}
                 onChange={(event) => setBenchSearch(event.target.value)}
                 placeholder="Search players…"
-                className="h-9 border-zinc-800 bg-zinc-950"
+                className="h-9 border-ov-border bg-ov-bg"
               />
               <Select value={benchSort} onValueChange={(value) => setBenchSort(value as typeof benchSort)}>
-                <SelectTrigger className="h-9 w-full border-zinc-800 bg-zinc-950 sm:w-48">
+                <SelectTrigger className="h-9 w-full border-ov-border bg-ov-bg sm:w-48">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="border-zinc-800 bg-zinc-950">
+                <SelectContent className="border-ov-border bg-ov-bg">
                   <SelectItem value="ovr">OVR (highest first)</SelectItem>
                   <SelectItem value="age">Age (youngest first)</SelectItem>
                   <SelectItem value="position">Position (A–Z)</SelectItem>
@@ -980,22 +980,22 @@ function TacticsPage() {
                     );
                     event.dataTransfer.effectAllowed = "move";
                   }}
-                  className="flex cursor-grab items-center justify-between gap-2 text-zinc-300 active:cursor-grabbing"
+                  className="flex cursor-grab items-center justify-between gap-2 text-ov-text active:cursor-grabbing"
                 >
                   <span className="flex min-w-0 items-center gap-2">
                     <PlayerAvatar name={row.player.name} src={row.fc?.face_url} size="sm" />
                     <span className="truncate">{row.player.name}</span>
                   </span>
-                  <span className="shrink-0 text-zinc-500">
+                  <span className="shrink-0 text-ov-muted">
                     {row.position ?? "–"} · {row.current?.overall ?? "–"}
                   </span>
                 </li>
               ))}
               {bench.length === 0 && (
-                <li className="text-zinc-500">All players are in the starting lineup.</li>
+                <li className="text-ov-muted">All players are in the starting lineup.</li>
               )}
               {bench.length > 0 && visibleBench.length === 0 && (
-                <li className="text-zinc-500">No players match your search.</li>
+                <li className="text-ov-muted">No players match your search.</li>
               )}
             </ul>
           </div>
@@ -1008,7 +1008,7 @@ function TacticsPage() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">{label}</p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-ov-muted">{label}</p>
       {children}
     </div>
   );
@@ -1036,9 +1036,9 @@ function SlotPicker({
   });
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3">
+    <div className="rounded-xl border border-ov-border bg-ov-bg p-3">
       <div className="mb-2 flex items-center justify-between">
-        <p className="text-sm font-medium text-zinc-200">Choose a player for {slotPosition}</p>
+        <p className="text-sm font-medium text-ov-text">Choose a player for {slotPosition}</p>
         {selectedId && (
           <Button variant="ghost" size="sm" onClick={() => onPick(null)}>
             Clear slot
@@ -1053,22 +1053,22 @@ function SlotPicker({
               <button
                 type="button"
                 onClick={() => onPick(row.player.id)}
-                className={`flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm text-zinc-200 hover:bg-zinc-900 ${
+                className={`flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm text-ov-text hover:bg-ov-card ${
                   row.player.id === selectedId ? "bg-lime-500/10" : ""
                 }`}
               >
                 <span className="truncate">
                   {row.player.name}
                   {usedIds.has(row.player.id) && row.player.id !== selectedId && (
-                    <span className="ml-1 text-[11px] text-zinc-500">(in lineup)</span>
+                    <span className="ml-1 text-[11px] text-ov-muted">(in lineup)</span>
                   )}
                 </span>
-                <span className="shrink-0 text-xs text-zinc-500">
+                <span className="shrink-0 text-xs text-ov-muted">
                   {row.position ?? "–"} · {row.current?.overall ?? "–"} ·{" "}
                   <span
                     className={
                       fit === "natural"
-                        ? "text-lime-400"
+                        ? "text-ov-text"
                         : fit === "ok"
                           ? "text-amber-400"
                           : "text-red-400"
@@ -1106,14 +1106,14 @@ function RoleEditor({
   const mastery = value?.mastery ?? "base";
 
   return (
-    <div className="space-y-4 rounded-xl border border-zinc-800 bg-zinc-950 p-3">
-      <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+    <div className="space-y-4 rounded-xl border border-ov-border bg-ov-bg p-3">
+      <p className="text-xs font-semibold uppercase tracking-wider text-ov-muted">
         Player role · {slotPosition}
       </p>
 
       <Field label="Role">
         <Select value={active.id} onValueChange={onRoleChange}>
-          <SelectTrigger className="border-zinc-800 bg-zinc-900" aria-label="Select role">
+          <SelectTrigger className="border-ov-border bg-ov-card" aria-label="Select role">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -1124,7 +1124,7 @@ function RoleEditor({
             ))}
           </SelectContent>
         </Select>
-        <p className="text-xs text-zinc-500">{active.description}</p>
+        <p className="text-xs text-ov-muted">{active.description}</p>
       </Field>
 
       <Field label="Focus">
@@ -1140,8 +1140,8 @@ function RoleEditor({
                 onClick={() => onFocusChange(focus)}
                 className={`rounded-lg border px-2 py-2 text-xs font-medium transition-colors ${
                   isActive
-                    ? "border-lime-400 bg-lime-500/15 text-lime-300 ring-1 ring-lime-400"
-                    : "border-zinc-800 bg-zinc-900 text-zinc-300 hover:border-zinc-700"
+                    ? "border-lime-400 bg-lime-500/15 text-lime-300 ring-1 ring-ov-accent"
+                    : "border-ov-border bg-ov-card text-ov-text hover:border-ov-control"
                 } ${enabled ? "" : "cursor-not-allowed opacity-35"}`}
               >
                 {focus}
@@ -1166,8 +1166,8 @@ function RoleEditor({
               onClick={() => onMasteryChange(id)}
               className={`rounded-lg border px-2 py-2 text-xs font-medium transition-colors ${
                 mastery === id
-                  ? "border-lime-400 bg-lime-500/15 text-lime-300 ring-1 ring-lime-400"
-                  : "border-zinc-800 bg-zinc-900 text-zinc-300 hover:border-zinc-700"
+                  ? "border-lime-400 bg-lime-500/15 text-lime-300 ring-1 ring-ov-accent"
+                  : "border-ov-border bg-ov-card text-ov-text hover:border-ov-control"
               }`}
             >
               {label}
