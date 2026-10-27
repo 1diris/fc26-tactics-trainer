@@ -689,27 +689,6 @@ function TacticsPage() {
                   ) : null}
                 </Field>
 
-                <Field label="Formation">
-                  <Select
-                    value={formation}
-                    onValueChange={(value) => {
-                      setFormation(value);
-                      setSuggestion(null);
-                      setActiveSlot(null);
-                    }}
-                  >
-                    <SelectTrigger className="border-zinc-800 bg-zinc-950" aria-label="Select formation">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {FORMATIONS.map((item) => (
-                        <SelectItem key={item.name} value={item.name}>
-                          {item.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
 
                 <Tabs defaultValue="attack">
                   <TabsList className="w-full bg-zinc-950">
