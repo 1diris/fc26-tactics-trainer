@@ -50,7 +50,7 @@ function CareerLayout() {
   });
 
   return (
-    <div className="min-h-screen bg-dash-bg">
+    <div className="min-h-screen bg-ov-bg">
       <AppHeader />
       <div className="border-b border-ov-line bg-ov-bg font-body">
         <div className="mx-auto max-w-[1200px] px-5 pt-6">
@@ -105,7 +105,7 @@ function CareerLayout() {
           </nav>
         </div>
       </div>
-      <main className="mx-auto max-w-6xl px-5 pt-8 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:pb-8">
+      <main className="mx-auto max-w-[1200px] px-5 pt-8 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:pb-8">
         <Outlet />
       </main>
 
