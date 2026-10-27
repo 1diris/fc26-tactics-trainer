@@ -27,8 +27,7 @@ export function createResponsesCall(
     // AI SDK 6 lacks `instructions`: rename this key to `system` there.
     ...(instructions ? { instructions } : {}),
     messages,
-    tools,
-    toolChoice: tools ? "required" : undefined,
+    ...(tools ? { tools, toolChoice: "required" as const } : {}),
     maxRetries: 0,
     abortSignal: request.signal,
     providerOptions: {

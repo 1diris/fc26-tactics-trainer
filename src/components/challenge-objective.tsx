@@ -6,7 +6,7 @@ import { type Challenge, type Verify, type Completion, MAX_UPLOADS, MAX_IMAGES }
 import type { getChallengeProgress } from "@/lib/challenges.functions";
 
 type History = Awaited<ReturnType<typeof getChallengeProgress>>["history"];
-export function ChallengeObjective({ challenge, id, title, description, points, verify, hard, completion, history, busy, onToggle, onUpload }: { challenge: Challenge; id: string; title: string; description?: string; points?: number; verify: Verify; hard?: boolean; completion?: Completion; history: History; busy: boolean; onToggle: (completed: boolean) => void; onUpload: (files: File[]) => Promise<void> }) {
+export function ChallengeObjective({ challenge, id, title, description, points, verify, hard, completion, history, busy, onToggle, onUpload }: { challenge: Challenge; id: string; title: string; description?: string | undefined; points?: number | undefined; verify: Verify; hard?: boolean | undefined; completion?: Completion | undefined; history: History; busy: boolean; onToggle: (completed: boolean) => void; onUpload: (files: File[]) => Promise<void> }) {
   const input = useRef<HTMLInputElement>(null);
   const [error, setError] = useState("");
   const [uploading, setUploading] = useState(false);
