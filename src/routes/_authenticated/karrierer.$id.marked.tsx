@@ -7,7 +7,6 @@ import { updateCareerSettings } from "@/lib/career.functions";
 import { contractYear, seasonStartYear } from "@/lib/squad";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -355,6 +354,36 @@ function MarketPage() {
     "inline-flex h-9 items-center justify-center rounded-[10px] border border-ov-control px-3 text-sm font-medium text-ov-text hover:bg-ov-line disabled:opacity-50";
   const PRIMARY =
     "inline-flex h-9 items-center justify-center rounded-[10px] bg-ov-accent px-3 text-sm font-semibold text-black hover:opacity-90";
+
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const activeFilters =
+    positions.length +
+    [minOverall, maxOverall, minPotential, maxPotential, minAge, maxAge, minValue, maxValue, minWage, maxWage].filter(
+      (v) => v !== "",
+    ).length +
+    (league !== "all" ? 1 : 0) +
+    (foot !== "all" ? 1 : 0);
+
+  function resetAll() {
+    resetPage();
+    setPositions([]);
+    setFocusPosition(null);
+    setMinOverall("");
+    setMaxOverall("");
+    setMinPotential("");
+    setMaxPotential("");
+    setMinAge("");
+    setMaxAge("");
+    setMinValue("");
+    setMaxValue("");
+    setMinWage("");
+    setMaxWage("");
+    setLeague("all");
+    setFoot("all");
+    setTerm("");
+    setSubmittedTerm("");
+    setPreset(null);
+  }
 
   const editBudget = async () => {
     const raw = window.prompt(
