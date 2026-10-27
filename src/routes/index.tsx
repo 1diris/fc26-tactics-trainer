@@ -32,10 +32,10 @@ const secondaryBtn =
   "inline-flex h-[52px] items-center justify-center rounded-xl border border-[var(--landing-border-strong)] px-7 text-[15px] font-medium text-foreground transition-colors hover:bg-card";
 
 const rows = [
-  { pos: "ST", ovr: 84, pot: 90, value: "€92m", high: true },
-  { pos: "CM", ovr: 81, pot: 87, value: "€64m", high: true },
-  { pos: "CB", ovr: 79, pot: 82, value: "€38m", high: false },
-  { pos: "GK", ovr: 80, pot: 81, value: "€22m", high: false },
+  { name: "Lukas Brenner", pos: "ST", ovr: 84, pot: 90, value: "€92m", high: true },
+  { name: "Mateo Ferreira", pos: "CM", ovr: 81, pot: 87, value: "€64m", high: true },
+  { name: "Jonas Ekdahl", pos: "CB", ovr: 79, pot: 82, value: "€38m", high: false },
+  { name: "Rafael Duarte", pos: "GK", ovr: 80, pot: 81, value: "€22m", high: false },
 ];
 
 function scrollToHow(e: React.MouseEvent) {
@@ -156,7 +156,7 @@ function Landing() {
                       key={i}
                       className="border-b border-[var(--landing-divider)] last:border-0"
                     >
-                      <td className="py-4 font-medium">[Player name]</td>
+                      <td className="py-4 font-medium">{r.name}</td>
                       <td className="py-4 text-muted-foreground">{r.pos}</td>
                       <td className="py-4 font-medium">{r.ovr}</td>
                       <td
