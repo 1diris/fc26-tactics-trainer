@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
-import { listCareers, getCareerData, getPlayerHistory } from "./career.functions";
+import { listCareers, getCareerData, getPlayerHistory, listSeasonSummaries } from "./career.functions";
 import { listImports } from "./import.functions";
 import { listYouthPlayers } from "./youth.functions";
 import {
@@ -33,6 +33,14 @@ export const playerHistoryQuery = (careerId: string, playerId: string) =>
   queryOptions({
     queryKey: ["player-history", careerId, playerId],
     queryFn: () => getPlayerHistory({ data: { careerId, playerId } }),
+    staleTime: FRESH,
+    gcTime: KEEP,
+  });
+
+export const seasonSummariesQuery = (careerId: string) =>
+  queryOptions({
+    queryKey: ["season-summaries", careerId],
+    queryFn: () => listSeasonSummaries({ data: { careerId } }),
     staleTime: FRESH,
     gcTime: KEEP,
   });
