@@ -69,6 +69,7 @@ export function PitchView({
       <div className={`${LINE} inset-x-[22%] bottom-3 h-[15%] border-x border-t`} />
       <div className={`${LINE} inset-x-[36%] bottom-3 h-[6%] border-x border-t`} />
 
+      <div className="absolute inset-x-[6%] bottom-[7%] top-[5%]">
       {nodes.map((node) => {
         const active = node.id === selectedId;
         const dragOver = node.id === dragOverSlot;
@@ -116,6 +117,7 @@ export function PitchView({
           </button>
         );
       })}
+      </div>
     </div>
   );
 }

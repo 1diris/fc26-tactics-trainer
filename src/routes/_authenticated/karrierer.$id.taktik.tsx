@@ -399,14 +399,12 @@ function TacticsPage() {
   const topXiOvr = Math.max(0, ...depthRows.map((d) => d.ovr ?? 0));
   const filledOvrs = depthRows.map((d) => d.ovr).filter((v): v is number => v !== null);
   const lowestXiOvr = filledOvrs.length ? Math.min(...filledOvrs) : null;
-  const hintSlots = new Set(hints.map((h) => h.slotId));
   const weakSlotIds = new Set(
     depthRows
       .filter(
         (d) =>
           d.row &&
-          (hintSlots.has(d.slot.id) ||
-            positionFit(d.slot.position, d.row.position) === "out" ||
+          (positionFit(d.slot.position, d.row.position) === "out" ||
             (d.ovr !== null && d.ovr === lowestXiOvr && lowestXiOvr < topXiOvr)),
       )
       .map((d) => d.slot.id),
@@ -420,7 +418,7 @@ function TacticsPage() {
     return { plural: "Strikers", short: "strikers" };
   };
   const recTarget =
-    [...depthRows].filter((d) => d.row).sort((a, b) => a.backups - b.backups || (a.ovr ?? 0) - (b.ovr ?? 0))[0] ??
+    [...depthRows].filter((d) => d.row).sort((a, b) => (a.ovr ?? 0) - (b.ovr ?? 0) || a.backups - b.backups)[0] ??
     null;
   const recLine = recTarget ? lineName(recTarget.slot.position) : null;
   const pitchNodes = nodes.map((n) => ({
@@ -507,7 +505,7 @@ function TacticsPage() {
         </section>
 
         <div className="space-y-6">
-          <section className={`${CARD} p-0`}>
+          <section className="rounded-2xl border border-ov-border bg-ov-card">
             <h3 className="px-5 pb-3 pt-5 font-tight text-base font-semibold tracking-[-0.03em]">Depth chart</h3>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[420px] text-sm">
