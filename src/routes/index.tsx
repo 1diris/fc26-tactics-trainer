@@ -305,7 +305,7 @@ const steps: { title: string; text: string; illo: ReactNode }[] = [
         ].map(([w, n, top]) => (
           <div
             key={n as string}
-            className="mt-3 flex items-center justify-between border-t border-[var(--landing-divider)] pt-3"
+            className="mt-2 flex items-center justify-between border-t border-[var(--landing-divider)] pt-2"
           >
             <Bar w={w as string} />
             <span className={top ? "text-primary" : "text-foreground"}>{n}</span>
