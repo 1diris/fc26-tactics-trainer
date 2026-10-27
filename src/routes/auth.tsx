@@ -15,12 +15,12 @@ export const Route = createFileRoute("/auth")({
       {
         name: "description",
         content:
-          "Log in or sign up to save your FC 26 careers, squad data and player growth in the cloud.",
+          "Log in or sign up to save your Career Mode careers, squad data and player growth in the cloud.",
       },
       { property: "og:title", content: "Sign in — Career Chronicles" },
       {
         property: "og:description",
-        content: "Access your FC 26 careers, squads and season history.",
+        content: "Access your careers, squads and season history.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -92,7 +92,7 @@ function AuthPage() {
           <BrandLogo size={44} className="h-11 w-11 shrink-0" />
           <h1 className="font-tight mt-4 text-2xl font-bold tracking-[-0.03em]">Career Chronicles</h1>
           <p className="mt-1 text-sm text-ov-muted">
-            {mode === "login" ? "Sign in to your FC 26 careers" : "Create your account"}
+            {mode === "login" ? "Sign in to your Career Mode saves" : "Create your account"}
           </p>
         </div>
 
