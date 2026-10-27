@@ -3,10 +3,9 @@ import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tansta
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import { careerDataQuery, importsQuery } from "@/lib/career-queries";
+import { careerDataQuery, importsQuery, seasonSummariesQuery } from "@/lib/career-queries";
 import { analyzeScreenshot } from "@/lib/import.functions";
 import { saveYouthPlayers } from "@/lib/youth.functions";
 import { savePlayers, type PlayerInput } from "@/lib/career.functions";
@@ -16,8 +15,7 @@ import { findMatchingPlayerIndex } from "@/lib/player-matching";
 import { diffCounts, diffDrafts, type DiffField } from "@/lib/import-diff";
 import { formatMoney, formatWage } from "@/lib/football";
 import { PositionSelect } from "@/components/position-select";
-import { Loader2, Trash2, Upload } from "lucide-react";
-
+import { Check, Loader2, Trash2, UploadCloud } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/import")({
   head: () => ({
@@ -70,6 +68,7 @@ function ImportPage() {
   const queryClient = useQueryClient();
   const { data } = useSuspenseQuery(careerDataQuery(id));
   const imports = useQuery(importsQuery(id));
+  const summaries = useQuery(seasonSummariesQuery(id));
 
   const analyze = useServerFn(analyzeScreenshot);
   const save = useServerFn(savePlayers);
@@ -80,12 +79,28 @@ function ImportPage() {
   const [drafts, setDrafts] = useState<Draft[] | null>(null);
   const [importId, setImportId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [onlyChanges, setOnlyChanges] = useState(false);
 
   const seasons = sortedSeasons(data.seasons);
   const activeSeason =
     seasons.find((season) => season.id === data.career.current_season_id) ?? seasons[0];
+
+  const matchedCount = data.players.filter((player) => player.fc_player_id).length;
+  const totalPlayers = data.players.length;
+  const matchMutation = useMutation({
+    mutationFn: () => runAutoMatch({ data: { careerId: id } }),
+    onSuccess: (result) => {
+      void queryClient.invalidateQueries({ queryKey: ["career", id] });
+      toast.success(
+        result.remaining > 0
+          ? `${result.matched} players matched · ${result.remaining} still unmatched.`
+          : `${result.matched} players matched.`,
+      );
+    },
+    onError: (error) => toast.error(error.message),
+  });
 
   const withTarget: Draft[] = (drafts ?? []).map((draft) => ({
     ...draft,
@@ -113,10 +128,10 @@ function ImportPage() {
         : null;
     const tone =
       numeric === null
-        ? "text-muted-foreground"
+        ? "text-ov-muted"
         : numeric > 0
-          ? "text-emerald-500"
-          : "text-destructive";
+          ? "text-ov-accent"
+          : "text-ov-warn";
     return (
       <div className={`mt-1 text-[11px] tabular-nums ${tone}`}>
         {formatDiffValue(field, change.before)} → {formatDiffValue(field, change.after)}
@@ -124,7 +139,6 @@ function ImportPage() {
       </div>
     );
   };
-
 
   const MAX_FILES = 10;
   const storageKey = `import-drafts-${id}`;
@@ -330,7 +344,7 @@ function ImportPage() {
   ) => (
     <Input
       type="number"
-      className="h-8 w-full text-right tabular-nums"
+      className="h-8 w-full rounded-lg border-ov-control bg-transparent text-right text-sm tabular-nums"
       value={draft[field] ?? ""}
       onChange={(event) =>
         patchDraft(index, {
@@ -340,106 +354,257 @@ function ImportPage() {
     />
   );
 
+  const OUTLINE =
+    "inline-flex h-9 items-center justify-center rounded-[10px] border border-ov-control px-3 text-sm font-medium text-ov-text hover:bg-ov-line disabled:opacity-50";
+  const PRIMARY =
+    "inline-flex h-9 items-center justify-center rounded-[10px] bg-ov-accent px-3 text-sm font-semibold text-black hover:opacity-90 disabled:opacity-50";
+  const CARD = "rounded-2xl border border-ov-border bg-ov-card";
+
+  const tips = [
+    "Use the in-game squad screen with OVR and POT visible",
+    "Take a screenshot, not a photo of the TV",
+    "Upload several images to cover the whole squad",
+  ];
+
   return (
-    <div className={`space-y-8 ${drafts && drafts.length > 0 ? "pb-24" : ""}`}>
-      <h1 className="flex items-center gap-2 text-2xl font-bold tracking-wide text-lime-400">
-        <Upload className="h-6 w-6 text-lime-400" />
-        Import
-      </h1>
+    <div className={`space-y-6 text-ov-text ${drafts && drafts.length > 0 ? "pb-24" : ""}`}>
+      <div>
+        <h1 className="font-tight text-[32px] font-bold leading-tight tracking-[-0.03em]">Import</h1>
+        <p className="mt-1 text-sm text-ov-muted">Upload squad screenshots to create a new snapshot</p>
+      </div>
 
-      <section className="rounded-xl border border-border/60 bg-card p-6">
-        <h2 className="font-display text-lg font-semibold">
-          Upload screenshots {activeSeason ? `for ${activeSeason.label}` : ""}
-        </h2>
-        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Use the squad screen in FC 26, where name, position, OVR, potential, age, value, wage and
-          contract are visible. You can select up to {MAX_FILES} screenshots at a time — they are analysed
-          in a queue and merged into a single approval list, where players with the same name are merged.
-        </p>
-        {hasExistingSquad && (
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            You already have {data.players.length} players in the squad. Feel free to upload follow-up
-            screenshots after a season — players you already have will be updated with new OVR,
-            value, wage and contract in {activeSeason?.label ?? "the active season"}, and only completely new
-            names are created. Players not in the images are left untouched.
-          </p>
-        )}
-
-        <div className="mt-5 flex flex-wrap items-center gap-3">
-          <input
-            ref={fileRef}
-            type="file"
-            multiple
-            accept="image/png,image/jpeg,image/webp"
-            className="hidden"
-            onChange={(event) => void handleFiles(event.target.files)}
-          />
-          <Button disabled={uploading || !activeSeason} onClick={() => fileRef.current?.click()}>
-            {uploading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Upload className="mr-2 h-4 w-4" />
+      <div className="grid items-start gap-6 xl:grid-cols-[1.5fr_1fr]">
+        <div className="space-y-6">
+          {/* Upload */}
+          <section className={`${CARD} p-5`}>
+            <h2 className="font-tight text-lg font-semibold tracking-[-0.03em]">
+              Upload screenshots{activeSeason ? ` · ${activeSeason.label}` : ""}
+            </h2>
+            <input
+              ref={fileRef}
+              type="file"
+              multiple
+              accept="image/png,image/jpeg,image/webp"
+              className="hidden"
+              onChange={(event) => void handleFiles(event.target.files)}
+            />
+            <div
+              role="button"
+              tabIndex={0}
+              aria-disabled={uploading}
+              onClick={() => !uploading && fileRef.current?.click()}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !uploading) fileRef.current?.click();
+              }}
+              onDragOver={(event) => {
+                event.preventDefault();
+                if (!uploading) setDragActive(true);
+              }}
+              onDragLeave={() => setDragActive(false)}
+              onDrop={(event) => {
+                event.preventDefault();
+                setDragActive(false);
+                if (!uploading) void handleFiles(event.dataTransfer.files);
+              }}
+              className={`mt-4 flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed px-6 py-10 text-center transition ${
+                uploading
+                  ? "cursor-default border-[#3a3a3a] opacity-70"
+                  : dragActive
+                    ? "border-ov-accent bg-ov-accent/5"
+                    : "border-[#3a3a3a] hover:border-ov-control"
+              }`}
+            >
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-ov-accent/10">
+                <UploadCloud className="h-5 w-5 text-ov-accent" />
+              </span>
+              <div>
+                <p className="font-tight text-sm font-semibold">Drop squad screenshots here</p>
+                <p className="mt-1 text-xs text-ov-muted">PNG or JPG · several images for a full squad</p>
+              </div>
+              <button
+                type="button"
+                className={PRIMARY}
+                disabled={uploading || !activeSeason}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  fileRef.current?.click();
+                }}
+              >
+                {uploading ? (
+                  <>
+                    <Loader2 className="mr-2 inline h-4 w-4 animate-spin" />
+                    Analysing…
+                  </>
+                ) : (
+                  "Choose files"
+                )}
+              </button>
+              {uploading && progress && (
+                <p className="max-w-sm text-xs text-ov-muted">
+                  Analysing image {Math.min(progress.done + 1, progress.total)} of {progress.total} —
+                  this can take a minute per image.
+                </p>
+              )}
+            </div>
+            <p className="mt-4 text-xs text-ov-muted">
+              Use the squad screen in FC 26, where name, position, OVR, potential, age, value, wage
+              and contract are visible. Up to {MAX_FILES} screenshots at a time — players with the
+              same name are merged into one approval list.
+            </p>
+            {hasExistingSquad && (
+              <p className="mt-2 text-xs text-ov-muted">
+                You already have {data.players.length} players. Follow-up screenshots update existing
+                players with new OVR, value, wage and contract — only completely new names are
+                created, and players not in the images are left untouched.
+              </p>
             )}
-            {uploading ? "Analysing…" : "Select screenshots"}
-          </Button>
-          {uploading && (
-            <span className="text-sm text-muted-foreground">
-              {progress
-                ? `Analysing image ${Math.min(progress.done + 1, progress.total)} of ${progress.total} — this can take a minute per image.`
-                : "AI is reading the images…"}
-            </span>
-          )}
+          </section>
+
+          {/* Snapshots */}
+          <section className={`${CARD} p-5`}>
+            <div className="flex items-baseline justify-between gap-3">
+              <h2 className="font-tight text-lg font-semibold tracking-[-0.03em]">Snapshots</h2>
+              <span className="text-xs text-ov-muted">One per season</span>
+            </div>
+            <ul className="mt-2 divide-y divide-ov-line">
+              {seasons.map((season) => {
+                const isCurrent = season.id === activeSeason?.id;
+                const summary = summaries.data?.[season.id];
+                return (
+                  <li key={season.id} className="flex items-center gap-3 py-3">
+                    <span
+                      className={`h-1.5 w-1.5 shrink-0 rounded-full ${isCurrent ? "bg-ov-accent" : "bg-[#3a3a3a]"}`}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-tight text-sm font-semibold">Season {season.label}</span>
+                        {isCurrent && <span className="text-[11px] text-ov-muted">Current</span>}
+                      </div>
+                      <p className="mt-0.5 text-xs text-ov-muted">
+                        {summary
+                          ? `${summary.players} players · imported ${new Date(summary.importedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`
+                          : "No snapshot yet"}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className={`${OUTLINE} h-8`}
+                      onClick={() =>
+                        void navigate({ to: "/karrierer/$id/trup", params: { id } })
+                      }
+                    >
+                      View
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
         </div>
-      </section>
+
+        <div className="space-y-6">
+          {/* FC 26 database */}
+          <section className={`${CARD} p-5`}>
+            <h2 className="font-tight text-lg font-semibold tracking-[-0.03em]">FC 26 database</h2>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="font-tight text-[28px] font-bold tracking-[-0.03em]">{matchedCount}</span>
+              <span className="text-sm text-ov-muted">/ {totalPlayers}</span>
+            </div>
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#1f1f1f]">
+              <div
+                className="h-full rounded-full bg-ov-accent transition-all"
+                style={{ width: `${totalPlayers > 0 ? (matchedCount / totalPlayers) * 100 : 0}%` }}
+              />
+            </div>
+            <p className="mt-3 text-xs text-ov-muted">
+              Matched players get their starting OVR, potential and portrait from the FC 26
+              database.
+            </p>
+            <button
+              type="button"
+              className={`${OUTLINE} mt-4`}
+              disabled={matchMutation.isPending || totalPlayers === 0}
+              onClick={() => matchMutation.mutate()}
+            >
+              {matchMutation.isPending ? "Matching…" : "Match squad"}
+            </button>
+          </section>
+
+          {/* Tips */}
+          <section className={`${CARD} p-5`}>
+            <h2 className="font-tight text-lg font-semibold tracking-[-0.03em]">For the best result</h2>
+            <ul className="mt-3 space-y-3">
+              {tips.map((tip) => (
+                <li key={tip} className="flex gap-2.5 text-sm">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-ov-accent" />
+                  <span className="text-ov-muted">{tip}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      </div>
 
       {drafts && drafts.length > 0 && (
-        <section className="rounded-xl border border-border/60 bg-card">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 p-5">
+        <section className={CARD}>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ov-line p-5">
             <div>
-              <h2 className="font-display text-lg font-semibold">Review {drafts.length} players</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Correct fields the AI was unsure about (marked in yellow), before you save.
+              <h2 className="font-tight text-lg font-semibold tracking-[-0.03em]">
+                Review {drafts.length} players
+              </h2>
+              <p className="mt-1 text-sm text-ov-muted">
+                Correct fields the AI was unsure about (marked in yellow) before you save.
+              </p>
+              <p className="mt-1 text-sm">
+                <span className="font-medium text-ov-accent">{counts.created} new</span>
+                <span className="text-ov-muted"> · </span>
+                <span className="font-medium">{counts.updated} updated</span>
+                <span className="text-ov-muted"> · {counts.unchanged} unchanged</span>
               </p>
               <p className="mt-1 text-sm">
                 <span className="font-medium">{squadDrafts.length} to the squad</span>
-                <span className="text-muted-foreground"> · </span>
-                <span className="font-medium text-violet-500">{youthDrafts.length} to the academy</span>
-              </p>
-              <p className="mt-1 text-sm">
-                <span className="font-medium text-primary">{counts.created} new</span>
-                <span className="text-muted-foreground"> · </span>
-                <span className="font-medium">{counts.updated} updated</span>
-                <span className="text-muted-foreground"> · {counts.unchanged} unchanged</span>
+                <span className="text-ov-muted"> · </span>
+                <span className="font-medium text-violet-400">{youthDrafts.length} to the academy</span>
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" onClick={() => setAllTargets("squad")}>
+              <button type="button" className={OUTLINE} onClick={() => setAllTargets("squad")}>
                 All to squad
-              </Button>
-              <Button variant="outline" onClick={() => setAllTargets("youth")}>
+              </button>
+              <button type="button" className={OUTLINE} onClick={() => setAllTargets("youth")}>
                 All to academy
-              </Button>
+              </button>
               {hasExistingSquad && (
-                <Button
-                  variant={onlyChanges ? "secondary" : "outline"}
+                <button
+                  type="button"
+                  className={`${OUTLINE} ${onlyChanges ? "border-ov-accent text-ov-accent" : ""}`}
                   onClick={() => setOnlyChanges((value) => !value)}
                 >
                   {onlyChanges ? "Show all" : "Show only changes"}
-                </Button>
+                </button>
               )}
-              <Button variant="ghost" onClick={() => setDrafts(null)}>
+              <button
+                type="button"
+                className="inline-flex h-9 items-center rounded-[10px] px-3 text-sm font-medium text-ov-muted hover:text-ov-text"
+                onClick={() => setDrafts(null)}
+              >
                 Cancel
-              </Button>
-              <Button disabled={saveMutation.isPending} onClick={() => saveMutation.mutate()}>
+              </button>
+              <button
+                type="button"
+                className={PRIMARY}
+                disabled={saveMutation.isPending}
+                onClick={() => saveMutation.mutate()}
+              >
                 {saveMutation.isPending ? "Saving…" : "Save"}
-              </Button>
+              </button>
             </div>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[900px] text-sm">
               <thead>
-                <tr className="border-b border-border/60 text-xs uppercase tracking-wider text-muted-foreground">
+                <tr className="border-b border-ov-line text-[11px] uppercase tracking-wider text-ov-muted">
                   <th className="px-3 py-2 text-left font-medium">Saved to</th>
                   <th className="px-3 py-2 text-left font-medium">Status</th>
                   <th className="px-3 py-2 text-left font-medium">Name</th>
@@ -464,19 +629,19 @@ function ImportPage() {
                   const cell = (field: string) =>
                     uncertain.has(field) ? "bg-amber-500/10" : undefined;
                   return (
-                    <tr key={`${draft.name}-${index}`} className="border-b border-border/40">
+                    <tr key={`${draft.name}-${index}`} className="border-b border-ov-line last:border-b-0">
                       <td className="px-3 py-1.5 align-top">
-                        <div className="inline-flex overflow-hidden rounded-md border border-border/60">
+                        <div className="inline-flex overflow-hidden rounded-lg border border-ov-control">
                           <button
                             type="button"
-                            className={`px-2 py-1 text-[11px] font-medium ${isYouth ? "text-muted-foreground" : "bg-primary/15 text-primary"}`}
+                            className={`px-2 py-1 text-[11px] font-medium ${isYouth ? "text-ov-muted" : "bg-ov-accent/15 text-ov-accent"}`}
                             onClick={() => patchDraft(index, { target: "squad" })}
                           >
                             Squad
                           </button>
                           <button
                             type="button"
-                            className={`px-2 py-1 text-[11px] font-medium ${isYouth ? "bg-violet-500/20 text-violet-500" : "text-muted-foreground"}`}
+                            className={`px-2 py-1 text-[11px] font-medium ${isYouth ? "bg-violet-500/15 text-violet-400" : "text-ov-muted"}`}
                             onClick={() => patchDraft(index, { target: "youth" })}
                           >
                             Academy
@@ -487,10 +652,10 @@ function ImportPage() {
                         <span
                           className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ${
                             isNew
-                              ? "bg-primary/15 text-primary"
+                              ? "bg-ov-accent/15 text-ov-accent"
                               : changedCount > 0
-                                ? "bg-emerald-500/15 text-emerald-500"
-                                : "bg-muted text-muted-foreground"
+                                ? "border border-ov-control text-ov-accent"
+                                : "border border-ov-control text-ov-muted"
                           }`}
                         >
                           {isYouth
@@ -504,19 +669,19 @@ function ImportPage() {
                       </td>
                       <td className={`px-3 py-1.5 ${cell("name") ?? ""}`}>
                         <Input
-                          className="h-8 w-40"
+                          className="h-8 w-40 rounded-lg border-ov-control bg-transparent text-sm"
                           value={draft.name}
                           onChange={(event) => patchDraft(index, { name: event.target.value })}
                         />
                         {!isNew && diff?.playerName && diff.playerName !== draft.name && (
-                          <div className="mt-1 text-[11px] text-muted-foreground">
+                          <div className="mt-1 text-[11px] text-ov-muted">
                             matches {diff.playerName}
                           </div>
                         )}
                       </td>
                       <td className={`px-3 py-1.5 ${cell("position") ?? ""}`}>
                         <PositionSelect
-                          className="h-8 w-24"
+                          className="h-8 w-24 rounded-lg border-ov-control bg-transparent text-sm"
                           value={draft.position ?? null}
                           allowEmpty
                           onChange={(next) => patchDraft(index, { position: next })}
@@ -546,7 +711,7 @@ function ImportPage() {
                       </td>
                       <td className={`px-3 py-1.5 ${cell("contract_until") ?? ""}`}>
                         <Input
-                          className="h-8 w-24"
+                          className="h-8 w-24 rounded-lg border-ov-control bg-transparent text-sm"
                           value={draft.contract_until ?? ""}
                           onChange={(event) =>
                             patchDraft(index, { contract_until: event.target.value || null })
@@ -559,7 +724,7 @@ function ImportPage() {
                         <button
                           type="button"
                           aria-label={`Remove ${draft.name}`}
-                          className="rounded-md p-2 text-muted-foreground hover:text-destructive"
+                          className="rounded-md p-2 text-ov-muted hover:text-ov-warn"
                           onClick={() =>
                             setDrafts((current) =>
                               current ? current.filter((_, i) => i !== index) : current,
@@ -579,12 +744,17 @@ function ImportPage() {
       )}
 
       {imports.data && imports.data.length > 0 && (
-        <section>
-          <h2 className="font-display text-lg font-semibold">Previous uploads</h2>
-          <ul className="mt-3 divide-y divide-border/60 rounded-xl border border-border/60 bg-card">
+        <section className={CARD}>
+          <h2 className="border-b border-ov-line p-5 font-tight text-lg font-semibold tracking-[-0.03em]">
+            Previous uploads
+          </h2>
+          <ul className="divide-y divide-ov-line">
             {imports.data.map((row) => (
-              <li key={row.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
-                <span className="text-muted-foreground">
+              <li
+                key={row.id}
+                className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 text-sm"
+              >
+                <span className="text-ov-muted">
                   {new Date(row.created_at).toLocaleString("en-GB")}
                 </span>
                 <span>
@@ -601,14 +771,19 @@ function ImportPage() {
       )}
 
       {drafts && drafts.length > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/60 bg-card/95 px-4 py-3 backdrop-blur">
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
-            <span className="text-sm text-muted-foreground">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-ov-border bg-ov-card/95 px-4 py-3 backdrop-blur">
+          <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-3">
+            <span className="text-sm text-ov-muted">
               {squadDrafts.length} to the squad · {youthDrafts.length} to the academy — not saved yet
             </span>
-            <Button disabled={saveMutation.isPending} onClick={() => saveMutation.mutate()}>
+            <button
+              type="button"
+              className={PRIMARY}
+              disabled={saveMutation.isPending}
+              onClick={() => saveMutation.mutate()}
+            >
               {saveMutation.isPending ? "Saving…" : "Save"}
-            </Button>
+            </button>
           </div>
         </div>
       )}
