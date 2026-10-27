@@ -522,15 +522,18 @@ function MarketPage() {
         </div>
       </div>
 
-      <h2 className="pt-2 font-tight text-lg font-semibold tracking-[-0.03em]">Search the market</h2>
+      <Tabs defaultValue="search" className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+        <h2 className="font-tight text-lg font-semibold tracking-[-0.03em]">Search the market</h2>
+        <TabsList className="h-9 rounded-[10px] border border-ov-control bg-transparent p-0.5">
+          <TabsTrigger value="search" className="h-8 rounded-lg text-xs">Search players</TabsTrigger>
+          <TabsTrigger value="targets" className="h-8 rounded-lg text-xs">
+            My targets ({targets.data?.length ?? 0})
+          </TabsTrigger>
+        </TabsList>
+      </div>
 
-      <Tabs defaultValue="search" className="space-y-6">
-      <TabsList>
-        <TabsTrigger value="search">Search players</TabsTrigger>
-        <TabsTrigger value="targets">My targets ({targets.data?.length ?? 0})</TabsTrigger>
-      </TabsList>
-
-      <TabsContent value="search" className="space-y-5">
+      <TabsContent value="search" className="space-y-4">
         <form
           className="flex flex-wrap gap-2"
           onSubmit={(event) => {
@@ -539,62 +542,50 @@ function MarketPage() {
             setSubmittedTerm(term.trim());
           }}
         >
-          <div className="relative min-w-[220px] flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <div className="relative min-w-[200px] flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ov-muted" />
             <Input
               value={term}
               onChange={(event) => setTerm(event.target.value)}
               placeholder="Search by name or club"
-              className="pl-9"
+              className="h-9 rounded-[10px] border-ov-control bg-transparent pl-9"
               aria-label="Search by name or club"
             />
           </div>
-          <Button type="submit">Search</Button>
-        </form>
-
-        <div className="flex flex-wrap gap-1.5">
-          {(Object.keys(PRESET_LABELS) as MarketPreset[]).map((key) => {
-            const active = preset === key;
-            return (
-              <Button
-                key={key}
-                type="button"
-                variant={active ? "default" : "outline"}
-                size="sm"
-                onClick={() => {
-                  resetPage();
-                  setPreset(active ? null : key);
-                }}
-                aria-pressed={active}
-              >
-                {PRESET_LABELS[key]}
-              </Button>
-            );
-          })}
-        </div>
-
-        {preset && (
-          <p className="text-xs text-muted-foreground">{PRESET_HINTS[preset]}</p>
-        )}
-
-        <div className="flex flex-wrap gap-2">
-          {budget != null && (
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => {
-                resetPage();
-                setMaxValue(String(budget));
-              }}
-            >
-              Within budget ({formatMoney(budget)})
-            </Button>
-          )}
-          <Button
+          <Select
+            value={sort}
+            onValueChange={(value) => {
+              resetPage();
+              setSort(value as NonNullable<MarketSearchInput["sort"]>);
+            }}
+          >
+            <SelectTrigger aria-label="Sort" className="h-9 w-44 rounded-[10px] border-ov-control bg-transparent">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(SORT_LABELS).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <button
             type="button"
-            variant={needsOpen ? "default" : "secondary"}
-            size="sm"
+            className={`${OUTLINE} ${filtersOpen ? "border-ov-accent" : ""}`}
+            onClick={() => setFiltersOpen((open) => !open)}
+            aria-expanded={filtersOpen}
+          >
+            Filters
+            {activeFilters > 0 && (
+              <span className="ml-1.5 rounded-full bg-ov-accent px-1.5 text-[10px] font-semibold text-black">
+                {activeFilters}
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
+            className={`${OUTLINE} ${needsOpen ? "border-ov-accent" : ""}`}
             onClick={() => setNeedsOpen((open) => !open)}
             aria-expanded={needsOpen}
           >
@@ -604,36 +595,37 @@ function MarketPage() {
                 {highNeeds}
               </span>
             )}
-          </Button>
+          </button>
+          <button type="submit" className={PRIMARY}>
+            Search
+          </button>
+        </form>
 
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              resetPage();
-              setPositions([]);
-              setFocusPosition(null);
-              setMinOverall("");
-              setMaxOverall("");
-              setMinPotential("");
-              setMaxPotential("");
-              setMinAge("");
-              setMaxAge("");
-              setMinValue("");
-              setMaxValue("");
-              setMinWage("");
-              setMaxWage("");
-              setLeague("all");
-              setFoot("all");
-              setTerm("");
-              setSubmittedTerm("");
-              setPreset(null);
-            }}
-          >
-            Reset filters
-          </Button>
+        <div className="flex flex-wrap gap-1.5">
+          {(Object.keys(PRESET_LABELS) as MarketPreset[]).map((key) => {
+            const active = preset === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => {
+                  resetPage();
+                  setPreset(active ? null : key);
+                }}
+                aria-pressed={active}
+                className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                  active
+                    ? "border-ov-accent text-ov-text"
+                    : "border-ov-control text-ov-muted hover:text-ov-text"
+                }`}
+              >
+                {PRESET_LABELS[key]}
+              </button>
+            );
+          })}
         </div>
+
+        {preset && <p className="text-xs text-ov-muted">{PRESET_HINTS[preset]}</p>}
 
         {needsOpen && (
           <section className="space-y-2 rounded-lg border border-border/60 bg-card/40 p-3">
@@ -692,6 +684,25 @@ function MarketPage() {
           </section>
         )}
 
+        {filtersOpen && (
+        <div className="space-y-4 rounded-2xl border border-ov-border bg-ov-card p-5">
+        <div className="flex flex-wrap gap-2">
+          {budget != null && (
+            <button
+              type="button"
+              className={OUTLINE}
+              onClick={() => {
+                resetPage();
+                setMaxValue(String(budget));
+              }}
+            >
+              Within budget ({formatMoney(budget)})
+            </button>
+          )}
+          <button type="button" className={`${OUTLINE} border-transparent text-ov-muted`} onClick={resetAll}>
+            Reset filters
+          </button>
+        </div>
 
         <div className="flex flex-wrap gap-1.5">
           {POSITIONS.map((position) => {
@@ -839,28 +850,9 @@ function MarketPage() {
               </SelectContent>
             </Select>
           </label>
-          <label className="space-y-1 text-xs text-muted-foreground">
-            Sort
-            <Select
-              value={sort}
-              onValueChange={(value) => {
-                resetPage();
-                setSort(value as NonNullable<MarketSearchInput["sort"]>);
-              }}
-            >
-              <SelectTrigger aria-label="Sort">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(SORT_LABELS).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </label>
         </div>
+        </div>
+        )}
 
         {invalidRanges.length > 0 && (
           <p className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive">
@@ -906,7 +898,7 @@ function MarketPage() {
           )}
         </div>
 
-        <div className="space-y-2">
+        <MarketTable>
           {visiblePlayers.map((player) => (
             <PlayerRow
               key={player.id}
@@ -919,15 +911,17 @@ function MarketPage() {
             />
           ))}
           {!results.isFetching && (results.data?.players.length ?? 0) === 0 && (
-            <p className="rounded-lg border border-border/60 bg-card/40 p-6 text-center text-sm text-muted-foreground">
-              No players match your filters.
-            </p>
+            <tr>
+              <td colSpan={8} className="px-5 py-8 text-center text-sm text-ov-muted">
+                No players match your filters.
+              </td>
+            </tr>
           )}
-        </div>
+        </MarketTable>
       </TabsContent>
 
       <TabsContent value="targets" className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-3 overflow-hidden rounded-2xl border border-ov-border bg-ov-card">
           <Stat label="Number of targets" value={String(targets.data?.length ?? 0)} />
           <Stat label="Expected spend" value={formatMoney(targetSpend)} />
           <Stat
@@ -936,7 +930,7 @@ function MarketPage() {
           />
         </div>
 
-        <div className="space-y-2">
+        <MarketTable>
           {(targets.data ?? []).map((target) =>
             target.fc_players ? (
               <PlayerRow
@@ -956,11 +950,13 @@ function MarketPage() {
             ) : null,
           )}
           {(targets.data?.length ?? 0) === 0 && (
-            <p className="rounded-lg border border-border/60 bg-card/40 p-6 text-center text-sm text-muted-foreground">
-              No transfer targets yet. Click the star next to a player in the search.
-            </p>
+            <tr>
+              <td colSpan={8} className="px-5 py-8 text-center text-sm text-ov-muted">
+                No transfer targets yet. Click the star next to a player in the search.
+              </td>
+            </tr>
           )}
-        </div>
+        </MarketTable>
       </TabsContent>
 
       <SignPlayerDialog
