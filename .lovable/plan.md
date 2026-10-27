@@ -10,6 +10,7 @@ The database link keeps working quietly in the background, because it's where ea
   - The "Auto-match squad" button is removed.
   - The "Matched" sort option is removed.
   - The player detail panel loses the "Matched with… / Change match" section. It shows **POT** and a new **Start OVR** (the player's rating from the FC 26 database) next to the current OVR, with the gain (for example "+3").
+  - A small, quiet "Wrong player data?" link stays in the detail panel, so a wrong or missing link can still be fixed.
 - **Automatic background matching**: when you open the Squad or Overview page and some players are unlinked, the app links them silently in the background. If no link is found, the player just shows "–" for Start OVR, with no warning.
 - **Overview**: the "FC 26 database / Match squad" alert is removed, so "open" counts only real squad issues.
 
