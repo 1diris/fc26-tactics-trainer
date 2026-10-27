@@ -588,3 +588,32 @@ export const sellPlayer = createServerFn({ method: "POST" })
     return { ok: true, name: player.name, fee: data.fee, budget };
   });
 
+/** Per-season snapshot counts and first import date, for the Import page's snapshot list. */
+export const listSeasonSummaries = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ careerId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase
+      .from("player_snapshots")
+      .select("season_id, player_id, created_at")
+      .eq("career_id", data.careerId);
+    if (error) throw new Error(error.message);
+
+    const bySeason = new Map<string, { players: Set<string>; first: string }>();
+    for (const row of rows ?? []) {
+      const entry = bySeason.get(row.season_id) ?? {
+        players: new Set<string>(),
+        first: row.created_at as string,
+      };
+      entry.players.add(row.player_id);
+      if ((row.created_at as string) < entry.first) entry.first = row.created_at as string;
+      bySeason.set(row.season_id, entry);
+    }
+    return Object.fromEntries(
+      [...bySeason].map(([seasonId, entry]) => [
+        seasonId,
+        { players: entry.players.size, importedAt: entry.first },
+      ]),
+    ) as Record<string, { players: number; importedAt: string }>;
+  });
+
