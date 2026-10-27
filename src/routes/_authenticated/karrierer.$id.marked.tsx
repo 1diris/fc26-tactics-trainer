@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Star, StarOff, Search, Loader2, UserPlus } from "lucide-react";
 import { updateCareerSettings } from "@/lib/career.functions";
 import { contractYear, seasonStartYear } from "@/lib/squad";
@@ -986,9 +986,32 @@ function pricePerPoint(player: MarketPlayer): string | null {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-border/60 bg-card/40 p-4">
-      <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground">{label}</p>
-      <p className="mt-1 font-display text-xl font-bold">{value}</p>
+    <div className="border-l border-ov-line p-4 first:border-l-0">
+      <p className="text-xs text-ov-muted">{label}</p>
+      <p className="mt-1 font-tight text-xl font-semibold tracking-[-0.03em]">{value}</p>
+    </div>
+  );
+}
+
+function MarketTable({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-ov-border bg-ov-card">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[760px] text-sm">
+          <thead>
+            <tr className="text-left text-[11px] uppercase tracking-wider text-ov-muted">
+              <th className="px-5 py-3 font-medium">Player</th>
+              <th className="px-3 py-3 font-medium">Age</th>
+              <th className="px-3 py-3 font-medium">OVR</th>
+              <th className="px-3 py-3 font-medium">POT</th>
+              <th className="px-3 py-3 font-medium">Value</th>
+              <th className="px-3 py-3 font-medium">vs. squad</th>
+              <th className="px-5 py-3" colSpan={2} />
+            </tr>
+          </thead>
+          <tbody>{children}</tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -1010,86 +1033,115 @@ function PlayerRow({
   onSign: () => void;
   footer?: string;
 }) {
+  const [open, setOpen] = useState(false);
   return (
-    <article className="rounded-lg border border-border/60 bg-card/40 p-3">
-      <div className="flex items-start gap-3">
-        <PlayerAvatar name={player.short_name} src={player.face_url} size="md" />
-        <div className="flex flex-col items-center">
-          <span className={`font-display text-2xl font-bold leading-none ${ovrTone(player.overall)}`}>
-            {player.overall ?? "–"}
-          </span>
-          <span className="mt-0.5 text-[10px] text-muted-foreground">
-            POT {player.potential ?? "–"}
-          </span>
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="truncate font-medium">{player.short_name}</h3>
-            {player.positions.slice(0, 3).map((position) => (
-              <Badge key={position} variant="outline" className="px-1.5 py-0 text-[10px]">
-                {position}
-              </Badge>
-            ))}
-            {delta != null && delta > 0 && (
-              <span className="text-xs font-semibold text-primary">+{delta} vs. squad</span>
-            )}
-            {delta != null && delta <= 0 && (
-              <span className="text-xs text-muted-foreground">{delta} vs. squad</span>
-            )}
+    <>
+      <tr
+        className="cursor-pointer border-t border-[#141414] hover:bg-ov-line"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        <td className="px-5 py-3">
+          <div className="flex items-center gap-3">
+            <PlayerAvatar name={player.short_name} src={player.face_url} size="sm" />
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="truncate font-medium">{player.short_name}</span>
+                {player.positions.slice(0, 3).map((position) => (
+                  <span
+                    key={position}
+                    className="rounded-md border border-ov-control px-1.5 py-px text-[11px] text-ov-muted"
+                  >
+                    {position}
+                  </span>
+                ))}
+              </div>
+              <p className="truncate text-xs text-ov-muted">
+                {player.club_name ?? "No club"} · {player.league_name ?? "–"}
+              </p>
+              {footer && <p className="text-[11px] text-ov-accent">{footer}</p>}
+            </div>
           </div>
-          <p className="mt-0.5 truncate text-xs text-muted-foreground">
-            {player.age} yrs · {player.club_name ?? "No club"} · {player.league_name ?? "–"}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {formatMoney(player.value_eur == null ? null : Number(player.value_eur))} ·{" "}
-            {formatWage(player.wage_eur == null ? null : Number(player.wage_eur))} · Contract expiry{" "}
-            {player.contract_until ?? "–"} ·{" "}
-            {player.preferred_foot === "Left" ? "Left-footed" : "Right-footed"}
-          </p>
-          <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
-            {growthOf(player) > 0 && (
-              <span className="font-semibold text-primary">+{growthOf(player)} growth</span>
-            )}
-            {pricePerPoint(player) && <span>{pricePerPoint(player)} per OVR point</span>}
-            {player.release_clause_eur != null && (
-              <span>Release clause {formatMoney(Number(player.release_clause_eur))}</span>
-            )}
-            <span>PAC {player.pace ?? "–"}</span>
-            <span>SHO {player.shooting ?? "–"}</span>
-            <span>PAS {player.passing ?? "–"}</span>
-            <span>DRI {player.dribbling ?? "–"}</span>
-            <span>DEF {player.defending ?? "–"}</span>
-            <span>PHY {player.physic ?? "–"}</span>
-          </p>
-          {footer && <p className="mt-1 text-[11px] text-primary">{footer}</p>}
-        </div>
-        <div className="flex flex-col gap-1">
+        </td>
+        <td className="px-3 py-3 tabular-nums text-ov-muted">{player.age ?? "–"}</td>
+        <td className="px-3 py-3 font-tight text-[17px] font-semibold tabular-nums">
+          {player.overall ?? "–"}
+        </td>
+        <td
+          className={`px-3 py-3 font-tight font-semibold tabular-nums ${growthOf(player) > 0 ? "text-ov-accent" : "text-ov-muted"}`}
+        >
+          {player.potential ?? "–"}
+        </td>
+        <td className="px-3 py-3 tabular-nums text-ov-muted">
+          {formatMoney(player.value_eur == null ? null : Number(player.value_eur))}
+        </td>
+        <td className="px-3 py-3 tabular-nums">
+          {delta == null ? (
+            <span className="text-ov-muted">–</span>
+          ) : delta > 0 ? (
+            <span className="font-semibold text-ov-accent">+{delta}</span>
+          ) : (
+            <span className="text-ov-muted">{delta}</span>
+          )}
+        </td>
+        <td className="py-3 pl-3">
           <Button
             type="button"
             variant="ghost"
             size="icon"
             disabled={pending}
-            onClick={onToggle}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggle();
+            }}
             aria-label={isTarget ? "Remove from shortlist" : "Add to shortlist"}
           >
             {isTarget ? (
-              <Star className="h-4 w-4 fill-primary text-primary" />
+              <Star className="h-4 w-4 fill-ov-accent text-ov-accent" />
             ) : (
-              <StarOff className="h-4 w-4 text-muted-foreground" />
+              <StarOff className="h-4 w-4 text-ov-muted" />
             )}
           </Button>
-          <Button
+        </td>
+        <td className="py-3 pr-5">
+          <button
             type="button"
-            variant="ghost"
-            size="icon"
-            onClick={onSign}
-            aria-label="Sign to squad"
-            title="Sign to squad"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSign();
+            }}
+            className="inline-flex h-8 items-center gap-1.5 rounded-[10px] border border-ov-control px-3 text-xs font-medium hover:bg-ov-line"
           >
-            <UserPlus className="h-4 w-4 text-muted-foreground" />
-          </Button>
-        </div>
-      </div>
-    </article>
+            <UserPlus className="h-3.5 w-3.5" /> Sign
+          </button>
+        </td>
+      </tr>
+      {open && (
+        <tr className="bg-ov-bg/40">
+          <td colSpan={8} className="px-5 pb-4 pt-1 text-xs text-ov-muted">
+            <p>
+              {formatWage(player.wage_eur == null ? null : Number(player.wage_eur))} · Contract expiry{" "}
+              {player.contract_until ?? "–"} ·{" "}
+              {player.preferred_foot === "Left" ? "Left-footed" : "Right-footed"}
+            </p>
+            <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
+              {growthOf(player) > 0 && (
+                <span className="font-semibold text-ov-accent">+{growthOf(player)} growth</span>
+              )}
+              {pricePerPoint(player) && <span>{pricePerPoint(player)} per OVR point</span>}
+              {player.release_clause_eur != null && (
+                <span>Release clause {formatMoney(Number(player.release_clause_eur))}</span>
+              )}
+              <span>PAC {player.pace ?? "–"}</span>
+              <span>SHO {player.shooting ?? "–"}</span>
+              <span>PAS {player.passing ?? "–"}</span>
+              <span>DRI {player.dribbling ?? "–"}</span>
+              <span>DEF {player.defending ?? "–"}</span>
+              <span>PHY {player.physic ?? "–"}</span>
+            </p>
+          </td>
+        </tr>
+      )}
+    </>
   );
 }
