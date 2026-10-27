@@ -14,6 +14,16 @@
   --color-dash-card: var(--dash-card);
   --color-dash-elevated: var(--dash-elevated);
   --color-dash-border: var(--dash-border);
+  --font-tight: "Inter Tight", "Inter", sans-serif;
+  --color-ov-bg: var(--ov-bg);
+  --color-ov-card: var(--ov-card);
+  --color-ov-border: var(--ov-border);
+  --color-ov-line: var(--ov-line);
+  --color-ov-control: var(--ov-control);
+  --color-ov-muted: var(--ov-muted);
+  --color-ov-text: var(--ov-text);
+  --color-ov-accent: var(--ov-accent);
+  --color-ov-warn: var(--ov-warn);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -68,6 +78,16 @@
   --dash-card: oklch(0.185 0.004 285);
   --dash-elevated: oklch(0.215 0.004 285);
   --dash-border: oklch(0.28 0.005 285);
+  /* Overview restyle tokens */
+  --ov-bg: #000000;
+  --ov-card: #0a0a0a;
+  --ov-border: #222222;
+  --ov-line: #1a1a1a;
+  --ov-control: #2a2a2a;
+  --ov-muted: #8c8c8c;
+  --ov-text: #ffffff;
+  --ov-accent: #16a34a;
+  --ov-warn: #f5a524;
   --background: oklch(0.16 0.012 250);
   --foreground: oklch(0.95 0.005 250);
   --card: oklch(0.21 0.014 250);
