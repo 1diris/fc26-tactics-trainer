@@ -1,3 +1,4 @@
+/// <reference types="bun" />
 import { describe, expect, test } from "bun:test";
 import { getChallenge, compare, evaluate, score, currentRank, MAX_UPLOADS, MAX_IMAGES } from "./catalogue";
 const challenge = getChallenge("betis-manquepierda");
