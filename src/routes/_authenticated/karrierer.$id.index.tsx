@@ -299,180 +299,198 @@ function CareerOverview() {
     .sort((a, b) => (b.potential_max ?? b.overall ?? 0) - (a.potential_max ?? a.overall ?? 0))
     .slice(0, 5);
 
+  const recSplit = recommendation.indexOf(". ");
+  const recTitle = topNeed
+    ? recommendation.slice(0, recSplit)
+    : "Squad is well covered";
+  const recBody = topNeed ? recommendation.slice(recSplit + 2) : recommendation;
+
+  const openAlerts = alerts.filter((alert) => alert.tone !== "success").length;
+  const ageNote =
+    avgAge == null ? null : avgAge < 25 ? "Young squad" : avgAge > 29 ? "Ageing squad" : null;
+  const topOvr = topPlayers[0]?.current?.overall ?? null;
+
+  const stats: { label: string; value: string; note?: string | null; noteTone?: "good" | "muted" }[] = [
+    { label: "Players", value: String(rows.length) },
+    {
+      label: "Avg. OVR",
+      value: avgOvr ? avgOvr.toFixed(1) : "–",
+      note:
+        ovrTrend != null && Math.abs(ovrTrend) >= 0.05
+          ? `${ovrTrend > 0 ? "+" : ""}${ovrTrend.toFixed(1)} from season start`
+          : null,
+      noteTone: ovrTrend != null && ovrTrend > 0 ? "good" : "muted",
+    },
+    { label: "Avg. POT", value: avgPot ? avgPot.toFixed(1) : "–" },
+    {
+      label: "Avg. age",
+      value: avgAge ? avgAge.toFixed(1) : "–",
+      note: ageNote,
+      noteTone: ageNote === "Young squad" ? "good" : "muted",
+    },
+    {
+      label: "Squad value",
+      value: formatMoney(totalValue || null),
+      note:
+        valueTrend != null && Math.abs(valueTrend) > 0
+          ? `${valueTrend > 0 ? "+" : "-"}${formatMoney(Math.abs(valueTrend))} since start`
+          : null,
+      noteTone: valueTrend != null && valueTrend > 0 ? "good" : "muted",
+    },
+    { label: "Wages / week", value: formatMoney(wageTotal || null) },
+  ];
+
   return (
-    <div className="space-y-8 pb-24 lg:pb-8">
-      <h1 className="flex items-center gap-2 text-2xl font-bold tracking-wide text-lime-400">
-        <LayoutGrid className="h-6 w-6 text-lime-400" />
-        Overview
-      </h1>
-
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
-        <Kpi value={String(rows.length)} label="Players" hint="in squad" icon={Users} />
-        <Kpi
-          value={avgOvr ? avgOvr.toFixed(1) : "–"}
-          label="Avg. OVR"
-          hint={
-            ovrTrend != null && Math.abs(ovrTrend) >= 0.05
-              ? `${ovrTrend > 0 ? "+" : ""}${ovrTrend.toFixed(1)} from season start`
-              : null
-          }
-          hintTone={ovrTrend != null && ovrTrend > 0 ? "good" : "muted"}
-          edge={ovrTrend != null && ovrTrend > 0 ? "good" : null}
-          icon={Star}
-        />
-        <Kpi
-          value={avgPot ? avgPot.toFixed(1) : "–"}
-          label="Avg. POT"
-          hint="average ceiling"
-          icon={TrendingUp}
-        />
-        <Kpi
-          value={avgAge ? avgAge.toFixed(1) : "–"}
-          label="Avg. Age"
-          hint={
-            avgAge == null
-              ? null
-              : avgAge < 25
-                ? "yrs · young squad"
-                : avgAge > 29
-                  ? "yrs · ageing squad"
-                  : "yrs · balanced squad"
-          }
-          hintTone={avgAge != null && avgAge < 25 ? "good" : avgAge != null && avgAge > 29 ? "warn" : "muted"}
-          edge={avgAge != null && avgAge < 25 ? "good" : avgAge != null && avgAge > 29 ? "warn" : null}
-          icon={CalendarDays}
-        />
-        <Kpi
-          value={formatMoney(totalValue || null)}
-          label="Squad Value"
-          hint={
-            valueTrend != null && Math.abs(valueTrend) > 0
-              ? `${valueTrend > 0 ? "+" : "-"}${formatMoney(Math.abs(valueTrend))} since start`
-              : null
-          }
-          hintTone={valueTrend != null && valueTrend > 0 ? "good" : "muted"}
-          edge={valueTrend != null && valueTrend > 0 ? "good" : null}
-          icon={Coins}
-        />
-        <Kpi
-          value={formatMoney(wageTotal || null)}
-          label="Wage/Week"
-          hint="total weekly wages"
-          icon={Banknote}
-        />
-      </section>
-
-      <section className="rounded-xl border border-primary/40 bg-primary/[0.06] p-5">
-        <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
-          <div className="flex min-w-0 gap-3">
-            <Lightbulb className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden />
-            <div className="min-w-0">
-              <h2 className="font-display text-base font-semibold text-primary">
-                Career Chronicles recommends
-              </h2>
-              <p className="mt-1 font-body text-sm leading-relaxed text-foreground/90">
-                {recommendation}
-              </p>
-            </div>
-          </div>
-          {topNeed && (
-            <Button asChild variant="outline" className="border-primary/50 text-primary hover:bg-primary/10">
-              <Link
-                to="/karrierer/$id/marked"
-                params={{ id }}
-                search={{ position: topNeed.position }}
-              >
-                Find {topNeed.position}
-              </Link>
-            </Button>
-          )}
-        </div>
-      </section>
-
-      <div className="grid gap-6 xl:grid-cols-2">
-        <Card>
-          <SectionTitle
-            action={
-              <Link
-                to="/karrierer/$id/trup"
-                params={{ id }}
-                className="font-body text-xs text-muted-foreground hover:text-primary"
-              >
-                See full squad <ArrowRight className="inline h-3 w-3" aria-hidden />
-              </Link>
-            }
+    <div className="space-y-6 pb-24 font-body text-ov-text lg:pb-8">
+      <section className="grid grid-cols-2 overflow-hidden rounded-2xl border border-ov-border bg-ov-card sm:grid-cols-3 xl:grid-cols-6">
+        {stats.map((stat, index) => (
+          <div
+            key={stat.label}
+            className={[
+              "border-ov-border px-6 py-6",
+              index % 2 === 1 ? "border-l" : "",
+              index >= 2 ? "border-t sm:border-t-0" : "",
+              "sm:border-l-0",
+              index % 3 !== 0 ? "sm:border-l" : "",
+              index >= 3 ? "sm:border-t xl:border-t-0" : "",
+              index > 0 ? "xl:border-l" : "xl:border-l-0",
+            ].join(" ")}
           >
-            Top Players
-          </SectionTitle>
-          <ul className="divide-y divide-dash-border">
-            {topPlayers.map((row, index) => (
-              <li key={row.player.id} className="flex items-center gap-3 py-2.5">
-                <span className="w-4 shrink-0 font-stat text-xs text-muted-foreground">
-                  {index + 1}
-                </span>
-                <PlayerAvatar name={row.player.name} src={row.fc?.face_url ?? null} size="sm" />
-                <div className="min-w-0 flex-1">
-                  <Link
-                    to="/karrierer/$id/spiller/$playerId"
-                    params={{ id, playerId: row.player.id }}
-                    className="block truncate font-body text-sm font-medium hover:text-primary"
-                  >
-                    {row.player.name}
-                  </Link>
-                  <span className="mt-1 flex gap-1">
-                    <PosBadge position={row.position} />
-                  </span>
-                </div>
-                <div className="shrink-0 text-right">
-                  <p className="stat-number text-base font-semibold text-primary">
-                    {row.current?.overall ?? "–"}
-                  </p>
-                  <p className="font-stat text-[11px] text-muted-foreground">
-                    POT {row.potential ?? row.current?.potential ?? "–"}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </Card>
+            <p className="text-[13px] text-ov-muted">{stat.label}</p>
+            <p className="mt-2 font-tight text-3xl font-bold tracking-[-0.03em] sm:text-[34px] sm:leading-none">
+              {stat.value}
+            </p>
+            {stat.note && (
+              <p className={`mt-2 text-xs ${stat.noteTone === "good" ? "text-ov-accent" : "text-ov-muted"}`}>
+                {stat.note}
+              </p>
+            )}
+          </div>
+        ))}
+      </section>
 
-        <Card>
-          <SectionTitle>Alerts</SectionTitle>
-          <ul className="space-y-2.5">
+      <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-ov-border bg-ov-card px-6 py-[22px]">
+        <div className="flex min-w-0 flex-1 gap-3">
+          <Lightbulb className="mt-0.5 h-5 w-5 shrink-0 text-ov-accent" aria-hidden />
+          <div className="min-w-0">
+            <h2 className="text-[15px] font-semibold">{recTitle}</h2>
+            <p className="mt-1 text-sm leading-relaxed text-ov-muted">{recBody}</p>
+          </div>
+        </div>
+        {topNeed && (
+          <Link
+            to="/karrierer/$id/marked"
+            params={{ id }}
+            search={{ position: topNeed.position }}
+            className="inline-flex h-11 shrink-0 items-center rounded-[10px] bg-ov-accent px-5 text-sm font-semibold text-ov-bg transition-opacity hover:opacity-90"
+          >
+            Find {topNeed.position}
+          </Link>
+        )}
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-[1.25fr_1fr] lg:items-start">
+        <section className="overflow-hidden rounded-2xl border border-ov-border bg-ov-card">
+          <div className="flex items-center justify-between gap-3 border-b border-ov-line px-6 py-5">
+            <h2 className="font-tight text-lg font-semibold tracking-[-0.03em]">Top players</h2>
+            <Link
+              to="/karrierer/$id/trup"
+              params={{ id }}
+              className="text-sm text-ov-muted hover:text-ov-text"
+            >
+              See full squad <ArrowRight className="inline h-3.5 w-3.5" aria-hidden />
+            </Link>
+          </div>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-ov-line text-xs text-ov-muted">
+                <th className="w-12 py-3 pl-6 text-left font-normal">#</th>
+                <th className="py-3 text-left font-normal">Player</th>
+                <th className="w-16 py-3 text-right font-normal">OVR</th>
+                <th className="w-16 py-3 pr-6 text-right font-normal">POT</th>
+              </tr>
+            </thead>
+            <tbody>
+              {topPlayers.map((row, index) => {
+                const ovr = row.current?.overall ?? null;
+                const pot = row.potential ?? row.current?.potential ?? null;
+                return (
+                  <tr key={row.player.id} className="border-b border-ov-line last:border-b-0">
+                    <td className="py-4 pl-6 text-ov-muted">{index + 1}</td>
+                    <td className="py-4">
+                      <span className="flex min-w-0 items-center gap-2">
+                        <Link
+                          to="/karrierer/$id/spiller/$playerId"
+                          params={{ id, playerId: row.player.id }}
+                          className="truncate font-medium hover:text-ov-accent"
+                        >
+                          {row.player.name}
+                        </Link>
+                        <PosBadge position={row.position} />
+                      </span>
+                    </td>
+                    <td
+                      className={`py-4 text-right font-tight text-lg font-semibold ${
+                        ovr != null && topOvr != null && ovr >= topOvr - 1 ? "text-ov-accent" : ""
+                      }`}
+                    >
+                      {ovr ?? "–"}
+                    </td>
+                    <td className="py-4 pr-6 text-right text-ov-muted">{pot ?? "–"}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </section>
+
+        <section className="overflow-hidden rounded-2xl border border-ov-border bg-ov-card">
+          <div className="flex items-center justify-between gap-3 border-b border-ov-line px-6 py-5">
+            <h2 className="font-tight text-lg font-semibold tracking-[-0.03em]">Alerts</h2>
+            <span className="text-sm text-ov-muted">{openAlerts} open</span>
+          </div>
+          <ul>
             {alerts.map((alert, index) => {
-              const Icon = alertIcon[alert.tone];
+              const isDb = alert.title === "FC 26";
+              const title = isDb ? "FC 26 database" : `${alert.title} · ${alert.text}`;
+              const detail = isDb ? alert.text : alertDetail(alert.title, alert.text);
               return (
                 <li
                   key={`${alert.title}-${index}`}
-                  className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg border p-3 ${alertTone[alert.tone]}`}
+                  className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-ov-line px-6 py-5 last:border-b-0"
                 >
-                  <div className="flex min-w-0 items-center gap-2.5">
-                    <Icon className={`h-4 w-4 shrink-0 ${alertText[alert.tone]}`} aria-hidden />
-                    <p className="min-w-0 font-body text-sm">
-                      <span className={`font-semibold ${alertText[alert.tone]}`}>{alert.title}</span>
-                      <span className="text-muted-foreground"> · {alert.text}</span>
-                    </p>
+                  <div className="flex min-w-0 items-start gap-3">
+                    <span
+                      className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${isDb ? "bg-ov-muted" : "bg-ov-warn"}`}
+                    />
+                    <div className="min-w-0">
+                      <p className="truncate text-[15px] font-semibold">{title}</p>
+                      <p className="mt-0.5 text-[13px] text-ov-muted">{detail}</p>
+                    </div>
                   </div>
-                  <Button asChild size="sm" variant="outline" className="shrink-0">
-                    {alert.action.search ? (
-                      <Link
-                        to="/karrierer/$id/marked"
-                        params={{ id }}
-                        search={{ position: alert.action.search["position"] ?? "" }}
-                      >
-                        {alert.action.label}
-                      </Link>
-                    ) : (
-                      <Link to="/karrierer/$id/trup" params={{ id }}>
-                        {alert.action.label}
-                      </Link>
-                    )}
-                  </Button>
+                  {alert.action.search ? (
+                    <Link
+                      to="/karrierer/$id/marked"
+                      params={{ id }}
+                      search={{ position: alert.action.search["position"] ?? "" }}
+                      className={OUTLINE_BTN}
+                    >
+                      {alert.action.label}
+                    </Link>
+                  ) : (
+                    <Link to="/karrierer/$id/trup" params={{ id }} className={OUTLINE_BTN}>
+                      {alert.action.label}
+                    </Link>
+                  )}
                 </li>
               );
             })}
           </ul>
-        </Card>
+        </section>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
+
 
         <Card>
           <SectionTitle>Squad Distribution</SectionTitle>
