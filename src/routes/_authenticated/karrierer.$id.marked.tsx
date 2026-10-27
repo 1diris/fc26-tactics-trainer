@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tansta
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { Star, StarOff, Search, Loader2, UserPlus } from "lucide-react";
-import { updateCareer } from "@/lib/career.functions";
+import { updateCareerSettings } from "@/lib/career.functions";
 import { contractYear, seasonStartYear } from "@/lib/squad";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -159,7 +159,7 @@ function MarketPage() {
   const { position: searchPosition } = Route.useSearch();
   const { data: career } = useSuspenseQuery(careerDataQuery(id));
   const queryClient = useQueryClient();
-  const updateCareerFn = useServerFn(updateCareer);
+  const updateCareerFn = useServerFn(updateCareerSettings);
 
   const [term, setTerm] = useState("");
   const [submittedTerm, setSubmittedTerm] = useState("");
