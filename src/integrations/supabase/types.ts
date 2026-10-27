@@ -652,6 +652,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      change_challenge_progress: {
+        Args: {
+          p_action: string
+          p_challenge_id: string
+          p_completed?: boolean
+          p_delta?: number
+          p_goal_id?: string
+          p_source?: string
+        }
+        Returns: undefined
+      }
       fc_league_names: {
         Args: never
         Returns: {
