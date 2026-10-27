@@ -1,3 +1,4 @@
+import type { ErrorComponentProps } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -37,7 +38,7 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
@@ -101,11 +102,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         rel: "preload",
         as: "style",
-        href: "https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Archivo:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Archivo:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Inter+Tight:wght@600;700&family=DM+Mono:wght@400;500&display=swap",
       },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Archivo:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Archivo:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Inter+Tight:wght@600;700&family=DM+Mono:wght@400;500&display=swap",
         media: "print",
         "data-font-css": "true",
       } as unknown as { rel: string },
