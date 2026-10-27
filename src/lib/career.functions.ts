@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import type { Json } from "@/integrations/supabase/types";
 import { findMatchingPlayerIndex } from "@/lib/player-matching";
