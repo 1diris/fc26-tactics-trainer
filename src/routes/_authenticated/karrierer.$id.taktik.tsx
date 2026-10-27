@@ -390,116 +390,291 @@ function TacticsPage() {
     toast.success(`Tactic imported (${nextShape.name})`);
   }
 
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="flex items-center gap-2 text-2xl font-bold tracking-wide text-lime-400">
-          <Target className="h-6 w-6 text-lime-400" />
-          Tactics
-        </h1>
+  // --- Depth chart + recommendation (derived, nothing stored) ---
+  const depthRows = shape.slots.map((slot) => {
+    const row = lineup[slot.id] ? rowById.get(lineup[slot.id]!) : undefined;
+    const backups = bench.filter((b) => positionFit(slot.position, b.position) !== "out").length;
+    return { slot, row, ovr: row?.current?.overall ?? null, backups };
+  });
+  const topXiOvr = Math.max(0, ...depthRows.map((d) => d.ovr ?? 0));
+  const filledOvrs = depthRows.map((d) => d.ovr).filter((v): v is number => v !== null);
+  const lowestXiOvr = filledOvrs.length ? Math.min(...filledOvrs) : null;
+  const hintSlots = new Set(hints.map((h) => h.slotId));
+  const weakSlotIds = new Set(
+    depthRows
+      .filter(
+        (d) =>
+          d.row &&
+          (hintSlots.has(d.slot.id) ||
+            positionFit(d.slot.position, d.row.position) === "out" ||
+            (d.ovr !== null && d.ovr === lowestXiOvr && lowestXiOvr < topXiOvr)),
+      )
+      .map((d) => d.slot.id),
+  );
+  const lineName = (pos: string) => {
+    if (["RB", "LB", "RWB", "LWB"].includes(pos)) return { plural: "Full backs", short: "full backs" };
+    if (pos === "CB") return { plural: "Centre backs", short: "centre backs" };
+    if (pos === "GK") return { plural: "Goalkeepers", short: "goalkeepers" };
+    if (["CDM", "CM", "CAM"].includes(pos)) return { plural: "Central midfielders", short: "midfielders" };
+    if (["RW", "LW", "RM", "LM"].includes(pos)) return { plural: "Wingers", short: "wingers" };
+    return { plural: "Strikers", short: "strikers" };
+  };
+  const recTarget =
+    [...depthRows].filter((d) => d.row).sort((a, b) => a.backups - b.backups || (a.ovr ?? 0) - (b.ovr ?? 0))[0] ??
+    null;
+  const recLine = recTarget ? lineName(recTarget.slot.position) : null;
+  const pitchNodes = nodes.map((n) => ({
+    ...n,
+    tone: !n.playerId
+      ? ("normal" as const)
+      : weakSlotIds.has(n.id)
+        ? ("weak" as const)
+        : n.overall !== null && n.overall === topXiOvr
+          ? ("top" as const)
+          : ("normal" as const),
+  }));
+  const PRIORITY = ["4-3-3", "4-2-3-1", "4-4-2", "3-5-2"];
+  const formationOptions = [
+    ...PRIORITY.filter((n) => FORMATIONS.some((f) => f.name === n)),
+    ...FORMATIONS.map((f) => f.name).filter((n) => !PRIORITY.includes(n)),
+  ];
+  const CARD = "rounded-2xl border border-ov-border bg-ov-card p-5";
+  const SECONDARY =
+    "inline-flex h-10 items-center justify-center rounded-[10px] border border-ov-control px-3 text-sm text-ov-text transition hover:bg-[#111] disabled:opacity-40";
+  const PRIMARY =
+    "inline-flex h-10 items-center justify-center rounded-[10px] bg-ov-accent px-4 text-sm font-semibold text-black transition hover:opacity-90 disabled:opacity-50";
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Select value={tacticName} onValueChange={setTacticName}>
-            <SelectTrigger
-              className="h-9 w-44 border-zinc-800 bg-zinc-950"
-              aria-label="Select tactic"
-            >
-              <SelectValue placeholder="Standard" />
+  return (
+    <div className="space-y-6 font-body text-ov-text">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="font-tight text-[32px] font-bold leading-tight tracking-[-0.03em]">Tactics</h1>
+          <p className="mt-1 text-sm text-ov-muted">Best XI picked by OVR from your squad</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-ov-muted">Formation</span>
+          <Select
+            value={formation}
+            onValueChange={(value) => {
+              setFormation(value);
+              setSuggestion(null);
+              setActiveSlot(null);
+            }}
+          >
+            <SelectTrigger className="h-10 w-36 rounded-[10px] border-ov-border bg-ov-card" aria-label="Select formation">
+              <SelectValue />
             </SelectTrigger>
-            <SelectContent className="border-zinc-800 bg-zinc-950">
-              {(tacticList.length > 0
-                ? tacticList.map((item) => item.name)
-                : [tacticName]
-              ).map((name) => (
+            <SelectContent className="border-ov-border bg-ov-card">
+              {formationOptions.map((name) => (
                 <SelectItem key={name} value={name}>
                   {name}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <Button
-            variant="secondary"
-            onClick={() => {
-              setNewName("");
-              setNameDialog("new");
-            }}
-          >
-            Save as new
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={() => {
-              setRenameName(tacticName);
-              setNameDialog("rename");
-            }}
-            disabled={!activeTactic}
-          >
-            Rename
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={() => deleteMutation.mutate()}
-            disabled={!activeTactic || tacticList.length <= 1 || deleteMutation.isPending}
-          >
-            Delete
-          </Button>
-          <Button variant="secondary" onClick={autoFill} disabled={rows.length === 0}>
-            Suggest lineup
-          </Button>
-          <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
-            {saveMutation.isPending ? "Saving…" : "Save tactics"}
-          </Button>
         </div>
       </div>
 
-      {nameDialog !== "none" && (
-        <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-900 p-3">
-          <span className="text-sm text-zinc-300">
-            {nameDialog === "new" ? "Name for the new tactic" : "New name for this tactic"}
-          </span>
-          <Input
-            autoFocus
-            value={nameDialog === "new" ? newName : renameName}
-            onChange={(event) =>
-              nameDialog === "new"
-                ? setNewName(event.target.value)
-                : setRenameName(event.target.value)
-            }
-            placeholder="e.g. Home – high press"
-            className="h-9 w-56 border-zinc-800 bg-zinc-950"
-          />
-          <Button
-            onClick={() => {
-              const value = (nameDialog === "new" ? newName : renameName).trim();
-              if (!value) {
-                toast.error("Enter a name");
-                return;
-              }
-              if (nameDialog === "new") saveAsMutation.mutate(value);
-              else renameMutation.mutate(value);
-            }}
-            disabled={saveAsMutation.isPending || renameMutation.isPending}
-          >
-            {nameDialog === "new" ? "Save" : "Rename"}
-          </Button>
-          <Button variant="ghost" onClick={() => setNameDialog("none")}>
-            Cancel
-          </Button>
-        </div>
-      )}
-
       {rows.length === 0 && (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4 text-sm text-zinc-400">
+        <div className={`${CARD} text-sm text-ov-muted`}>
           Import your squad first, then you can place the players on the pitch.
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <section className="lg:col-span-7">
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
-            <h3 className="text-sm font-semibold text-zinc-200">Team overview</h3>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.1fr_1fr]">
+        <section className={CARD}>
+          <PitchView
+            nodes={pitchNodes}
+            selectedId={activeSlot}
+            onSelect={(slotId) => {
+              setActiveSlot(slotId);
+              setTab("player");
+            }}
+            onDropOnSlot={handleDropOnSlot}
+          />
+          <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-ov-muted">
+            <span className="flex items-center gap-1.5">
+              <i className="h-2.5 w-2.5 rounded-full border-2 border-ov-accent" /> Top rated
+            </span>
+            <span className="flex items-center gap-1.5">
+              <i className="h-2.5 w-2.5 rounded-full border-2 border-ov-warn" /> Weak spot
+            </span>
+            <span className="flex items-center gap-1.5">
+              <i className="h-2.5 w-2.5 rounded-full border-2 border-[#3a3a3a]" /> Normal
+            </span>
+            <span className="ml-auto">Click or drag a slot to edit</span>
+          </div>
+        </section>
 
-            <div className="mt-3 grid grid-cols-3 gap-2">
+        <div className="space-y-6">
+          <section className={`${CARD} p-0`}>
+            <h3 className="px-5 pb-3 pt-5 font-tight text-base font-semibold tracking-[-0.03em]">Depth chart</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[420px] text-sm">
+                <thead>
+                  <tr className="border-y border-ov-line text-xs text-ov-muted">
+                    <th className="px-5 py-2.5 text-left font-medium">Pos</th>
+                    <th className="px-2 py-2.5 text-left font-medium">Starter</th>
+                    <th className="px-2 py-2.5 text-right font-medium">OVR</th>
+                    <th className="px-5 py-2.5 text-right font-medium">Backups</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {depthRows.map((d) => (
+                    <tr
+                      key={d.slot.id}
+                      onClick={() => {
+                        setActiveSlot(d.slot.id);
+                        setTab("player");
+                      }}
+                      className="cursor-pointer border-t border-[#141414] first:border-0 hover:bg-[#111]"
+                    >
+                      <td className="px-5 py-2.5">
+                        <span className="rounded-md border border-ov-control px-1.5 py-0.5 text-[11px] text-ov-muted">
+                          {d.slot.position}
+                        </span>
+                      </td>
+                      <td className="px-2 py-2.5">{d.row?.player.name ?? <span className="text-ov-muted">Empty</span>}</td>
+                      <td
+                        className={`px-2 py-2.5 text-right font-tight font-semibold tabular-nums ${
+                          d.ovr !== null && d.ovr === topXiOvr ? "text-ov-accent" : ""
+                        }`}
+                      >
+                        {d.ovr ?? "–"}
+                      </td>
+                      <td className="px-5 py-2.5 text-right tabular-nums text-ov-muted">
+                        <span className="inline-flex items-center gap-2">
+                          {d.backups === 0 && <span className="h-1.5 w-1.5 rounded-full bg-ov-warn" />}
+                          {d.backups}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          {recTarget && recLine && (
+            <section className={CARD}>
+              <p className="font-tight text-lg font-semibold tracking-[-0.03em]">
+                {recLine.plural} are your weak spot
+              </p>
+              <p className="mt-1.5 text-sm text-ov-muted">
+                {recTarget.backups === 0
+                  ? `No backup for ${recTarget.slot.position} on the bench — an injury leaves a hole in the XI.`
+                  : `${recTarget.row?.player.name} at ${recTarget.slot.position} (${recTarget.ovr ?? "–"} OVR) is among the weakest in your XI with only ${recTarget.backups} backup${recTarget.backups === 1 ? "" : "s"}.`}
+              </p>
+              <Link
+                to="/karrierer/$id/marked"
+                params={{ id }}
+                search={{ position: recTarget.slot.position } as never}
+                className={`${PRIMARY} mt-4`}
+              >
+                Find {recLine.short}
+              </Link>
+            </section>
+          )}
+        </div>
+      </div>
+
+      {/* Saved tactics */}
+      <div className={`${CARD} flex flex-wrap items-center gap-2`}>
+        <Select value={tacticName} onValueChange={setTacticName}>
+          <SelectTrigger className="h-10 w-44 rounded-[10px] border-ov-border bg-ov-bg" aria-label="Select tactic">
+            <SelectValue placeholder="Standard" />
+          </SelectTrigger>
+          <SelectContent className="border-ov-border bg-ov-card">
+            {(tacticList.length > 0 ? tacticList.map((item) => item.name) : [tacticName]).map((name) => (
+              <SelectItem key={name} value={name}>
+                {name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <button
+          type="button"
+          className={SECONDARY}
+          onClick={() => {
+            setNewName("");
+            setNameDialog("new");
+          }}
+        >
+          Save as new
+        </button>
+        <button
+          type="button"
+          className={SECONDARY}
+          onClick={() => {
+            setRenameName(tacticName);
+            setNameDialog("rename");
+          }}
+          disabled={!activeTactic}
+        >
+          Rename
+        </button>
+        <button
+          type="button"
+          className={SECONDARY}
+          onClick={() => deleteMutation.mutate()}
+          disabled={!activeTactic || tacticList.length <= 1 || deleteMutation.isPending}
+        >
+          Delete
+        </button>
+        <button type="button" className={SECONDARY} onClick={autoFill} disabled={rows.length === 0}>
+          Suggest lineup
+        </button>
+        <button
+          type="button"
+          className={`${PRIMARY} ml-auto`}
+          onClick={() => saveMutation.mutate()}
+          disabled={saveMutation.isPending}
+        >
+          {saveMutation.isPending ? "Saving…" : "Save tactics"}
+        </button>
+
+        {nameDialog !== "none" && (
+          <div className="flex w-full flex-wrap items-center gap-2 border-t border-ov-line pt-3">
+            <span className="text-sm text-ov-muted">
+              {nameDialog === "new" ? "Name for the new tactic" : "New name for this tactic"}
+            </span>
+            <Input
+              autoFocus
+              value={nameDialog === "new" ? newName : renameName}
+              onChange={(event) =>
+                nameDialog === "new" ? setNewName(event.target.value) : setRenameName(event.target.value)
+              }
+              placeholder="e.g. Home – high press"
+              className="h-10 w-56 rounded-[10px] border-ov-border bg-ov-bg"
+            />
+            <button
+              type="button"
+              className={PRIMARY}
+              onClick={() => {
+                const value = (nameDialog === "new" ? newName : renameName).trim();
+                if (!value) {
+                  toast.error("Enter a name");
+                  return;
+                }
+                if (nameDialog === "new") saveAsMutation.mutate(value);
+                else renameMutation.mutate(value);
+              }}
+              disabled={saveAsMutation.isPending || renameMutation.isPending}
+            >
+              {nameDialog === "new" ? "Save" : "Rename"}
+            </button>
+            <button type="button" className={SECONDARY} onClick={() => setNameDialog("none")}>
+              Cancel
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <section className="space-y-6 lg:col-span-7">
+          <div className={CARD}>
+            <h3 className="font-tight text-base font-semibold tracking-[-0.03em]">Team overview</h3>
+            <div className="mt-4 grid grid-cols-3 gap-3">
               {(
                 [
                   ["DEFENCE", lineAverages.defense],
@@ -507,50 +682,43 @@ function TacticsPage() {
                   ["ATTACK", lineAverages.attack],
                 ] as const
               ).map(([label, value]) => (
-                <div
-                  key={label}
-                  className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-3 text-center"
-                >
-                  <p className="font-display text-[11px] uppercase tracking-widest text-zinc-400">
-                    {label}
-                  </p>
-                  <p className="font-display text-3xl font-bold leading-tight text-lime-400">
+                <div key={label} className="rounded-xl border border-ov-border bg-ov-bg px-3 py-3 text-center">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ov-muted">{label}</p>
+                  <p className="font-tight text-3xl font-bold tracking-[-0.03em]">
                     {typeof value === "number" ? Math.round(value) : "–"}
                   </p>
                 </div>
               ))}
             </div>
-
-            <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-5">
               {(
                 [
                   ["GK", lineAverages.gk],
+                  ["Avg OVR", avgOvr],
                   ["Avg age", avgAge],
-                  ["Empty slots", emptySlots],
+                  ["Filled", `${filled}/11`],
                   ["Out of pos.", outOfPosition],
                 ] as const
               ).map(([label, value]) => (
-                <div
-                  key={label}
-                  className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-center"
-                >
-                  <p className="text-[10px] uppercase tracking-widest text-zinc-500">{label}</p>
-                  <p className="font-display text-xl font-bold text-lime-400">{value ?? "–"}</p>
+                <div key={label} className="rounded-xl border border-ov-border bg-ov-bg px-3 py-2 text-center">
+                  <p className="text-[10px] uppercase tracking-[0.12em] text-ov-muted">{label}</p>
+                  <p className="font-tight text-xl font-semibold">{value ?? "–"}</p>
                 </div>
               ))}
             </div>
-
+            {emptySlots > 0 && <p className="mt-3 text-xs text-ov-muted">{emptySlots} empty slot(s)</p>}
             {hints.length > 0 && (
-              <ul className="mt-3 space-y-1 rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-[11px] text-zinc-300">
+              <ul className="mt-4 space-y-1.5 border-t border-ov-line pt-3 text-xs text-ov-muted">
                 {hints.map((hint) => (
-                  <li key={hint.slotId}>
+                  <li key={hint.slotId} className="flex items-start gap-2">
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-ov-warn" />
                     <button
                       type="button"
                       onClick={() => {
                         setActiveSlot(hint.slotId);
                         setTab("player");
                       }}
-                      className="w-full text-left underline-offset-2 hover:text-lime-300 hover:underline"
+                      className="text-left hover:text-ov-text hover:underline"
                     >
                       {hint.text}
                     </button>
@@ -560,90 +728,31 @@ function TacticsPage() {
             )}
           </div>
 
-          <div className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h3 className="flex items-center gap-2 text-sm font-semibold text-zinc-200">
-                <Users className="h-4 w-4 text-lime-400" /> Lineup
-              </h3>
-              <div className="flex flex-wrap items-center gap-2 text-[11px] text-zinc-400">
-                <span className="rounded-full border border-zinc-800 bg-zinc-950 px-2 py-0.5">
-                  {formation}
-                </span>
-                <span className="rounded-full border border-zinc-800 bg-zinc-950 px-2 py-0.5">
-                  Avg OVR <strong className="text-lime-400">{avgOvr ?? "–"}</strong>
-                </span>
-                <span className="rounded-full border border-zinc-800 bg-zinc-950 px-2 py-0.5">
-                  <Shield className="mr-1 inline h-3 w-3" /> Filled {filled}/11
-                </span>
-                <span className="rounded-full border border-zinc-800 bg-zinc-950 px-2 py-0.5">
-                  <Target className="mr-1 inline h-3 w-3" /> Out of pos. {outOfPosition}
-                </span>
-              </div>
-            </div>
-
-            <PitchView
-              nodes={nodes}
-              selectedId={activeSlot}
-              onSelect={(slotId) => {
-                setActiveSlot(slotId);
-                setTab("player");
-              }}
-              onDropOnSlot={handleDropOnSlot}
-            />
-
-            <div className="mt-3 flex flex-wrap gap-3 text-[11px] text-zinc-400">
-              <span className="flex items-center gap-1">
-                <i className="h-2 w-2 rounded-full bg-lime-400" /> Natural
-              </span>
-              <span className="flex items-center gap-1">
-                <i className="h-2 w-2 rounded-full bg-amber-400" /> Can play
-              </span>
-              <span className="flex items-center gap-1">
-                <i className="h-2 w-2 rounded-full bg-red-500" /> Out of position
-              </span>
-              <span className="ml-auto">Click a slot to edit</span>
-            </div>
-
-          </div>
-
           {suggestion && (
-            <div className="mt-4 space-y-3 rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
+            <div className={`${CARD} space-y-3`}>
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
-                  <h3 className="font-display text-sm font-semibold text-zinc-100">
-                    Recommended starting XI ({shape.name})
-                  </h3>
-                  <p className="text-xs text-zinc-400">
-                    Your strongest lineup based on the current squad.
-                  </p>
+                  <h3 className="font-tight text-base font-semibold">Recommended starting XI ({shape.name})</h3>
+                  <p className="text-xs text-ov-muted">Your strongest lineup based on the current squad.</p>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => setSuggestion(null)}>
+                <button type="button" className={SECONDARY} onClick={() => setSuggestion(null)}>
                   Hide
-                </Button>
+                </button>
               </div>
-
-              <div className="flex flex-wrap gap-4 text-xs text-zinc-400">
-                <span>
-                  Total OVR: <strong className="text-zinc-100">{suggestion.totalOvr}</strong>
-                </span>
-                <span>
-                  Avg OVR: <strong className="text-zinc-100">{suggestion.avgOvr ?? "–"}</strong>
-                </span>
-                <span>
-                  Natural: <strong className="text-lime-400">{suggestion.naturalCount}</strong>
-                </span>
-                <span>
-                  Secondary: <strong className="text-amber-400">{suggestion.okCount}</strong>
-                </span>
-                <span>
-                  Out of position: <strong className="text-red-400">{suggestion.outCount}</strong>
-                </span>
+              <div className="flex flex-wrap gap-4 text-xs text-ov-muted">
+                <span>Total OVR: <strong className="text-ov-text">{suggestion.totalOvr}</strong></span>
+                <span>Avg OVR: <strong className="text-ov-text">{suggestion.avgOvr ?? "–"}</strong></span>
+                <span>Natural: <strong className="text-ov-text">{suggestion.naturalCount}</strong></span>
+                <span>Secondary: <strong className="text-ov-text">{suggestion.okCount}</strong></span>
+                <span>Out of position: <strong className="text-ov-text">{suggestion.outCount}</strong></span>
               </div>
-
               {suggestion.reasons.length > 0 && (
-                <ul className="list-disc space-y-1 rounded-xl border border-red-500/30 bg-red-500/10 p-3 pl-6 text-xs text-zinc-300">
+                <ul className="space-y-1 border-t border-ov-line pt-3 text-xs text-ov-muted">
                   {suggestion.reasons.map((reason) => (
-                    <li key={reason}>{reason}</li>
+                    <li key={reason} className="flex items-start gap-2">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-ov-warn" />
+                      {reason}
+                    </li>
                   ))}
                 </ul>
               )}
@@ -651,7 +760,7 @@ function TacticsPage() {
           )}
         </section>
 
-        <section className="lg:col-span-5">
+        <section className="space-y-6 lg:col-span-5">
           <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
             <Tabs value={tab} onValueChange={setTab}>
               <TabsList className="grid w-full grid-cols-3 bg-zinc-950">
