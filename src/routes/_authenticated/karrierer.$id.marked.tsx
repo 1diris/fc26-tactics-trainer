@@ -1,8 +1,10 @@
-import { createFileRoute, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
-import { ArrowLeftRight, Star, StarOff, Search, Loader2, UserPlus } from "lucide-react";
+import { Star, StarOff, Search, Loader2, UserPlus } from "lucide-react";
+import { updateCareer } from "@/lib/career.functions";
+import { contractYear, seasonStartYear } from "@/lib/squad";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -157,6 +159,7 @@ function MarketPage() {
   const { position: searchPosition } = Route.useSearch();
   const { data: career } = useSuspenseQuery(careerDataQuery(id));
   const queryClient = useQueryClient();
+  const updateCareerFn = useServerFn(updateCareer);
 
   const [term, setTerm] = useState("");
   const [submittedTerm, setSubmittedTerm] = useState("");
@@ -337,12 +340,189 @@ function MarketPage() {
     return [...rows].sort((a, b) => score(b) - score(a));
   }, [results.data, focusPosition]);
 
+  const topNeeds = needs.slice(0, 2);
+  const shortlistPosition = focusPosition ?? topNeeds[0]?.position ?? null;
+  const seasonLabel = seasons.find((season) => season.id === activeSeasonId)?.label ?? null;
+  const startYear = seasonLabel ? seasonStartYear(seasonLabel) : null;
+  const expiring = squad
+    .filter((row) => {
+      const year = contractYear(row.current?.contract_until);
+      return startYear != null && year != null && year <= startYear + 1;
+    })
+    .sort((a, b) => (b.current?.overall ?? 0) - (a.current?.overall ?? 0));
+  const wageTotal = squad.reduce((sum, row) => sum + Number(row.current?.wage ?? 0), 0);
+  const OUTLINE =
+    "inline-flex h-9 items-center justify-center rounded-[10px] border border-ov-control px-3 text-sm font-medium text-ov-text hover:bg-ov-line disabled:opacity-50";
+  const PRIMARY =
+    "inline-flex h-9 items-center justify-center rounded-[10px] bg-ov-accent px-3 text-sm font-semibold text-black hover:opacity-90";
+
+  const editBudget = async () => {
+    const raw = window.prompt(
+      "Transfer budget in euros",
+      budget != null ? String(Math.round(budget)) : "",
+    );
+    if (raw == null) return;
+    const next = raw.trim() === "" ? null : Number(raw.replace(/[^\d.]/g, ""));
+    if (next != null && !Number.isFinite(next)) return;
+    await updateCareerFn({ data: { careerId: id, transferBudget: next } });
+    void queryClient.invalidateQueries({ queryKey: ["career", id] });
+  };
+
   return (
-    <div className="space-y-6">
-      <h1 className="flex items-center gap-2 text-2xl font-bold tracking-wide text-lime-400">
-        <ArrowLeftRight className="h-6 w-6 text-lime-400" />
-        Transfers
-      </h1>
+    <div className="space-y-6 text-ov-text">
+      <div>
+        <h1 className="font-tight text-[32px] font-bold leading-tight tracking-[-0.03em]">
+          Transfers
+        </h1>
+        <p className="mt-1 text-sm text-ov-muted">What your squad needs, and who could fill it</p>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-3">
+        {topNeeds.map((need, index) => (
+          <div key={need.position} className="flex flex-col rounded-2xl border border-ov-border bg-ov-card p-5">
+            <div className="flex items-center gap-2 text-xs text-ov-muted">
+              <span className="h-1.5 w-1.5 rounded-full bg-ov-warn" /> Priority {index + 1}
+            </div>
+            <div className="mt-2 font-tight text-[28px] font-bold tracking-[-0.03em]">
+              {need.position}
+            </div>
+            <p className="mt-1 flex-1 text-sm text-ov-muted">
+              Best {need.bestOverall ?? "–"} OVR · club level {level ?? "–"} · {Math.max(0, need.depth - 1)}{" "}
+              backups
+            </p>
+            <button
+              type="button"
+              onClick={() => applyNeed(need)}
+              className={`mt-4 self-start ${index === 0 ? PRIMARY : OUTLINE}`}
+            >
+              Find {need.position}
+            </button>
+          </div>
+        ))}
+        <div className="flex flex-col rounded-2xl border border-ov-border bg-ov-card p-5">
+          <div className="text-xs text-ov-muted">Budget</div>
+          <div className="mt-2 font-tight text-[28px] font-bold tracking-[-0.03em]">
+            {budget == null ? "–" : formatMoney(budget)}
+          </div>
+          <p className="mt-1 flex-1 text-sm text-ov-muted">Wages {formatWage(wageTotal)}</p>
+          <button type="button" onClick={() => void editBudget()} className={`mt-4 self-start ${OUTLINE}`}>
+            Edit budget
+          </button>
+        </div>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
+        <div className="min-w-0 rounded-2xl border border-ov-border bg-ov-card">
+          <div className="flex items-baseline justify-between gap-3 border-b border-ov-line px-5 py-4">
+            <h2 className="font-tight text-lg font-semibold tracking-[-0.03em]">
+              Shortlist{shortlistPosition ? ` · ${shortlistPosition}` : ""}
+            </h2>
+            <span className="text-xs text-ov-muted">From the FC 26 database</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[560px] text-sm">
+              <thead>
+                <tr className="text-left text-[11px] uppercase tracking-wider text-ov-muted">
+                  <th className="px-5 py-3 font-medium">Player</th>
+                  <th className="px-3 py-3 font-medium">Age</th>
+                  <th className="px-3 py-3 font-medium">OVR</th>
+                  <th className="px-3 py-3 font-medium">POT</th>
+                  <th className="px-3 py-3 font-medium">Value</th>
+                  <th className="px-5 py-3" />
+                </tr>
+              </thead>
+              <tbody>
+                {visiblePlayers.slice(0, 6).map((player) => {
+                  const on = targetIds.has(player.id);
+                  return (
+                    <tr key={player.id} className="border-t border-[#141414]">
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{player.short_name}</span>
+                          <span className="rounded-md border border-ov-control px-1.5 py-px text-[11px] text-ov-muted">
+                            {player.positions[0] ?? "–"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 tabular-nums text-ov-muted">{player.age ?? "–"}</td>
+                      <td className="px-3 py-3 font-tight text-[17px] font-semibold tabular-nums">
+                        {player.overall ?? "–"}
+                      </td>
+                      <td
+                        className={`px-3 py-3 font-tight font-semibold tabular-nums ${(player.potential ?? 0) > (player.overall ?? 0) ? "text-ov-accent" : "text-ov-muted"}`}
+                      >
+                        {player.potential ?? "–"}
+                      </td>
+                      <td className="px-3 py-3 tabular-nums text-ov-muted">
+                        {formatMoney(player.value_eur == null ? null : Number(player.value_eur))}
+                      </td>
+                      <td className="px-5 py-3 text-right">
+                        <button
+                          type="button"
+                          disabled={toggleTarget.isPending}
+                          onClick={() => toggleTarget.mutate(player)}
+                          className={`${OUTLINE} h-8 ${on ? "border-ov-accent text-ov-accent" : ""}`}
+                        >
+                          {on ? "Shortlisted" : "Shortlist"}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {visiblePlayers.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-5 py-8 text-center text-ov-muted">
+                      {results.isFetching ? "Loading players…" : "No players match your filters."}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-ov-border bg-ov-card">
+          <div className="flex items-baseline justify-between gap-3 border-b border-ov-line px-5 py-4">
+            <h2 className="font-tight text-lg font-semibold tracking-[-0.03em]">Expiring contracts</h2>
+            <span className="text-xs text-ov-muted">This season</span>
+          </div>
+          <ul>
+            {expiring.slice(0, 6).map((row, index) => (
+              <li
+                key={row.player.id}
+                className={`flex items-center gap-3 px-5 py-3 ${index > 0 ? "border-t border-[#141414]" : ""}`}
+              >
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-ov-warn" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="truncate font-medium">{row.player.name}</span>
+                    <span className="rounded-md border border-ov-control px-1.5 py-px text-[11px] text-ov-muted">
+                      {row.position ?? "–"}
+                    </span>
+                  </div>
+                  <div className="text-xs text-ov-muted">
+                    {row.current?.overall ?? "–"} OVR · {row.current?.age ?? "–"} yrs
+                  </div>
+                </div>
+                <Link
+                  to="/karrierer/$id/spiller/$playerId"
+                  params={{ id, playerId: row.player.id }}
+                  className={`${OUTLINE} h-8`}
+                >
+                  Renew
+                </Link>
+              </li>
+            ))}
+            {expiring.length === 0 && (
+              <li className="px-5 py-8 text-center text-sm text-ov-muted">
+                No contracts expire this season.
+              </li>
+            )}
+          </ul>
+        </div>
+      </div>
+
+      <h2 className="pt-2 font-tight text-lg font-semibold tracking-[-0.03em]">Search the market</h2>
 
       <Tabs defaultValue="search" className="space-y-6">
       <TabsList>
