@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut } from "lucide-react";
+import { LogOut, Trophy } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 
 export function AppHeader({ children }: { children?: React.ReactNode }) {
@@ -23,6 +23,9 @@ export function AppHeader({ children }: { children?: React.ReactNode }) {
           Career Chronicles
         </Link>
         <div className="flex-1">{children}</div>
+        <Button asChild variant="ghost" size="sm" className="min-h-11">
+          <Link to="/challenges"><Trophy className="text-ov-accent" />Challenges</Link>
+        </Button>
         <Button variant="ghost" size="sm" onClick={() => void signOut()}>
           <LogOut className="mr-2 h-4 w-4" /> Log out
         </Button>

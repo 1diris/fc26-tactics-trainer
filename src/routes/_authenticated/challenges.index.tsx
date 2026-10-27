@@ -1,0 +1,13 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Trophy, ArrowUpRight, Shield, CalendarDays } from "lucide-react";
+import { AppHeader } from "@/components/app-header";
+import { Button } from "@/components/ui/button";
+import { challenges } from "@/lib/challenges/catalogue";
+
+export const Route = createFileRoute("/_authenticated/challenges/")({
+  head: () => ({ meta: [{ title: "Challenges — Career Chronicles" }, { name: "description", content: "Career Mode challenges with season goals, house rules and screenshot evidence." }, { property: "og:title", content: "Challenges — Career Chronicles" }, { property: "og:description", content: "Take on a five-season Career Mode challenge." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }),
+  component: ChallengesPage,
+});
+function ChallengesPage() {
+  return <div className="min-h-screen bg-ov-bg text-ov-text font-body"><AppHeader /><main className="mx-auto max-w-[1200px] px-5 py-10"><h1 className="flex items-center gap-3 font-tight text-[32px] font-bold tracking-normal"><Trophy className="text-ov-accent" />Challenges</h1><p className="mt-2 text-sm text-ov-muted">A new club. Five seasons. Your legacy.</p><div className="mt-8 grid gap-6 md:grid-cols-2">{challenges.map((challenge) => <article key={challenge.id} className="overflow-hidden rounded-2xl border border-ov-border bg-ov-card"><div className="flex items-center justify-between border-b border-ov-line px-6 py-5"><span className="text-sm text-ov-muted">{challenge.game}</span><span className="flex items-center gap-2 text-xs text-ov-muted"><Shield className="size-4 text-ov-warn" />{challenge.difficulty}</span></div><div className="p-6"><p className="text-sm text-ov-accent">{challenge.club} · {challenge.league}</p><h2 className="mt-3 font-tight text-3xl font-bold tracking-normal">{challenge.title}</h2><p className="mt-2 text-sm text-ov-muted">{challenge.subtitle}</p><p className="mt-5 text-sm leading-relaxed">{challenge.description}</p><div className="mt-5 flex flex-wrap gap-2">{challenge.tags.map((tag) => <span key={tag} className="rounded-md border border-ov-control px-2 py-1 text-xs text-ov-muted">{tag}</span>)}</div><div className="mt-6 flex items-center justify-between gap-3"><span className="flex items-center gap-2 text-xs text-ov-muted"><CalendarDays className="size-4" />{challenge.seasons} seasons · {challenge.maxPoints} points</span><Button asChild className="bg-ov-accent text-ov-bg shadow-none hover:bg-ov-accent/90"><Link to="/challenges/$challengeId" params={{ challengeId: challenge.id }}>Start challenge<ArrowUpRight /></Link></Button></div></div></article>)}</div></main></div>;
+}
