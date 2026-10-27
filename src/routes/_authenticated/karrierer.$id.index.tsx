@@ -84,6 +84,15 @@ function PosBadge({ position }: { position: string | null }) {
   );
 }
 
+/** Rough contract time left, shown as the game does: "0y 10m". */
+function contractLeft(row: SquadRow, startYear: number | null): string | null {
+  const year = contractYear(row.current?.contract_until);
+  if (year === null || startYear === null) return null;
+  const months = (year - startYear - 1) * 12 + 10;
+  if (months < 0) return "expired";
+  return `${Math.floor(months / 12)}y ${months % 12}m`;
+}
+
 const OUTLINE_BTN =
   "inline-flex h-10 shrink-0 items-center rounded-[10px] border border-ov-control bg-transparent px-4 text-sm font-medium text-ov-text transition-colors hover:border-ov-muted";
 
