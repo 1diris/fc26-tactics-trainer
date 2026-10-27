@@ -1,24 +1,29 @@
-# Hide FC 26 database matching from the Squad page
+# Restyle the Squad page
 
-The database link keeps working quietly in the background, because it's where each player's potential and starting OVR come from. Only the parts you can see about matching go away.
+Only design and layout change. Search, filters, sorting, row click to open the player panel, sell and match dialogs all keep working as today.
 
-## What changes
+## Layout
+- Shared career header (already restyled) with Squad tab active.
+- Title "Squad" (32px Inter Tight bold) + muted line: "31 players · Avg. OVR 73.9 · Avg. POT 79.6" (computed from the current squad). No button in the title row.
+- Toolbar, one row that wraps on mobile:
+  1. Search field with icon (44px tall, dark card, 12px radius), fills remaining width.
+  2. Segmented filter: All / GK / DEF / MID / ATT (maps to the existing group filter; active segment #1F1F1F with white text).
+  3. "Sort" label + dropdown: OVR, POT, Age, Value, Contract (uses existing sort; column headers still toggle direction).
+  4. Small secondary "Filters" button that opens the existing age/OVR range inputs and reset, so nothing is lost while the main row stays clean.
+- Table card (#0A0A0A, 1px #222, radius 16px):
+  - Columns: Player, Age, OVR, POT, Value, Wage/wk, Contract (all but Player right-aligned).
+  - Rows grouped under small uppercase muted labels: Goalkeepers, Defenders, Midfielders, Attackers.
+  - Player name + grey outlined position tag. No avatars, no colored rating badges, no Matched/Unmatched badges.
+  - OVR 17px Inter Tight semibold; highest OVR in green.
+  - POT muted; green with an up-right arrow when POT > OVR; "–" if unknown.
+  - Contract year muted, orange dot before it when it expires this season.
+  - Footer: "Showing X of Y players" + legend (orange dot = expires this season, green arrow = room to grow).
+  - Below ~820px the table scrolls sideways inside the card; the separate mobile card list is replaced by this table.
+- The "Auto-match squad" button moves out of the main view into the Filters panel as a secondary button (still works).
+- Player detail panel and dialogs: restyled to the same card/border/button tokens, content unchanged.
 
-- **Squad page**
-  - The "Matched / Unmatched" badges on players (desktop table and phone cards) are removed.
-  - The "x/y matched" count is removed. The line keeps "x of y players".
-  - The "Auto-match squad" button is removed.
-  - The "Matched" sort option is removed.
-  - The player detail panel loses the "Matched with… / Change match" section. It shows **POT** and a new **Start OVR** (the player's rating from the FC 26 database) next to the current OVR, with the gain (for example "+3").
-  - A small, quiet "Wrong player data?" link stays in the detail panel, so a wrong or missing link can still be fixed.
-- **Automatic background matching**: when you open the Squad or Overview page and some players are unlinked, the app links them silently in the background. If no link is found, the player just shows "–" for Start OVR, with no warning.
-- **Overview**: the "FC 26 database / Match squad" alert is removed, so "open" counts only real squad issues.
-
-Nothing changes for your saved players, OVR/POT, values or imports.
-
-## Technical details
-
-- `src/routes/_authenticated/karrierer.$id.trup.tsx`: remove `MatchBadge` usages, matched count, auto-match button, `matched` sort key, `FcMatchDialog` and the match section in the detail panel. Add a Start OVR stat from `row.fc?.overall` with the delta to `row.current?.overall`.
-- Add a small `useSilentAutoMatch(careerId, rows)` hook. It calls the existing `autoMatchSquad` once per session when unmatched players exist, then invalidates the career query, with no toasts. It's used on the Squad and Overview pages.
-- `src/routes/_authenticated/karrierer.$id.index.tsx`: drop the FC 26 alert.
-- Keep `fc-match-dialog.tsx` and the server functions in place, unused, so matching can be brought back later. No database changes.
+## Technical
+- File: `src/routes/_authenticated/karrierer.$id.trup.tsx` only; reuse existing `ov-*` tokens and `font-tight` in `src/styles.css`.
+- Grouping uses existing `groupOfPosition`; within each group the current `sortKey`/`asc` order applies.
+- Primary button: `bg-ov-accent text-black rounded-[10px]`; secondary: transparent with `border-ov-control`.
+- Typecheck and Playwright check (desktop + phone) on the Real Betis career.
