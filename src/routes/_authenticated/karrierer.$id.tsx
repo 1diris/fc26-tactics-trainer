@@ -50,26 +50,31 @@ function CareerLayout() {
   });
 
   return (
-    <div className="min-h-screen bg-dash-bg">
+    <div className="min-h-screen bg-ov-bg">
       <AppHeader />
-      <div className="border-b border-border/60 bg-card/20">
-        <div className="mx-auto max-w-6xl px-5 py-5">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+      <div className="border-b border-ov-line bg-ov-bg font-body">
+        <div className="mx-auto max-w-[1200px] px-5 pt-6">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
+            <div className="min-w-0">
+              <p className="flex items-center gap-2 text-xs text-ov-muted">
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-ov-accent" />
                 {data.career.league ?? "Career"}
               </p>
-              <h1 className="mt-1 font-display text-2xl font-bold tracking-tight">
+              <h1 className="mt-1 truncate font-tight text-3xl font-bold tracking-[-0.03em] text-ov-text sm:text-[40px] sm:leading-[1.1]">
                 {data.career.club}
               </h1>
             </div>
             {seasons.length > 0 && (
-              <div className="min-w-[180px]">
+              <div className="w-[140px] sm:w-[160px]">
+                <p className="mb-1.5 text-xs text-ov-muted">Season</p>
                 <Select
                   value={activeSeasonId}
                   onValueChange={(value) => seasonMutation.mutate(value)}
                 >
-                  <SelectTrigger aria-label="Active season">
+                  <SelectTrigger
+                    aria-label="Active season"
+                    className="h-11 rounded-[10px] border-ov-control bg-ov-card font-medium text-ov-text"
+                  >
                     <SelectValue placeholder="Season" />
                   </SelectTrigger>
                   <SelectContent>
@@ -84,23 +89,23 @@ function CareerLayout() {
             )}
           </div>
 
-          <nav className="mt-5 hidden border-b border-white/[0.06] sm:flex">
+          <nav className="-mx-5 mt-6 flex overflow-x-auto px-5 [scrollbar-width:none]">
             {NAV_ITEMS.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
                 params={{ id }}
                 activeOptions={{ exact: item.exact }}
-                className="group relative px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground/80 data-[status=active]:text-foreground"
+                className="group relative mr-7 shrink-0 whitespace-nowrap py-3 text-[15px] text-ov-muted transition-colors hover:text-ov-text data-[status=active]:font-medium data-[status=active]:text-ov-text"
               >
                 {item.label}
-                <span className="absolute bottom-0 left-0 right-0 hidden h-0.5 rounded-t-full bg-primary group-data-[status=active]:block" />
+                <span className="absolute bottom-0 left-0 right-0 hidden h-0.5 rounded-t-full bg-ov-accent group-data-[status=active]:block" />
               </Link>
             ))}
           </nav>
         </div>
       </div>
-      <main className="mx-auto max-w-6xl px-5 pt-8 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:pb-8">
+      <main className="mx-auto max-w-[1200px] px-5 pt-8 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:pb-8">
         <Outlet />
       </main>
 
