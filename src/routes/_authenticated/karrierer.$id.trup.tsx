@@ -3,7 +3,7 @@ import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-q
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ArrowDownWideNarrow, ArrowLeft, ArrowUpNarrowWide, ArrowUpRight, Check, TriangleAlert, Users } from "lucide-react";
+import { ArrowDownWideNarrow, ArrowLeft, ArrowUpNarrowWide, ArrowUpRight, Check, Search, SlidersHorizontal, TriangleAlert, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { careerDataQuery } from "@/lib/career-queries";
@@ -193,6 +193,7 @@ function SquadPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [matchTarget, setMatchTarget] = useState<SquadRow | null>(null);
   const [sellTarget, setSellTarget] = useState<SquadRow | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const queryClient = useQueryClient();
   const runAutoMatch = useServerFn(autoMatchSquad);
@@ -315,212 +316,171 @@ function SquadPage() {
     );
   }
 
-  return (
-    <div className="space-y-4 pb-20 font-body">
-      <h1 className="flex items-center gap-2 text-2xl font-bold tracking-wide text-lime-400">
-        <Users className="h-6 w-6 text-lime-400" />
-        Squad
-      </h1>
+  const avg = (values: (number | null | undefined)[]) => {
+    const list = values.filter((v): v is number => typeof v === "number");
+    return list.length ? (list.reduce((s, v) => s + v, 0) / list.length).toFixed(1) : "–";
+  };
+  const avgOvr = avg(all.map((r) => r.current?.overall));
+  const avgPot = avg(all.map((r) => r.potential));
+  const topOvr = Math.max(0, ...all.map((r) => r.current?.overall ?? 0));
+  const startYear = activeSeason?.label ? seasonStartYear(activeSeason.label) : null;
 
-      {/* Filters */}
-      <div className="space-y-3 rounded-xl border border-dash-border bg-dash-card p-3 sm:p-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <Input
-            placeholder="Search player…"
-            value={search}
-            aria-label="Search player"
-            onChange={(event) => setSearch(event.target.value)}
-            className="h-9 w-full sm:w-64"
-          />
-          <div className="flex flex-wrap gap-1.5">
-            {GROUPS.map((entry) => (
+  const LINE_GROUPS: { key: string; label: string }[] = [
+    { key: "Målmand", label: "Goalkeepers" },
+    { key: "Forsvar", label: "Defenders" },
+    { key: "Midtbane", label: "Midfielders" },
+    { key: "Angreb", label: "Attackers" },
+    { key: "Ukendt", label: "Unknown" },
+  ];
+  const grouped = LINE_GROUPS.map((g) => ({
+    ...g,
+    rows: rows.filter((r) => groupOfPosition(r.position) === g.key),
+  })).filter((g) => g.rows.length > 0);
+
+  const SEGMENTS = [
+    { key: "alle", label: "All" },
+    { key: "Målmand", label: "GK" },
+    { key: "Forsvar", label: "DEF" },
+    { key: "Midtbane", label: "MID" },
+    { key: "Angreb", label: "ATT" },
+  ];
+  const tableCols: { key: SortKey; label: string }[] = [
+    { key: "name", label: "Player" },
+    { key: "age", label: "Age" },
+    { key: "overall", label: "OVR" },
+    { key: "potential", label: "POT" },
+    { key: "market_value", label: "Value" },
+    { key: "wage", label: "Wage/wk" },
+    { key: "contract", label: "Contract" },
+  ];
+  const smallInput =
+    "h-10 rounded-[10px] border border-ov-border bg-ov-bg px-3 text-sm text-ov-text placeholder:text-ov-muted outline-none focus:border-ov-control";
+
+  return (
+    <div className="space-y-6 pb-20 font-body text-ov-text">
+      <div>
+        <h1 className="font-tight text-[32px] font-bold leading-tight tracking-[-0.03em]">Squad</h1>
+        <p className="mt-1 text-sm text-ov-muted">
+          {all.length} players · Avg. OVR {avgOvr} · Avg. POT {avgPot}
+        </p>
+      </div>
+
+      {/* Toolbar */}
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative min-w-[220px] flex-1">
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ov-muted" />
+            <input
+              placeholder="Search player…"
+              value={search}
+              aria-label="Search player"
+              onChange={(event) => setSearch(event.target.value)}
+              className="h-11 w-full rounded-xl border border-ov-border bg-ov-card pl-10 pr-3 text-sm text-ov-text placeholder:text-ov-muted outline-none focus:border-ov-control"
+            />
+          </div>
+          <div className="flex h-11 items-center rounded-xl border border-ov-border bg-ov-card p-1">
+            {SEGMENTS.map((entry) => (
               <button
                 key={entry.key}
                 type="button"
                 onClick={() => setGroup(entry.key)}
-                className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide transition ${
-                  group === entry.key
-                    ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-300"
-                    : "border-dash-border bg-dash-elevated text-muted-foreground hover:text-foreground"
+                className={`h-full rounded-lg px-3 text-sm font-medium transition ${
+                  group === entry.key ? "bg-[#1f1f1f] text-ov-text" : "text-ov-muted hover:text-ov-text"
                 }`}
               >
                 {entry.label}
               </button>
             ))}
           </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 sm:max-w-md">
-          <div className="grid grid-cols-2 gap-2">
-            <Input
-              inputMode="numeric"
-              placeholder="Age min"
-              aria-label="Age minimum"
-              value={ageMin}
-              onChange={(event) => setAgeMin(event.target.value)}
-              className={`h-9 ${ageRangeInvalid ? "border-destructive" : ""}`}
-            />
-            <Input
-              inputMode="numeric"
-              placeholder="Age max"
-              aria-label="Age maximum"
-              value={ageMax}
-              onChange={(event) => setAgeMax(event.target.value)}
-              className={`h-9 ${ageRangeInvalid ? "border-destructive" : ""}`}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <Input
-              inputMode="numeric"
-              placeholder="OVR min"
-              aria-label="OVR minimum"
-              value={ovrMin}
-              onChange={(event) => setOvrMin(event.target.value)}
-              className={`h-9 ${ovrRangeInvalid ? "border-destructive" : ""}`}
-            />
-            <Input
-              inputMode="numeric"
-              placeholder="OVR max"
-              aria-label="OVR maximum"
-              value={ovrMax}
-              onChange={(event) => setOvrMax(event.target.value)}
-              className={`h-9 ${ovrRangeInvalid ? "border-destructive" : ""}`}
-            />
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <label
-            htmlFor="squad-sort"
-            className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground"
-          >
-            Sort by
-          </label>
-          <select
-            id="squad-sort"
-            value={sortKey}
-            onChange={(event) => changeSort(event.target.value as SortKey)}
-            className="h-9 rounded-md border border-dash-border bg-dash-elevated px-2.5 text-sm text-foreground"
-          >
-            <option value="overall">OVR</option>
-            <option value="potential">Potential</option>
-            <option value="age">Age</option>
-            <option value="market_value">Value</option>
-            <option value="wage">Wage</option>
-            <option value="contract">Contract</option>
-            <option value="name">Name</option>
-            <option value="position">Position</option>
-          </select>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={() => setAsc(!asc)}
-            aria-label={asc ? "Sort high to low" : "Sort low to high"}
-            className="gap-1.5"
-          >
-            {asc ? <ArrowUpNarrowWide className="h-4 w-4" /> : <ArrowDownWideNarrow className="h-4 w-4" />}
-            {asc ? "Low → High" : "High → Low"}
-          </Button>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span className="font-stat">
-            {rows.length} of {all.length} players · {all.filter((row) => row.fc).length}/{all.length}{" "}
-            matched
-          </span>
           <div className="flex items-center gap-2">
-            {(ageRangeInvalid || ovrRangeInvalid) && (
-              <span className="text-red-400">Min cannot be higher than max.</span>
-            )}
-            <Button
-              variant="secondary"
-              size="sm"
+            <label htmlFor="squad-sort" className="text-sm text-ov-muted">
+              Sort
+            </label>
+            <select
+              id="squad-sort"
+              value={sortKey}
+              onChange={(event) => changeSort(event.target.value as SortKey)}
+              className="h-11 rounded-xl border border-ov-border bg-ov-card px-3 text-sm text-ov-text"
+            >
+              <option value="overall">OVR</option>
+              <option value="potential">POT</option>
+              <option value="age">Age</option>
+              <option value="market_value">Value</option>
+              <option value="contract">Contract</option>
+              {!["overall", "potential", "age", "market_value", "contract"].includes(sortKey) && (
+                <option value={sortKey}>{tableCols.find((c) => c.key === sortKey)?.label ?? sortKey}</option>
+              )}
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={() => setFiltersOpen(!filtersOpen)}
+            className="inline-flex h-11 items-center gap-2 rounded-[10px] border border-ov-control px-3 text-sm text-ov-text"
+          >
+            <SlidersHorizontal className="h-4 w-4" /> Filters
+          </button>
+        </div>
+
+        {filtersOpen && (
+          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-ov-border bg-ov-card p-4">
+            {[
+              ["Age min", ageMin, setAgeMin, ageRangeInvalid],
+              ["Age max", ageMax, setAgeMax, ageRangeInvalid],
+              ["OVR min", ovrMin, setOvrMin, ovrRangeInvalid],
+              ["OVR max", ovrMax, setOvrMax, ovrRangeInvalid],
+            ].map(([label, value, setter, invalid]) => (
+              <input
+                key={label as string}
+                inputMode="numeric"
+                placeholder={label as string}
+                aria-label={label as string}
+                value={value as string}
+                onChange={(e) => (setter as (v: string) => void)(e.target.value)}
+                className={`${smallInput} w-24 ${invalid ? "border-destructive" : ""}`}
+              />
+            ))}
+            <button
+              type="button"
+              onClick={() => setAsc(!asc)}
+              className="inline-flex h-10 items-center gap-1.5 rounded-[10px] border border-ov-control px-3 text-sm"
+            >
+              {asc ? <ArrowUpNarrowWide className="h-4 w-4" /> : <ArrowDownWideNarrow className="h-4 w-4" />}
+              {asc ? "Low → High" : "High → Low"}
+            </button>
+            <button
+              type="button"
               onClick={() => autoMatch.mutate()}
               disabled={autoMatch.isPending}
+              className="h-10 rounded-[10px] border border-ov-control px-3 text-sm disabled:opacity-50"
             >
               {autoMatch.isPending ? "Matching…" : "Auto-match squad"}
-            </Button>
-            <Button variant="ghost" size="sm" onClick={resetFilters}>
+            </button>
+            <button type="button" onClick={resetFilters} className="h-10 px-3 text-sm text-ov-muted hover:text-ov-text">
               Reset
-            </Button>
+            </button>
+            {(ageRangeInvalid || ovrRangeInvalid) && (
+              <span className="text-xs text-red-400">Min cannot be higher than max.</span>
+            )}
           </div>
-        </div>
+        )}
       </div>
 
-      {rows.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-dash-border p-8 text-center text-sm text-muted-foreground">
-          No players match the filters.
-        </p>
-      ) : (
-        <>
-          {/* Mobile: compact rows */}
-          <ul className="space-y-1.5 md:hidden">
-            {rows.map((row) => {
-              const contract = contractStatus(row, activeSeason?.label ?? null);
-              return (
-                <li key={row.player.id}>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedId(row.player.id)}
-                    className="flex w-full flex-col gap-2.5 rounded-lg border border-dash-border bg-dash-card px-3 py-2.5 text-left"
-                  >
-                    <div className="flex w-full items-center gap-3">
-                      <PlayerAvatar name={row.player.name} src={row.fc?.face_url} size="sm" />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold">{row.player.name}</p>
-                        <div className="mt-1 flex items-center gap-1.5">
-                          <PositionPill position={row.position} />
-                          <StatusBadge row={row} />
-                        </div>
-                      </div>
-                      <div className="flex shrink-0 items-center gap-1.5">
-                        <RatingBadge value={row.current?.overall} />
-                        <RatingBadge value={row.potential} />
-                      </div>
-                    </div>
-                    <dl className="grid grid-cols-2 gap-x-3 gap-y-2 border-t border-dash-border/60 pt-2 min-[420px]:grid-cols-4">
-                      <div>
-                        <dt className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Age</dt>
-                        <dd className="font-stat text-xs tabular-nums">{row.current?.age ?? "–"}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Value</dt>
-                        <dd className="font-stat text-xs tabular-nums">{formatMoney(row.estimatedValue)}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Wage</dt>
-                        <dd className="font-stat text-xs tabular-nums text-muted-foreground">{formatWage(row.current?.wage)}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Contract</dt>
-                        <dd className={`font-stat text-xs tabular-nums ${contract ? contractTone[contract.tone] : "text-muted-foreground"}`}>
-                          {contract?.label ?? row.current?.contract_until ?? "–"}
-                        </dd>
-                      </div>
-                    </dl>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-
-          {/* Desktop: compact table */}
-          <div className="hidden overflow-x-auto rounded-xl border border-dash-border bg-dash-card md:block">
-            <table className="w-full text-sm">
+      {/* Table */}
+      <div className="overflow-hidden rounded-2xl border border-ov-border bg-ov-card">
+        {rows.length === 0 ? (
+          <p className="p-8 text-center text-sm text-ov-muted">No players match the filters.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[820px] text-sm">
               <thead>
-                <tr className="border-b border-dash-border text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                  {columns.map((column) => (
+                <tr className="border-b border-ov-line text-xs text-ov-muted">
+                  {tableCols.map((column) => (
                     <th
                       key={column.key}
                       scope="col"
-                      className={`px-4 py-2.5 font-semibold ${column.numeric ? "text-right" : "text-left"}`}
+                      className={`px-5 py-3 font-medium ${column.key === "name" ? "text-left" : "text-right"}`}
                     >
-                      <button
-                        type="button"
-                        className="hover:text-foreground"
-                        onClick={() => toggleSort(column.key)}
-                      >
+                      <button type="button" className="hover:text-ov-text" onClick={() => toggleSort(column.key)}>
                         {column.label}
                         {sortKey === column.key ? (asc ? " ↑" : " ↓") : ""}
                       </button>
@@ -528,63 +488,82 @@ function SquadPage() {
                   ))}
                 </tr>
               </thead>
-              <tbody>
-                {rows.map((row) => {
-                  const contract = contractStatus(row, activeSeason?.label ?? null);
-                  return (
-                    <tr
-                      key={row.player.id}
-                      onClick={() => setSelectedId(row.player.id)}
-                      className="cursor-pointer border-b border-dash-border/60 last:border-0 hover:bg-dash-elevated/70"
-                    >
-                      <td className="px-4 py-2">
-                        <div className="flex items-center gap-3">
-                          <PlayerAvatar name={row.player.name} src={row.fc?.face_url} size="sm" />
-                          <span className="font-semibold">{row.player.name}</span>
-                          {row.ovrDelta !== null && row.ovrDelta !== 0 && (
-                            <span
-                              className={`font-stat text-xs ${row.ovrDelta > 0 ? "text-emerald-400" : "text-red-400"}`}
-                            >
-                              {row.ovrDelta > 0 ? "+" : ""}
-                              {row.ovrDelta}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-2">
-                        <PositionPill position={row.position} />
-                      </td>
-                      <td className="px-4 py-2 text-right">
-                        <RatingBadge value={row.current?.overall} />
-                      </td>
-                      <td className="px-4 py-2 text-right">
-                        <RatingBadge value={row.potential} />
-                      </td>
-                      <td className="px-4 py-2 text-right font-stat tabular-nums">
-                        {row.current?.age ?? "–"}
-                      </td>
-                      <td className="px-4 py-2 text-right font-stat tabular-nums">
-                        {formatMoney(row.estimatedValue)}
-                      </td>
-                      <td className="px-4 py-2 text-right font-stat tabular-nums text-muted-foreground">
-                        {formatWage(row.current?.wage)}
-                      </td>
-                      <td
-                        className={`px-4 py-2 text-right font-stat tabular-nums ${contract ? contractTone[contract.tone] : "text-muted-foreground"}`}
+              {grouped.map((g) => (
+                <tbody key={g.key}>
+                  <tr>
+                    <td colSpan={7} className="px-5 pb-2 pt-5 text-[11px] font-semibold uppercase tracking-[0.12em] text-ov-muted">
+                      {g.label}
+                    </td>
+                  </tr>
+                  {g.rows.map((row) => {
+                    const ovr = row.current?.overall ?? null;
+                    const pot = row.potential;
+                    const year = contractYear(row.current?.contract_until);
+                    const expiring = year !== null && startYear !== null && year <= startYear;
+                    return (
+                      <tr
+                        key={row.player.id}
+                        onClick={() => setSelectedId(row.player.id)}
+                        className="cursor-pointer border-t border-[#141414] hover:bg-[#111111]"
                       >
-                        {contract?.label ?? row.current?.contract_until ?? "–"}
-                      </td>
-                      <td className="px-4 py-2">
-                        <StatusBadge row={row} />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
+                        <td className="px-5 py-3">
+                          <div className="flex items-center gap-2.5">
+                            <span className="font-medium">{row.player.name}</span>
+                            <span className="rounded-md border border-ov-control px-1.5 py-0.5 text-[11px] text-ov-muted">
+                              {row.position ?? "–"}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-5 py-3 text-right tabular-nums text-ov-muted">{row.current?.age ?? "–"}</td>
+                        <td
+                          className={`px-5 py-3 text-right font-tight text-[17px] font-semibold tabular-nums ${
+                            ovr !== null && ovr === topOvr ? "text-ov-accent" : ""
+                          }`}
+                        >
+                          {ovr ?? "–"}
+                        </td>
+                        <td className="px-5 py-3 text-right tabular-nums">
+                          {pot == null ? (
+                            <span className="text-ov-muted">–</span>
+                          ) : ovr !== null && pot > ovr ? (
+                            <span className="inline-flex items-center gap-0.5 text-ov-accent">
+                              {pot}
+                              <ArrowUpRight className="h-3.5 w-3.5" />
+                            </span>
+                          ) : (
+                            <span className="text-ov-muted">{pot}</span>
+                          )}
+                        </td>
+                        <td className="px-5 py-3 text-right tabular-nums">{formatMoney(row.estimatedValue)}</td>
+                        <td className="px-5 py-3 text-right tabular-nums text-ov-muted">{formatWage(row.current?.wage)}</td>
+                        <td className="px-5 py-3 text-right tabular-nums text-ov-muted">
+                          <span className="inline-flex items-center gap-2">
+                            {expiring && <span className="h-1.5 w-1.5 rounded-full bg-ov-warn" />}
+                            {year ?? row.current?.contract_until ?? "–"}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              ))}
             </table>
           </div>
-        </>
-      )}
+        )}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ov-line px-5 py-3 text-xs text-ov-muted">
+          <span>
+            Showing {rows.length} of {all.length} players
+          </span>
+          <div className="flex items-center gap-4">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-ov-warn" /> Contract expires this season
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <ArrowUpRight className="h-3.5 w-3.5 text-ov-accent" /> Room to grow
+            </span>
+          </div>
+        </div>
+      </div>
 
       <Dialogs
         careerId={id}
