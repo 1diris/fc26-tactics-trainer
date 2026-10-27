@@ -294,7 +294,7 @@ function CareerOverview() {
   alerts.push({
     tone: matched === rows.length ? "success" : "warn",
     title: "FC 26",
-    text: `${matched}/${rows.length} matched in database`,
+    text: `${matched} of ${rows.length} players matched`,
     action: { label: "Match squad", to: "/karrierer/$id/trup" },
   });
 
@@ -388,7 +388,7 @@ function CareerOverview() {
         <div className="flex min-w-0 flex-1 gap-3">
           <Lightbulb className="mt-0.5 h-5 w-5 shrink-0 text-ov-accent" aria-hidden />
           <div className="min-w-0">
-            <h2 className="text-[15px] font-semibold">{recTitle}</h2>
+            <h2 className="font-body text-[15px] font-semibold tracking-normal">{recTitle}</h2>
             <p className="mt-1 text-sm leading-relaxed text-ov-muted">{recBody}</p>
           </div>
         </div>
@@ -533,7 +533,7 @@ function CareerOverview() {
                   </div>
                   <div className="mt-2 h-1.5 rounded-full bg-dash-elevated">
                     <div
-                      className="h-full rounded-full bg-primary"
+                      className="h-full rounded-full bg-ov-accent"
                       style={{ width: `${Math.min(100, share * 2.5)}%` }}
                     />
                   </div>
