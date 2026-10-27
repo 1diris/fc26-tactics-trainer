@@ -15,6 +15,8 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as FcIqRouteImport } from './routes/fc-iq'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as AuthenticatedChallengesIndexRouteImport } from './routes/_authenticated/challenges.index'
+import { Route as AuthenticatedChallengesChallengeIdRouteImport } from './routes/_authenticated/challenges.$challengeId'
 import { Route as AuthenticatedKarriererIndexRouteImport } from './routes/_authenticated/karrierer.index'
 import { Route as AuthenticatedKarriererIdRouteImport } from './routes/_authenticated/karrierer.$id'
 import { Route as ApiPublicPlayerFaceRouteImport } from './routes/api/public/player-face'
@@ -55,6 +57,18 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedChallengesIndexRoute =
+  AuthenticatedChallengesIndexRouteImport.update({
+    id: '/challenges/',
+    path: '/challenges/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedChallengesChallengeIdRoute =
+  AuthenticatedChallengesChallengeIdRouteImport.update({
+    id: '/challenges/$challengeId',
+    path: '/challenges/$challengeId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedKarriererIndexRoute =
   AuthenticatedKarriererIndexRouteImport.update({
     id: '/karrierer/',
@@ -121,8 +135,10 @@ export interface FileRoutesByFullPath {
   '/fc-iq': typeof FcIqRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/challenges/$challengeId': typeof AuthenticatedChallengesChallengeIdRoute
   '/karrierer/$id': typeof AuthenticatedKarriererIdRouteWithChildren
   '/api/public/player-face': typeof ApiPublicPlayerFaceRoute
+  '/challenges/': typeof AuthenticatedChallengesIndexRoute
   '/karrierer/': typeof AuthenticatedKarriererIndexRoute
   '/karrierer/$id/akademi': typeof AuthenticatedKarriererIdAkademiRoute
   '/karrierer/$id/import': typeof AuthenticatedKarriererIdImportRoute
@@ -138,7 +154,9 @@ export interface FileRoutesByTo {
   '/fc-iq': typeof FcIqRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/challenges/$challengeId': typeof AuthenticatedChallengesChallengeIdRoute
   '/api/public/player-face': typeof ApiPublicPlayerFaceRoute
+  '/challenges': typeof AuthenticatedChallengesIndexRoute
   '/karrierer': typeof AuthenticatedKarriererIndexRoute
   '/karrierer/$id/akademi': typeof AuthenticatedKarriererIdAkademiRoute
   '/karrierer/$id/import': typeof AuthenticatedKarriererIdImportRoute
@@ -156,8 +174,10 @@ export interface FileRoutesById {
   '/fc-iq': typeof FcIqRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/_authenticated/challenges/$challengeId': typeof AuthenticatedChallengesChallengeIdRoute
   '/_authenticated/karrierer/$id': typeof AuthenticatedKarriererIdRouteWithChildren
   '/api/public/player-face': typeof ApiPublicPlayerFaceRoute
+  '/_authenticated/challenges/': typeof AuthenticatedChallengesIndexRoute
   '/_authenticated/karrierer/': typeof AuthenticatedKarriererIndexRoute
   '/_authenticated/karrierer/$id/akademi': typeof AuthenticatedKarriererIdAkademiRoute
   '/_authenticated/karrierer/$id/import': typeof AuthenticatedKarriererIdImportRoute
@@ -175,8 +195,10 @@ export interface FileRouteTypes {
     | '/fc-iq'
     | '/privacy'
     | '/terms'
+    | '/challenges/$challengeId'
     | '/karrierer/$id'
     | '/api/public/player-face'
+    | '/challenges/'
     | '/karrierer/'
     | '/karrierer/$id/akademi'
     | '/karrierer/$id/import'
@@ -192,7 +214,9 @@ export interface FileRouteTypes {
     | '/fc-iq'
     | '/privacy'
     | '/terms'
+    | '/challenges/$challengeId'
     | '/api/public/player-face'
+    | '/challenges'
     | '/karrierer'
     | '/karrierer/$id/akademi'
     | '/karrierer/$id/import'
@@ -209,8 +233,10 @@ export interface FileRouteTypes {
     | '/fc-iq'
     | '/privacy'
     | '/terms'
+    | '/_authenticated/challenges/$challengeId'
     | '/_authenticated/karrierer/$id'
     | '/api/public/player-face'
+    | '/_authenticated/challenges/'
     | '/_authenticated/karrierer/'
     | '/_authenticated/karrierer/$id/akademi'
     | '/_authenticated/karrierer/$id/import'
@@ -274,6 +300,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/challenges/': {
+      id: '/_authenticated/challenges/'
+      path: '/challenges'
+      fullPath: '/challenges/'
+      preLoaderRoute: typeof AuthenticatedChallengesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/challenges/$challengeId': {
+      id: '/_authenticated/challenges/$challengeId'
+      path: '/challenges/$challengeId'
+      fullPath: '/challenges/$challengeId'
+      preLoaderRoute: typeof AuthenticatedChallengesChallengeIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/karrierer/': {
       id: '/_authenticated/karrierer/'
@@ -376,12 +416,17 @@ const AuthenticatedKarriererIdRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedChallengesChallengeIdRoute: typeof AuthenticatedChallengesChallengeIdRoute
   AuthenticatedKarriererIdRoute: typeof AuthenticatedKarriererIdRouteWithChildren
+  AuthenticatedChallengesIndexRoute: typeof AuthenticatedChallengesIndexRoute
   AuthenticatedKarriererIndexRoute: typeof AuthenticatedKarriererIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedChallengesChallengeIdRoute:
+    AuthenticatedChallengesChallengeIdRoute,
   AuthenticatedKarriererIdRoute: AuthenticatedKarriererIdRouteWithChildren,
+  AuthenticatedChallengesIndexRoute: AuthenticatedChallengesIndexRoute,
   AuthenticatedKarriererIndexRoute: AuthenticatedKarriererIndexRoute,
 }
 

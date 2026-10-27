@@ -15,6 +15,20 @@
       "when": 1789645881824,
       "tag": "0001_tactics_unique_per_name",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793136839329,
+      "tag": "0002_challenge_progress_and_evidence",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793137300779,
+      "tag": "0003_challenge_atomic_progress",
+      "breakpoints": true
     }
   ]
 }

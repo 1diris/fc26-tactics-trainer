@@ -58,6 +58,80 @@ export type Database = {
           },
         ]
       }
+      challenge_progress: {
+        Row: {
+          challenge_id: string
+          completions: Json
+          penalty_count: number
+          started_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          completions?: Json
+          penalty_count?: number
+          started_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          completions?: Json
+          penalty_count?: number
+          started_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      challenge_verifications: {
+        Row: {
+          ai_response: Json | null
+          challenge_id: string
+          created_at: string
+          details: string | null
+          extracted_value: Json | null
+          goal_id: string
+          id: string
+          status: string
+          storage_paths: string[]
+          user_id: string
+        }
+        Insert: {
+          ai_response?: Json | null
+          challenge_id: string
+          created_at?: string
+          details?: string | null
+          extracted_value?: Json | null
+          goal_id: string
+          id?: string
+          status?: string
+          storage_paths?: string[]
+          user_id: string
+        }
+        Update: {
+          ai_response?: Json | null
+          challenge_id?: string
+          created_at?: string
+          details?: string | null
+          extracted_value?: Json | null
+          goal_id?: string
+          id?: string
+          status?: string
+          storage_paths?: string[]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenge_verifications_user_id_challenge_id_fkey"
+            columns: ["user_id", "challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenge_progress"
+            referencedColumns: ["user_id", "challenge_id"]
+          },
+        ]
+      }
       fc_players: {
         Row: {
           age: number | null
@@ -578,6 +652,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      change_challenge_progress: {
+        Args: {
+          p_action: string
+          p_challenge_id: string
+          p_completed?: boolean
+          p_delta?: number
+          p_goal_id?: string
+          p_source?: string
+        }
+        Returns: undefined
+      }
       fc_league_names: {
         Args: never
         Returns: {
@@ -586,6 +671,10 @@ export type Database = {
         }[]
       }
       fix_mojibake: { Args: { t: string }; Returns: string }
+      reserve_challenge_verification: {
+        Args: { p_challenge_id: string; p_goal_id: string; p_paths: string[] }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
