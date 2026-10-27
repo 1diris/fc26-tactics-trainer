@@ -136,8 +136,24 @@
 
   /* Scoped dark landing-page look — do not apply globally. */
   .landing-dark {
-    background-color: #09090b;
-    color: #f4f4f5;
+    --background: #000000;
+    --foreground: #ffffff;
+    --card: #0a0a0a;
+    --card-foreground: #ffffff;
+    --border: #222222;
+    --muted-foreground: #8c8c8c;
+    --primary: #16a34a;
+    --primary-foreground: #000000;
+    --landing-divider: #1a1a1a;
+    --landing-border-strong: #2a2a2a;
+    --landing-warning: #f5a524;
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: "Inter", system-ui, sans-serif;
+  }
+  .landing-dark .font-tight {
+    font-family: "Inter Tight", "Inter", sans-serif;
+    letter-spacing: -0.04em;
   }
 
   h1,
