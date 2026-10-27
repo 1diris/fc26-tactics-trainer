@@ -78,28 +78,34 @@ function badgeClass(position: string | null): string {
 function PosBadge({ position }: { position: string | null }) {
   if (!position) return null;
   return (
-    <span
-      className={`rounded border px-1.5 py-0.5 font-stat text-[11px] font-medium leading-none ${badgeClass(position)}`}
-    >
+    <span className="shrink-0 rounded-md border border-ov-control px-1.5 py-0.5 text-[11px] leading-none text-ov-muted">
       {position}
     </span>
   );
 }
 
-/** Rough contract time left, shown as the game does: "0y 10m". */
-function contractLeft(row: SquadRow, startYear: number | null): string | null {
-  const year = contractYear(row.current?.contract_until);
-  if (year === null || startYear === null) return null;
-  const months = (year - startYear - 1) * 12 + 10;
-  if (months < 0) return "expired";
-  return `${Math.floor(months / 12)}y ${months % 12}m`;
+const OUTLINE_BTN =
+  "inline-flex h-10 shrink-0 items-center rounded-[10px] border border-ov-control bg-transparent px-4 text-sm font-medium text-ov-text transition-colors hover:border-ov-muted";
+
+const POSITION_NAMES: Record<string, string> = {
+  GK: "goalkeeper", RB: "right back", LB: "left back", CB: "centre back", RWB: "right wing back",
+  LWB: "left wing back", CDM: "defensive midfielder", CM: "central midfielder",
+  CAM: "attacking midfielder", RM: "right midfielder", LM: "left midfielder", RW: "right winger",
+  LW: "left winger", CF: "centre forward", ST: "striker",
+};
+
+/** Muted second line for an alert row. */
+function alertDetail(title: string, text: string): string {
+  const name = POSITION_NAMES[title];
+  if (!name) return text;
+  if (text === "No natural player") return `No natural ${name} in the squad`;
+  if (text === "No natural backup") return `No backup for your ${name}`;
+  return `Only one natural ${name}`;
 }
 
 function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <section
-      className={`rounded-xl border border-dash-border bg-dash-card p-5 shadow-[0_1px_0_0_rgba(255,255,255,0.02)_inset] ${className}`}
-    >
+    <section className={`rounded-2xl border border-ov-border bg-ov-card p-6 ${className}`}>
       {children}
     </section>
   );
@@ -108,7 +114,7 @@ function Card({ children, className = "" }: { children: React.ReactNode; classNa
 function SectionTitle({ children, action }: { children: React.ReactNode; action?: React.ReactNode }) {
   return (
     <div className="mb-4 flex items-center justify-between gap-3">
-      <h2 className="font-display text-lg font-semibold tracking-tight">{children}</h2>
+      <h2 className="font-tight text-lg font-semibold tracking-[-0.03em]">{children}</h2>
       {action}
     </div>
   );
