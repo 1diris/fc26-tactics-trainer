@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { CareerChallengeCard } from "@/components/career-challenge-card";
 import { PlayerAvatar } from "@/components/player-avatar";
-import { careerDataQuery, youthQuery } from "@/lib/career-queries";
+import { careerDataQuery, targetsQuery, youthQuery } from "@/lib/career-queries";
 import {
   averageOf,
   buildSquad,
@@ -171,6 +171,7 @@ function CareerOverview() {
   const { id } = useParams({ from: "/_authenticated/karrierer/$id/" });
   const { data } = useSuspenseQuery(careerDataQuery(id));
   const youth = useQuery(youthQuery(id));
+  const targets = useQuery(targetsQuery(id));
 
   const seasons = sortedSeasons(data.seasons);
   const activeSeason =
@@ -238,6 +239,16 @@ function CareerOverview() {
     .slice(0, 6);
 
   const matched = rows.filter((row) => row.player.fc_player_id).length;
+
+  // Saved transfer targets: highest priority first, four shown on the card.
+  const wishlist = [...(targets.data ?? [])].sort((a, b) => a.priority - b.priority);
+  const wishlistCount = targets.data?.length ?? 0;
+  const wishlistSpend = (targets.data ?? []).reduce(
+    (sum, target) => sum + Number(target.expected_price ?? 0),
+    0,
+  );
+  const wishlistBudget = data.career.transfer_budget;
+  const overBudget = wishlistBudget != null && wishlistSpend > wishlistBudget;
 
   const highNeeds = needs.filter((need) => need.priority === "high");
   const mediumNeeds = needs.filter((need) => need.priority === "medium");
