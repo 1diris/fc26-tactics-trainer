@@ -327,20 +327,70 @@ function MarketPage() {
    * When a squad need is in focus we surface natural fits for that position
    * first, then rank on quality and remaining growth.
    */
+  const fitScore = (player: MarketPlayer, position: string) => {
+    const list = player.positions.map((p) => normalizePosition(p) ?? p);
+    const natural = list[0] === position ? 200 : list.includes(position) ? 100 : 0;
+    const growth = Math.max(0, (player.potential ?? 0) - (player.overall ?? 0));
+    return natural + (player.overall ?? 0) + growth / 2;
+  };
   const visiblePlayers = useMemo(() => {
     const rows = results.data?.players ?? [];
     if (!focusPosition) return rows;
-    const score = (player: MarketPlayer) => {
-      const list = player.positions.map((position) => normalizePosition(position) ?? position);
-      const natural = list[0] === focusPosition ? 200 : list.includes(focusPosition) ? 100 : 0;
-      const growth = Math.max(0, (player.potential ?? 0) - (player.overall ?? 0));
-      return natural + (player.overall ?? 0) + growth / 2;
-    };
-    return [...rows].sort((a, b) => score(b) - score(a));
+    return [...rows].sort((a, b) => fitScore(b, focusPosition) - fitScore(a, focusPosition));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [results.data, focusPosition]);
 
   const topNeeds = needs.slice(0, 2);
   const shortlistPosition = focusPosition ?? topNeeds[0]?.position ?? null;
+
+  // Suggestions: only the needed position or a closely related one.
+  const [suggestWithinBudget, setSuggestWithinBudget] = useState(true);
+  const suggestPositions = useMemo(
+    () =>
+      shortlistPosition
+        ? POSITIONS.filter((p) => positionFit(shortlistPosition, p) !== "out").map(String)
+        : [],
+    [shortlistPosition],
+  );
+  const suggestionFilters: MarketSearchInput = {
+    positions: suggestPositions.length > 0 ? suggestPositions : undefined,
+    maxValue: suggestWithinBudget && budget != null && budget > 0 ? Math.round(budget) : undefined,
+    sort: "overall",
+    page: 0,
+  };
+  const suggestionResults = useQuery({
+    ...marketSearchQuery(suggestionFilters),
+    enabled: shortlistPosition != null,
+  });
+  const suggestions = useMemo(() => {
+    if (!shortlistPosition) return [];
+    return (suggestionResults.data?.players ?? [])
+      .filter((player) =>
+        player.positions.some(
+          (p) => positionFit(shortlistPosition, normalizePosition(p) ?? p) !== "out",
+        ),
+      )
+      .filter(
+        (player) =>
+          !suggestWithinBudget ||
+          budget == null ||
+          budget <= 0 ||
+          Number(player.value_eur ?? 0) <= budget,
+      )
+      .sort((a, b) => fitScore(b, shortlistPosition) - fitScore(a, shortlistPosition));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [suggestionResults.data, shortlistPosition, suggestWithinBudget, budget]);
+
+  const updateTarget = useServerFn(updateTransferTarget);
+  const editTarget = useMutation({
+    mutationFn: (input: { targetId: string; priority?: number; expectedPrice?: number | null }) =>
+      updateTarget({ data: input }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["transfer-targets", id] }),
+  });
+  const removeWish = useMutation({
+    mutationFn: (fcPlayerId: string) => removeTarget({ data: { careerId: id, fcPlayerId } }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["transfer-targets", id] }),
+  });
   const seasonLabel = seasons.find((season) => season.id === activeSeasonId)?.label ?? null;
   const startYear = seasonLabel ? seasonStartYear(seasonLabel) : null;
   const expiring = squad
