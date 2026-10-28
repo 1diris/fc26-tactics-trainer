@@ -21,6 +21,7 @@ import { PlayerAvatar } from "@/components/player-avatar";
 import {
   addTransferTarget,
   removeTransferTarget,
+  updateTransferTarget,
   type MarketPlayer,
   type MarketSearchInput,
   type MarketPreset,
@@ -33,6 +34,7 @@ import {
   squadAge,
   type PositionNeed,
 } from "@/lib/squad-needs";
+import { positionFit } from "@/lib/formations";
 import { POSITIONS, formatMoney, formatWage, normalizePosition, ovrTone } from "@/lib/football";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/marked")({
@@ -327,20 +329,70 @@ function MarketPage() {
    * When a squad need is in focus we surface natural fits for that position
    * first, then rank on quality and remaining growth.
    */
+  const fitScore = (player: MarketPlayer, position: string) => {
+    const list = player.positions.map((p) => normalizePosition(p) ?? p);
+    const natural = list[0] === position ? 200 : list.includes(position) ? 100 : 0;
+    const growth = Math.max(0, (player.potential ?? 0) - (player.overall ?? 0));
+    return natural + (player.overall ?? 0) + growth / 2;
+  };
   const visiblePlayers = useMemo(() => {
     const rows = results.data?.players ?? [];
     if (!focusPosition) return rows;
-    const score = (player: MarketPlayer) => {
-      const list = player.positions.map((position) => normalizePosition(position) ?? position);
-      const natural = list[0] === focusPosition ? 200 : list.includes(focusPosition) ? 100 : 0;
-      const growth = Math.max(0, (player.potential ?? 0) - (player.overall ?? 0));
-      return natural + (player.overall ?? 0) + growth / 2;
-    };
-    return [...rows].sort((a, b) => score(b) - score(a));
+    return [...rows].sort((a, b) => fitScore(b, focusPosition) - fitScore(a, focusPosition));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [results.data, focusPosition]);
 
   const topNeeds = needs.slice(0, 2);
   const shortlistPosition = focusPosition ?? topNeeds[0]?.position ?? null;
+
+  // Suggestions: only the needed position or a closely related one.
+  const [suggestWithinBudget, setSuggestWithinBudget] = useState(true);
+  const suggestPositions = useMemo(
+    () =>
+      shortlistPosition
+        ? POSITIONS.filter((p) => positionFit(shortlistPosition, p) !== "out").map(String)
+        : [],
+    [shortlistPosition],
+  );
+  const suggestionFilters: MarketSearchInput = {
+    positions: suggestPositions.length > 0 ? suggestPositions : undefined,
+    maxValue: suggestWithinBudget && budget != null && budget > 0 ? Math.round(budget) : undefined,
+    sort: "overall",
+    page: 0,
+  };
+  const suggestionResults = useQuery({
+    ...marketSearchQuery(suggestionFilters),
+    enabled: shortlistPosition != null,
+  });
+  const suggestions = useMemo(() => {
+    if (!shortlistPosition) return [];
+    return (suggestionResults.data?.players ?? [])
+      .filter((player) =>
+        player.positions.some(
+          (p) => positionFit(shortlistPosition, normalizePosition(p) ?? p) !== "out",
+        ),
+      )
+      .filter(
+        (player) =>
+          !suggestWithinBudget ||
+          budget == null ||
+          budget <= 0 ||
+          Number(player.value_eur ?? 0) <= budget,
+      )
+      .sort((a, b) => fitScore(b, shortlistPosition) - fitScore(a, shortlistPosition));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [suggestionResults.data, shortlistPosition, suggestWithinBudget, budget]);
+
+  const updateTarget = useServerFn(updateTransferTarget);
+  const editTarget = useMutation({
+    mutationFn: (input: { targetId: string; priority?: number; expectedPrice?: number | null }) =>
+      updateTarget({ data: input }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["transfer-targets", id] }),
+  });
+  const removeWish = useMutation({
+    mutationFn: (fcPlayerId: string) => removeTarget({ data: { careerId: id, fcPlayerId } }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["transfer-targets", id] }),
+  });
   const seasonLabel = seasons.find((season) => season.id === activeSeasonId)?.label ?? null;
   const startYear = seasonLabel ? seasonStartYear(seasonLabel) : null;
   const expiring = squad
@@ -440,13 +492,111 @@ function MarketPage() {
         </div>
       </div>
 
+      <section className="rounded-2xl border border-ov-border bg-ov-card">
+        <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-ov-line px-5 py-4">
+          <h2 className="font-tight text-lg font-semibold tracking-[-0.03em]">
+            Wishlist ({targets.data?.length ?? 0})
+          </h2>
+          <span className="text-xs text-ov-muted">
+            Expected spend {formatMoney(targetSpend)} of {budget == null ? "–" : formatMoney(budget)} budget
+          </span>
+        </div>
+        {(targets.data?.length ?? 0) === 0 ? (
+          <p className="px-5 py-8 text-center text-sm text-ov-muted">
+            Your wishlist is empty. Add players from the suggestions or the search below.
+          </p>
+        ) : (
+          <ul>
+            {(targets.data ?? []).map((target, index) => {
+              const p = target.fc_players;
+              if (!p) return null;
+              return (
+                <li
+                  key={target.id}
+                  className={`flex flex-wrap items-center gap-3 px-5 py-3 ${index > 0 ? "border-t border-[#141414]" : ""}`}
+                >
+                  <PlayerAvatar name={p.short_name} src={p.face_url} size="sm" />
+                  <div className="min-w-[140px] flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate font-medium">{p.short_name}</span>
+                      <span className="rounded-md border border-ov-control px-1.5 py-px text-[11px] text-ov-muted">
+                        {p.positions[0] ?? "–"}
+                      </span>
+                    </div>
+                    <div className="text-xs text-ov-muted">
+                      {p.age ?? "–"} yrs · <span className="font-tight font-semibold text-ov-text">{p.overall ?? "–"}</span>
+                      {" / "}
+                      <span className={(p.potential ?? 0) > (p.overall ?? 0) ? "text-ov-accent" : ""}>{p.potential ?? "–"}</span>
+                    </div>
+                  </div>
+                  <label className="flex items-center gap-1.5 text-xs text-ov-muted">
+                    Price
+                    <input
+                      key={`${target.id}-${target.expected_price ?? ""}`}
+                      defaultValue={target.expected_price == null ? "" : String(Math.round(Number(target.expected_price)))}
+                      inputMode="numeric"
+                      aria-label={`Expected price for ${p.short_name}`}
+                      className="h-8 w-28 rounded-lg border border-ov-control bg-transparent px-2 text-sm text-ov-text tabular-nums"
+                      onBlur={(e) => {
+                        const raw = e.target.value.trim();
+                        const next = raw === "" ? null : Number(raw.replace(/[^\d.]/g, ""));
+                        if (next != null && !Number.isFinite(next)) return;
+                        const current = target.expected_price == null ? null : Number(target.expected_price);
+                        if (next === current) return;
+                        editTarget.mutate({ targetId: target.id, expectedPrice: next });
+                      }}
+                    />
+                  </label>
+                  <Select
+                    value={String(target.priority)}
+                    onValueChange={(v) => editTarget.mutate({ targetId: target.id, priority: Number(v) })}
+                  >
+                    <SelectTrigger className="h-8 w-[110px] rounded-lg border-ov-control bg-transparent text-xs" aria-label="Priority">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3].map((n) => (
+                        <SelectItem key={n} value={String(n)}>
+                          {PRIORITY_LABELS[n]} priority
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <button type="button" onClick={() => setSigning(p)} className={`${OUTLINE} h-8 gap-1.5 text-xs`}>
+                    <UserPlus className="h-3.5 w-3.5" /> Sign
+                  </button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    disabled={removeWish.isPending}
+                    onClick={() => removeWish.mutate(p.id)}
+                    aria-label="Remove from wishlist"
+                  >
+                    <Star className="h-4 w-4 fill-ov-accent text-ov-accent" />
+                  </Button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         <div className="min-w-0 rounded-2xl border border-ov-border bg-ov-card">
-          <div className="flex items-baseline justify-between gap-3 border-b border-ov-line px-5 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ov-line px-5 py-4">
             <h2 className="font-tight text-lg font-semibold tracking-[-0.03em]">
-              Shortlist{shortlistPosition ? ` · ${shortlistPosition}` : ""}
+              {shortlistPosition ? `Suggested ${shortlistPosition} targets` : "Suggested targets"}
             </h2>
-            <span className="text-xs text-ov-muted">From the FC 26 database</span>
+            <label className="flex items-center gap-2 text-xs text-ov-muted">
+              <input
+                type="checkbox"
+                checked={suggestWithinBudget}
+                onChange={(e) => setSuggestWithinBudget(e.target.checked)}
+                className="h-4 w-4 accent-[var(--ov-accent)]"
+              />
+              Within budget
+            </label>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[560px] text-sm">
@@ -461,7 +611,7 @@ function MarketPage() {
                 </tr>
               </thead>
               <tbody>
-                {visiblePlayers.slice(0, 6).map((player) => {
+                {suggestions.slice(0, 6).map((player) => {
                   const on = targetIds.has(player.id);
                   return (
                     <tr key={player.id} className="border-t border-[#141414]">
@@ -492,16 +642,16 @@ function MarketPage() {
                           onClick={() => toggleTarget.mutate(player)}
                           className={`${OUTLINE} h-8 ${on ? "border-ov-accent text-ov-accent" : ""}`}
                         >
-                          {on ? "Shortlisted" : "Shortlist"}
+                          {on ? "On wishlist" : "Add to wishlist"}
                         </button>
                       </td>
                     </tr>
                   );
                 })}
-                {visiblePlayers.length === 0 && (
+                {suggestions.length === 0 && (
                   <tr>
                     <td colSpan={6} className="px-5 py-8 text-center text-ov-muted">
-                      {results.isFetching ? "Loading players…" : "No players match your filters."}
+                      {suggestionResults.isFetching ? "Loading players…" : "No suitable players found."}
                     </td>
                   </tr>
                 )}
@@ -557,7 +707,7 @@ function MarketPage() {
         <TabsList className="h-9 rounded-[10px] border border-ov-control bg-transparent p-0.5">
           <TabsTrigger value="search" className="h-8 rounded-lg text-xs">Search players</TabsTrigger>
           <TabsTrigger value="targets" className="h-8 rounded-lg text-xs">
-            My targets ({targets.data?.length ?? 0})
+            Wishlist ({targets.data?.length ?? 0})
           </TabsTrigger>
         </TabsList>
       </div>
@@ -981,7 +1131,7 @@ function MarketPage() {
           {(targets.data?.length ?? 0) === 0 && (
             <tr>
               <td colSpan={8} className="px-5 py-8 text-center text-sm text-ov-muted">
-                No transfer targets yet. Click the star next to a player in the search.
+                Your wishlist is empty. Add players from the suggestions or the search below.
               </td>
             </tr>
           )}
@@ -1123,7 +1273,7 @@ function PlayerRow({
               e.stopPropagation();
               onToggle();
             }}
-            aria-label={isTarget ? "Remove from shortlist" : "Add to shortlist"}
+            aria-label={isTarget ? "Remove from wishlist" : "Add to wishlist"}
           >
             {isTarget ? (
               <Star className="h-4 w-4 fill-ov-accent text-ov-accent" />
