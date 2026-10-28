@@ -21,6 +21,7 @@ import { PlayerAvatar } from "@/components/player-avatar";
 import {
   addTransferTarget,
   removeTransferTarget,
+  updateTransferTarget,
   type MarketPlayer,
   type MarketSearchInput,
   type MarketPreset,
@@ -33,6 +34,7 @@ import {
   squadAge,
   type PositionNeed,
 } from "@/lib/squad-needs";
+import { positionFit } from "@/lib/formations";
 import { POSITIONS, formatMoney, formatWage, normalizePosition, ovrTone } from "@/lib/football";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/marked")({
@@ -609,7 +611,7 @@ function MarketPage() {
                 </tr>
               </thead>
               <tbody>
-                {visiblePlayers.slice(0, 6).map((player) => {
+                {suggestions.slice(0, 6).map((player) => {
                   const on = targetIds.has(player.id);
                   return (
                     <tr key={player.id} className="border-t border-[#141414]">
@@ -640,16 +642,16 @@ function MarketPage() {
                           onClick={() => toggleTarget.mutate(player)}
                           className={`${OUTLINE} h-8 ${on ? "border-ov-accent text-ov-accent" : ""}`}
                         >
-                          {on ? "Shortlisted" : "Shortlist"}
+                          {on ? "On wishlist" : "Add to wishlist"}
                         </button>
                       </td>
                     </tr>
                   );
                 })}
-                {visiblePlayers.length === 0 && (
+                {suggestions.length === 0 && (
                   <tr>
                     <td colSpan={6} className="px-5 py-8 text-center text-ov-muted">
-                      {results.isFetching ? "Loading players…" : "No players match your filters."}
+
                     </td>
                   </tr>
                 )}
@@ -705,7 +707,7 @@ function MarketPage() {
         <TabsList className="h-9 rounded-[10px] border border-ov-control bg-transparent p-0.5">
           <TabsTrigger value="search" className="h-8 rounded-lg text-xs">Search players</TabsTrigger>
           <TabsTrigger value="targets" className="h-8 rounded-lg text-xs">
-            My targets ({targets.data?.length ?? 0})
+            Wishlist ({targets.data?.length ?? 0})
           </TabsTrigger>
         </TabsList>
       </div>
@@ -1129,7 +1131,7 @@ function MarketPage() {
           {(targets.data?.length ?? 0) === 0 && (
             <tr>
               <td colSpan={8} className="px-5 py-8 text-center text-sm text-ov-muted">
-                No transfer targets yet. Click the star next to a player in the search.
+                Your wishlist is empty. Add players from the suggestions or the search below.
               </td>
             </tr>
           )}
@@ -1271,7 +1273,7 @@ function PlayerRow({
               e.stopPropagation();
               onToggle();
             }}
-            aria-label={isTarget ? "Remove from shortlist" : "Add to shortlist"}
+            aria-label={isTarget ? "Remove from wishlist" : "Add to wishlist"}
           >
             {isTarget ? (
               <Star className="h-4 w-4 fill-ov-accent text-ov-accent" />
