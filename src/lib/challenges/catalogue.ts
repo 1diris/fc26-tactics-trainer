@@ -6,7 +6,7 @@ export type Rule = { id: string; title: string; description: string; type: strin
 export type Challenge = {
   id: string; title: string; subtitle: string; game: string; club: string; league: string;
   seasons: number; difficulty: string; tags: string[]; description: string;
-  startingPoint: { ovr: number; transferBudget: string; formation: string };
+  startingPoint: { ovr: number; transferBudget: string; formation: string; europe?: string };
   screens: Record<string, { label: string; hint: string }>;
   metrics: Record<string, { screen: string; type: string; extract: string }>;
   rules: Rule[]; seasonGoals: { season: number; label: string; theme: string; goals: Goal[] }[];

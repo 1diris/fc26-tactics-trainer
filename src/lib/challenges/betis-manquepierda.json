@@ -7,109 +7,490 @@
   "league": "La Liga",
   "seasons": 5,
   "difficulty": "hard",
-  "tags": ["realistisk", "akademi", "salgsklub", "spansk"],
-  "description": "Fem sæsoner med Real Betis. Hold klubben i Champions League, byg på egne talenter og vind et trofæ uden at blive en købeklub.",
-  "startingPoint": { "ovr": 79, "transferBudget": "€16,4M", "formation": "4-2-3-1" },
-
-  "screens": {
-    "league_table": { "label": "Ligatabel", "hint": "La Liga-tabellen efter sidste spillerunde. Hele tabellen skal være synlig." },
-    "trophy": { "label": "Trofæskærm", "hint": "Skærmen der viser vundet titel, eller klubbens trofæskab." },
-    "squad": { "label": "Truppen", "hint": "Trupoversigt med alder, OVR og nationalitet. Upload op til 3 billeder, hvis du skal scrolle." },
-    "squad_wages": { "label": "Truppen sorteret efter løn", "hint": "Sortér efter løn, højeste øverst." },
-    "finances": { "label": "Økonomi", "hint": "Skærmen med transferbudget og lønbudget." }
-  },
-
-  "metrics": {
-    "league_position": { "screen": "league_table", "type": "integer", "extract": "Real Betis' placering i tabellen. Returnér også antal spillede kampe." },
-    "trophy_won": { "screen": "trophy", "type": "string", "extract": "Navnet på den vundne turnering, hvis Real Betis har vundet den. Ellers null." },
-    "team_ovr": { "screen": "squad", "type": "integer", "extract": "Holdets samlede rating." },
-    "average_age": { "screen": "squad", "type": "number", "extract": "Beregn gennemsnitsalderen for alle spillere på billederne. Returnér også antal spillere talt." },
-    "spanish_speaking_share": { "screen": "squad", "type": "number", "extract": "Andel spillere (0-1) med nationalitet fra et spansktalende land. Returnér også antal talt." },
-    "highest_wage": { "screen": "squad_wages", "type": "number", "extract": "Højeste ugeløn i euro." },
-    "total_weekly_wages": { "screen": "finances", "type": "number", "extract": "Samlet ugentlig lønudgift i euro." },
-    "transfer_budget": { "screen": "finances", "type": "number", "extract": "Resterende transferbudget i euro." }
-  },
-
-  "rules": [
-    { "id": "r1", "title": "Max €25M pr. køb", "description": "Loftet gælder pr. spiller, ikke det samlede budget. Ophæves fra sæson 4.", "type": "hard", "verify": { "method": "manual" } },
-    { "id": "r2", "title": "Maks 3 køb pr. vindue", "description": "Gratis spillere og lejeaftaler tæller med. Første vindue tæller som opstart.", "type": "hard", "verify": { "method": "manual" } },
-    { "id": "r3", "title": "Ingen spiller over 84 OVR ved køb", "description": "Ingen urealistiske stjernekøb.", "type": "hard", "verify": { "method": "manual" } },
-    { "id": "r4", "title": "Lønloft €60K/uge", "description": "Højeste løn i truppen må aldrig overstige dette.", "type": "hard", "verify": { "method": "auto", "metric": "highest_wage", "operator": "<=", "value": 60000 } },
-    { "id": "r5", "title": "Min. 50 % spansktalende trup", "description": "Spanien og Latinamerika er klubbens netværk.", "type": "soft", "verify": { "method": "auto", "metric": "spanish_speaking_share", "operator": ">=", "value": 0.5 } },
-    { "id": "r6", "title": "4-2-3-1 som grundformation", "description": "4-3-3 er tilladt i enkelte kampe, men ikke som standard.", "type": "soft", "verify": { "method": "manual" } },
-    { "id": "r7", "title": "Sælg til topklubber", "description": "Bud over 150 % af værdien fra en storklub skal accepteres, hvis spilleren vil væk.", "type": "soft", "verify": { "method": "manual" } },
-    { "id": "r8", "title": "1 akademispiller op pr. sæson", "description": "Han skal have mindst 10 kampe i alle turneringer.", "type": "soft", "verify": { "method": "manual" } },
-    { "id": "r9", "title": "Leje med købspligt tæller som køb", "description": "Købssummen skal overholde €25M-loftet.", "type": "hard", "verify": { "method": "manual" } }
+  "tags": [
+    "realistisk",
+    "akademi",
+    "salgsklub",
+    "spansk"
   ],
-
+  "description": "Fem sæsoner med Real Betis. Før klubben fra Europa League til Champions League, byg på egne talenter og vind et trofæ uden at blive en købeklub.",
+  "startingPoint": {
+    "ovr": 79,
+    "transferBudget": "€16,4M",
+    "formation": "4-2-3-1",
+    "europe": "UEFA Europa League"
+  },
+  "screens": {
+    "league_table": {
+      "label": "Ligatabel",
+      "hint": "La Liga-tabellen efter sidste spillerunde. Hele tabellen skal være synlig."
+    },
+    "trophy": {
+      "label": "Trofæskærm",
+      "hint": "Skærmen der viser vundet titel, eller klubbens trofæskab."
+    },
+    "squad": {
+      "label": "Truppen",
+      "hint": "Trupoversigt med alder, OVR og nationalitet. Upload op til 3 billeder, hvis du skal scrolle."
+    },
+    "squad_wages": {
+      "label": "Truppen sorteret efter løn",
+      "hint": "Sortér efter løn, højeste øverst."
+    },
+    "finances": {
+      "label": "Økonomi",
+      "hint": "Skærmen med transferbudget og lønbudget."
+    }
+  },
+  "metrics": {
+    "league_position": {
+      "screen": "league_table",
+      "type": "integer",
+      "extract": "Real Betis' placering i tabellen. Returnér også antal spillede kampe."
+    },
+    "trophy_won": {
+      "screen": "trophy",
+      "type": "string",
+      "extract": "Navnet på den vundne turnering, hvis Real Betis har vundet den. Ellers null."
+    },
+    "team_ovr": {
+      "screen": "squad",
+      "type": "integer",
+      "extract": "Holdets samlede rating."
+    },
+    "average_age": {
+      "screen": "squad",
+      "type": "number",
+      "extract": "Beregn gennemsnitsalderen for alle spillere på billederne. Returnér også antal spillere talt."
+    },
+    "spanish_speaking_share": {
+      "screen": "squad",
+      "type": "number",
+      "extract": "Andel spillere (0-1) med nationalitet fra et spansktalende land. Returnér også antal talt."
+    },
+    "highest_wage": {
+      "screen": "squad_wages",
+      "type": "number",
+      "extract": "Højeste ugeløn i euro."
+    },
+    "total_weekly_wages": {
+      "screen": "finances",
+      "type": "number",
+      "extract": "Samlet ugentlig lønudgift i euro."
+    },
+    "transfer_budget": {
+      "screen": "finances",
+      "type": "number",
+      "extract": "Resterende transferbudget i euro."
+    }
+  },
+  "rules": [
+    {
+      "id": "r1",
+      "title": "Max €25M pr. køb",
+      "description": "Loftet gælder pr. spiller, ikke det samlede budget. Ophæves fra sæson 4.",
+      "type": "hard",
+      "verify": {
+        "method": "manual"
+      }
+    },
+    {
+      "id": "r2",
+      "title": "Maks 3 køb pr. vindue",
+      "description": "Gratis spillere og lejeaftaler tæller med. Første vindue tæller som opstart.",
+      "type": "hard",
+      "verify": {
+        "method": "manual"
+      }
+    },
+    {
+      "id": "r3",
+      "title": "Ingen spiller over 84 OVR ved køb",
+      "description": "Ingen urealistiske stjernekøb.",
+      "type": "hard",
+      "verify": {
+        "method": "manual"
+      }
+    },
+    {
+      "id": "r4",
+      "title": "Lønloft €60K/uge",
+      "description": "Højeste løn i truppen må aldrig overstige dette.",
+      "type": "hard",
+      "verify": {
+        "method": "auto",
+        "metric": "highest_wage",
+        "operator": "<=",
+        "value": 60000
+      }
+    },
+    {
+      "id": "r5",
+      "title": "Min. 50 % spansktalende trup",
+      "description": "Spanien og Latinamerika er klubbens netværk.",
+      "type": "soft",
+      "verify": {
+        "method": "auto",
+        "metric": "spanish_speaking_share",
+        "operator": ">=",
+        "value": 0.5
+      }
+    },
+    {
+      "id": "r6",
+      "title": "4-2-3-1 som grundformation",
+      "description": "4-3-3 er tilladt i enkelte kampe, men ikke som standard.",
+      "type": "soft",
+      "verify": {
+        "method": "manual"
+      }
+    },
+    {
+      "id": "r7",
+      "title": "Sælg til topklubber",
+      "description": "Bud over 150 % af værdien fra en storklub skal accepteres, hvis spilleren vil væk.",
+      "type": "soft",
+      "verify": {
+        "method": "manual"
+      }
+    },
+    {
+      "id": "r8",
+      "title": "1 akademispiller op pr. sæson",
+      "description": "Han skal have mindst 10 kampe i alle turneringer.",
+      "type": "soft",
+      "verify": {
+        "method": "manual"
+      }
+    },
+    {
+      "id": "r9",
+      "title": "Leje med købspligt tæller som køb",
+      "description": "Købssummen skal overholde €25M-loftet.",
+      "type": "hard",
+      "verify": {
+        "method": "manual"
+      }
+    }
+  ],
   "seasonGoals": [
     {
-      "season": 1, "label": "26/27",
-      "theme": "Stabiliser holdet i Champions League og giv talenterne minutter.",
+      "season": 1,
+      "label": "25/26",
+      "theme": "Byg holdet i Europa League og giv talenterne minutter.",
       "goals": [
-        { "id": "s1g1", "text": "Slut top 6 i La Liga", "points": 3, "category": "liga", "verify": { "method": "auto", "metric": "league_position", "operator": "<=", "value": 6 } },
-        { "id": "s1g2", "text": "Gå videre fra CL-ligafasen", "points": 3, "category": "europa", "verify": { "method": "manual" } },
-        { "id": "s1g3", "text": "To U21-spillere spiller 20+ kampe hver", "points": 2, "category": "udvikling", "verify": { "method": "manual" } },
-        { "id": "s1g4", "text": "Køb en HB som starter (maks €15M)", "points": 2, "category": "transfer", "verify": { "method": "manual" } },
-        { "id": "s1g5", "text": "Slå Sevilla i begge derbyer", "points": 1, "category": "derby", "verify": { "method": "manual" } },
-        { "id": "s1g6", "text": "Transferbudget over €30M ved sæsonslut", "points": 1, "category": "økonomi", "verify": { "method": "auto", "metric": "transfer_budget", "operator": ">", "value": 30000000 } }
+        {
+          "id": "s1g1",
+          "text": "Slut top 6 i La Liga",
+          "points": 3,
+          "category": "liga",
+          "verify": {
+            "method": "auto",
+            "metric": "league_position",
+            "operator": "<=",
+            "value": 6
+          }
+        },
+        {
+          "id": "s1g2",
+          "text": "Gå videre fra Europa League-ligafasen",
+          "points": 3,
+          "category": "europa",
+          "verify": {
+            "method": "manual"
+          }
+        },
+        {
+          "id": "s1g3",
+          "text": "To U21-spillere spiller 20+ kampe hver",
+          "points": 2,
+          "category": "udvikling",
+          "verify": {
+            "method": "manual"
+          }
+        },
+        {
+          "id": "s1g4",
+          "text": "Køb en HB som starter (maks €15M)",
+          "points": 2,
+          "category": "transfer",
+          "verify": {
+            "method": "manual"
+          }
+        },
+        {
+          "id": "s1g5",
+          "text": "Slå Sevilla i begge derbyer",
+          "points": 1,
+          "category": "derby",
+          "verify": {
+            "method": "manual"
+          }
+        },
+        {
+          "id": "s1g6",
+          "text": "Transferbudget over €30M ved sæsonslut",
+          "points": 1,
+          "category": "økonomi",
+          "verify": {
+            "method": "auto",
+            "metric": "transfer_budget",
+            "operator": ">",
+            "value": 30000000
+          }
+        }
       ]
     },
     {
-      "season": 2, "label": "27/28",
-      "theme": "Generationsskifte. Erstat de ældre profiler, før de falder af.",
+      "season": 2,
+      "label": "26/27",
+      "theme": "Tag springet til Champions League og start generationsskiftet.",
       "goals": [
-        { "id": "s2g1", "text": "Kvalificer dig til Champions League igen (top 4)", "points": 3, "category": "liga", "verify": { "method": "auto", "metric": "league_position", "operator": "<=", "value": 4 } },
-        { "id": "s2g2", "text": "Sælg en spiller over 32 år for €20M+", "points": 2, "category": "transfer", "verify": { "method": "manual" } },
-        { "id": "s2g3", "text": "To U23-midtstoppere er fast makkerpar", "points": 2, "category": "udvikling", "verify": { "method": "manual" } },
-        { "id": "s2g4", "text": "Nå Copa del Rey-semifinalen", "points": 2, "category": "pokal", "verify": { "method": "manual" } },
-        { "id": "s2g5", "text": "Gennemsnitsalder under 26 ved sæsonslut", "points": 2, "category": "udvikling", "verify": { "method": "auto", "metric": "average_age", "operator": "<", "value": 26 } }
+        {
+          "id": "s2g1",
+          "text": "Kvalificer dig til Champions League (top 4)",
+          "points": 3,
+          "category": "liga",
+          "verify": {
+            "method": "auto",
+            "metric": "league_position",
+            "operator": "<=",
+            "value": 4
+          }
+        },
+        {
+          "id": "s2g2",
+          "text": "Sælg en spiller over 32 år for €20M+",
+          "points": 2,
+          "category": "transfer",
+          "verify": {
+            "method": "manual"
+          }
+        },
+        {
+          "id": "s2g3",
+          "text": "To U23-midtstoppere er fast makkerpar",
+          "points": 2,
+          "category": "udvikling",
+          "verify": {
+            "method": "manual"
+          }
+        },
+        {
+          "id": "s2g4",
+          "text": "Nå Copa del Rey-semifinalen",
+          "points": 2,
+          "category": "pokal",
+          "verify": {
+            "method": "manual"
+          }
+        },
+        {
+          "id": "s2g5",
+          "text": "Gennemsnitsalder under 26 ved sæsonslut",
+          "points": 2,
+          "category": "udvikling",
+          "verify": {
+            "method": "auto",
+            "metric": "average_age",
+            "operator": "<",
+            "value": 26
+          }
+        }
       ]
     },
     {
-      "season": 3, "label": "28/29",
+      "season": 3,
+      "label": "27/28",
       "theme": "Det er nu dit hold, og der skal et trofæ på bordet.",
       "goals": [
-        { "id": "s3g1", "text": "Vind Copa del Rey eller Europa League", "points": 5, "category": "trofæ", "verify": { "method": "auto", "metric": "trophy_won", "operator": "in", "value": ["Copa del Rey", "UEFA Europa League"] } },
-        { "id": "s3g2", "text": "Slut top 4 i La Liga", "points": 3, "category": "liga", "verify": { "method": "auto", "metric": "league_position", "operator": "<=", "value": 4 } },
-        { "id": "s3g3", "text": "En U23-angriber scorer 15+ ligamål", "points": 2, "category": "udvikling", "verify": { "method": "manual" } },
-        { "id": "s3g4", "text": "En akademispiller når 75 OVR", "points": 2, "category": "akademi", "verify": { "method": "manual" } }
+        {
+          "id": "s3g1",
+          "text": "Vind Copa del Rey eller Europa League",
+          "points": 5,
+          "category": "trofæ",
+          "verify": {
+            "method": "auto",
+            "metric": "trophy_won",
+            "operator": "in",
+            "value": [
+              "Copa del Rey",
+              "UEFA Europa League"
+            ]
+          }
+        },
+        {
+          "id": "s3g2",
+          "text": "Slut top 4 i La Liga",
+          "points": 3,
+          "category": "liga",
+          "verify": {
+            "method": "auto",
+            "metric": "league_position",
+            "operator": "<=",
+            "value": 4
+          }
+        },
+        {
+          "id": "s3g3",
+          "text": "En U23-angriber scorer 15+ ligamål",
+          "points": 2,
+          "category": "udvikling",
+          "verify": {
+            "method": "manual"
+          }
+        },
+        {
+          "id": "s3g4",
+          "text": "En akademispiller når 75 OVR",
+          "points": 2,
+          "category": "akademi",
+          "verify": {
+            "method": "manual"
+          }
+        }
       ]
     },
     {
-      "season": 4, "label": "29/30",
+      "season": 4,
+      "label": "28/29",
       "theme": "Salgsklub på højt niveau. Sælg dyrt, køb klogt.",
       "goals": [
-        { "id": "s4g1", "text": "Sælg en egenudviklet spiller for €40M+", "points": 3, "category": "transfer", "verify": { "method": "manual" } },
-        { "id": "s4g2", "text": "Nå CL-kvartfinalen", "points": 3, "category": "europa", "verify": { "method": "manual" } },
-        { "id": "s4g3", "text": "Holdets OVR er 82+", "points": 2, "category": "trup", "verify": { "method": "auto", "metric": "team_ovr", "operator": ">=", "value": 82 } },
-        { "id": "s4g4", "text": "Samlet ugeløn under €1,2M", "points": 2, "category": "økonomi", "verify": { "method": "auto", "metric": "total_weekly_wages", "operator": "<", "value": 1200000 } }
+        {
+          "id": "s4g1",
+          "text": "Sælg en egenudviklet spiller for €40M+",
+          "points": 3,
+          "category": "transfer",
+          "verify": {
+            "method": "manual"
+          }
+        },
+        {
+          "id": "s4g2",
+          "text": "Nå CL-kvartfinalen",
+          "points": 3,
+          "category": "europa",
+          "verify": {
+            "method": "manual"
+          }
+        },
+        {
+          "id": "s4g3",
+          "text": "Holdets OVR er 82+",
+          "points": 2,
+          "category": "trup",
+          "verify": {
+            "method": "auto",
+            "metric": "team_ovr",
+            "operator": ">=",
+            "value": 82
+          }
+        },
+        {
+          "id": "s4g4",
+          "text": "Samlet ugeløn under €1,2M",
+          "points": 2,
+          "category": "økonomi",
+          "verify": {
+            "method": "auto",
+            "metric": "total_weekly_wages",
+            "operator": "<",
+            "value": 1200000
+          }
+        }
       ]
     },
     {
-      "season": 5, "label": "30/31",
+      "season": 5,
+      "label": "29/30",
       "theme": "Det store mål. Betis har kun vundet ligaen én gang, i 1935.",
       "goals": [
-        { "id": "s5g1", "text": "Vind La Liga", "points": 10, "category": "trofæ", "verify": { "method": "auto", "metric": "league_position", "operator": "==", "value": 1 } },
-        { "id": "s5g2", "text": "Slut top 3 i La Liga", "points": 4, "category": "liga", "verify": { "method": "auto", "metric": "league_position", "operator": "<=", "value": 3 } },
-        { "id": "s5g3", "text": "Startopstillingen har 5+ spillere under 25 år", "points": 3, "category": "udvikling", "verify": { "method": "manual" } },
-        { "id": "s5g4", "text": "Anføreren er en egen akademispiller", "points": 2, "category": "akademi", "verify": { "method": "manual" } }
+        {
+          "id": "s5g1",
+          "text": "Vind La Liga",
+          "points": 10,
+          "category": "trofæ",
+          "verify": {
+            "method": "auto",
+            "metric": "league_position",
+            "operator": "==",
+            "value": 1
+          }
+        },
+        {
+          "id": "s5g2",
+          "text": "Slut top 3 i La Liga",
+          "points": 4,
+          "category": "liga",
+          "verify": {
+            "method": "auto",
+            "metric": "league_position",
+            "operator": "<=",
+            "value": 3
+          }
+        },
+        {
+          "id": "s5g3",
+          "text": "Startopstillingen har 5+ spillere under 25 år",
+          "points": 3,
+          "category": "udvikling",
+          "verify": {
+            "method": "manual"
+          }
+        },
+        {
+          "id": "s5g4",
+          "text": "Anføreren er en egen akademispiller",
+          "points": 2,
+          "category": "akademi",
+          "verify": {
+            "method": "manual"
+          }
+        }
       ]
     }
   ],
-
   "penalties": [
-    { "id": "p1", "trigger": "Ingen CL-kvalifikation", "consequence": "Næste vindue: kun gratis spillere og lejeaftaler.", "points": 0 },
-    { "id": "p2", "trigger": "Tab til Sevilla to gange i træk", "consequence": "Den dyreste spiller sættes på transferlisten.", "points": 0 },
-    { "id": "p3", "trigger": "Brud på en husregel", "consequence": "Pointfradrag.", "points": -5 }
+    {
+      "id": "p1",
+      "trigger": "Ingen europæisk kvalifikation",
+      "consequence": "Næste vindue: kun gratis spillere og lejeaftaler. Fra sæson 3 gælder det, hvis du ikke kvalificerer dig til Champions League.",
+      "points": 0
+    },
+    {
+      "id": "p2",
+      "trigger": "Tab til Sevilla to gange i træk",
+      "consequence": "Den dyreste spiller sættes på transferlisten.",
+      "points": 0
+    },
+    {
+      "id": "p3",
+      "trigger": "Brud på en husregel",
+      "consequence": "Pointfradrag.",
+      "points": -5
+    }
   ],
-
   "ranks": [
-    { "min": 0, "max": 15, "title": "Fyret i oktober" },
-    { "min": 16, "max": 31, "title": "Solid manager" },
-    { "min": 32, "max": 47, "title": "Heliópolis-helt" },
-    { "min": 48, "max": null, "title": "Bedre end Pellegrini" }
+    {
+      "min": 0,
+      "max": 15,
+      "title": "Fyret i oktober"
+    },
+    {
+      "min": 16,
+      "max": 31,
+      "title": "Solid manager"
+    },
+    {
+      "min": 32,
+      "max": 47,
+      "title": "Heliópolis-helt"
+    },
+    {
+      "min": 48,
+      "max": null,
+      "title": "Bedre end Pellegrini"
+    }
   ],
-
   "maxPoints": 64
 }
