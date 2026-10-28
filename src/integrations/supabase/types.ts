@@ -60,6 +60,7 @@ export type Database = {
       }
       challenge_progress: {
         Row: {
+          career_id: string | null
           challenge_id: string
           completions: Json
           penalty_count: number
@@ -68,6 +69,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          career_id?: string | null
           challenge_id: string
           completions?: Json
           penalty_count?: number
@@ -76,6 +78,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          career_id?: string | null
           challenge_id?: string
           completions?: Json
           penalty_count?: number
@@ -83,7 +86,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "challenge_progress_career_id_fkey"
+            columns: ["career_id"]
+            isOneToOne: false
+            referencedRelation: "careers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       challenge_verifications: {
         Row: {
