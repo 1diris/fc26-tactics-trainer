@@ -11,4 +11,5 @@
   - [ ] Drag & drop + bænke-panel
   - [ ] Hold-overblik (linje-OVR, balance)
   - [ ] AI-vejledning til taktik
-  - [ ] Flere gemte taktikker pr. karriere
+  - [x] Flere gemte taktikker pr. karriere
+- [x] Overview: "Wishlist" card under Alerts (targets, spend vs. budget, link to Transfers)
