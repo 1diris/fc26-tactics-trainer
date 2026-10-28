@@ -17,11 +17,36 @@ export const getChallengeProgress = createServerFn({ method: "GET" }).middleware
     const urls = await context.supabase.storage.from("challenge-screenshots").createSignedUrls(row.storage_paths, 3600);
     return { ...row, imageUrls: (urls.data ?? []).map((file) => file.signedUrl).filter((url): url is string => Boolean(url)) };
   }));
-  return { progress: progress.data, history: rows };
+  let career: { id: string; name: string } | null = null;
+  if (progress.data?.career_id) {
+    const c = await context.supabase.from("careers").select("id, name").eq("id", progress.data.career_id).maybeSingle();
+    career = c.data ?? null;
+  }
+  return { progress: progress.data, history: rows, career };
 });
-export const startChallenge = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth]).inputValidator((input: unknown) => idSchema.parse(input)).handler(async ({ data, context }) => {
+export const startChallenge = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth]).inputValidator((input: unknown) => idSchema.extend({ careerId: z.string().uuid().optional() }).parse(input)).handler(async ({ data, context }) => {
   getChallenge(data.challengeId);
-  const { error } = await context.supabase.from("challenge_progress").upsert({ challenge_id: data.challengeId, user_id: context.userId }, { onConflict: "user_id,challenge_id", ignoreDuplicates: true });
+  const existing = await context.supabase.from("challenge_progress").select("career_id").eq("user_id", context.userId).eq("challenge_id", data.challengeId).maybeSingle();
+  if (existing.error) throw new Error(existing.error.message);
+  if (!existing.data) {
+    const { error } = await context.supabase.from("challenge_progress").insert({ challenge_id: data.challengeId, user_id: context.userId, career_id: data.careerId ?? null });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  }
+  if (data.careerId && existing.data.career_id !== data.careerId) {
+    if (existing.data.career_id) throw new Error("This challenge is already running on another career. Unlink it first.");
+    const { error } = await context.supabase.from("challenge_progress").update({ career_id: data.careerId }).eq("user_id", context.userId).eq("challenge_id", data.challengeId);
+    if (error) throw new Error(error.message);
+  }
+  return { ok: true };
+});
+export const getCareerChallenges = createServerFn({ method: "GET" }).middleware([requireSupabaseAuth]).inputValidator((input: unknown) => z.object({ careerId: z.string().uuid() }).parse(input)).handler(async ({ data, context }) => {
+  const { data: rows, error } = await context.supabase.from("challenge_progress").select("challenge_id, completions, penalty_count").eq("user_id", context.userId).eq("career_id", data.careerId);
+  if (error) throw new Error(error.message);
+  return rows ?? [];
+});
+export const unlinkChallenge = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth]).inputValidator((input: unknown) => idSchema.parse(input)).handler(async ({ data, context }) => {
+  const { error } = await context.supabase.from("challenge_progress").update({ career_id: null }).eq("user_id", context.userId).eq("challenge_id", data.challengeId);
   if (error) throw new Error(error.message);
   return { ok: true };
 });
