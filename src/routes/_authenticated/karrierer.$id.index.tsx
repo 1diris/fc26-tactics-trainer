@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { CareerChallengeCard } from "@/components/career-challenge-card";
 import { PlayerAvatar } from "@/components/player-avatar";
-import { careerDataQuery, youthQuery } from "@/lib/career-queries";
+import { careerDataQuery, targetsQuery, youthQuery } from "@/lib/career-queries";
 import {
   averageOf,
   buildSquad,
@@ -171,6 +171,7 @@ function CareerOverview() {
   const { id } = useParams({ from: "/_authenticated/karrierer/$id/" });
   const { data } = useSuspenseQuery(careerDataQuery(id));
   const youth = useQuery(youthQuery(id));
+  const targets = useQuery(targetsQuery(id));
 
   const seasons = sortedSeasons(data.seasons);
   const activeSeason =
@@ -238,6 +239,16 @@ function CareerOverview() {
     .slice(0, 6);
 
   const matched = rows.filter((row) => row.player.fc_player_id).length;
+
+  // Saved transfer targets: highest priority first, four shown on the card.
+  const wishlist = [...(targets.data ?? [])].sort((a, b) => a.priority - b.priority);
+  const wishlistCount = targets.data?.length ?? 0;
+  const wishlistSpend = (targets.data ?? []).reduce(
+    (sum, target) => sum + Number(target.expected_price ?? 0),
+    0,
+  );
+  const wishlistBudget = data.career.transfer_budget;
+  const overBudget = wishlistBudget != null && wishlistSpend > wishlistBudget;
 
   const highNeeds = needs.filter((need) => need.priority === "high");
   const mediumNeeds = needs.filter((need) => need.priority === "medium");
@@ -462,6 +473,7 @@ function CareerOverview() {
           </table>
         </section>
 
+        <div className="space-y-6">
         <section className="overflow-hidden rounded-2xl border border-ov-border bg-ov-card">
           <div className="flex items-center justify-between gap-3 border-b border-ov-line px-6 py-5">
             <h2 className="font-tight text-lg font-semibold tracking-[-0.03em]">Alerts</h2>
@@ -505,6 +517,71 @@ function CareerOverview() {
             })}
           </ul>
         </section>
+
+        <section className="overflow-hidden rounded-2xl border border-ov-border bg-ov-card">
+          <div className="flex items-center justify-between gap-3 border-b border-ov-line px-6 py-5">
+            <h2 className="font-tight text-lg font-semibold tracking-[-0.03em]">Wishlist</h2>
+            <span className="text-sm text-ov-muted">
+              {wishlistCount} {wishlistCount === 1 ? "player" : "players"}
+            </span>
+          </div>
+          {wishlistCount === 0 ? (
+            <div className="px-6 py-8 text-center">
+              <p className="text-sm text-ov-muted">
+                {targets.isPending ? "Loading your wishlist…" : "No players on your wishlist yet."}
+              </p>
+              {!targets.isPending && (
+                <Link to="/karrierer/$id/marked" params={{ id }} className={`${OUTLINE_BTN} mt-4`}>
+                  Find players
+                </Link>
+              )}
+            </div>
+          ) : (
+            <>
+              <ul>
+                {wishlist.slice(0, 4).map((target) => {
+                  const p = target.fc_players;
+                  if (!p) return null;
+                  const expected =
+                    target.expected_price == null ? null : Number(target.expected_price);
+                  return (
+                    <li
+                      key={target.id}
+                      className="flex items-center gap-3 border-b border-ov-line px-6 py-4 last:border-b-0"
+                    >
+                      <span className="flex min-w-0 flex-1 items-center gap-2">
+                        <span className="truncate font-medium">{p.short_name}</span>
+                        <PosBadge position={normalizePosition(p.positions?.[0] ?? null)} />
+                      </span>
+                      <span className="shrink-0 font-tight text-[15px] font-semibold tabular-nums">
+                        {p.overall ?? "–"}
+                        <span className="text-ov-muted"> / </span>
+                        {p.potential ?? "–"}
+                      </span>
+                      <span className="w-16 shrink-0 text-right text-sm tabular-nums text-ov-muted">
+                        {expected == null ? "" : formatMoney(expected)}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ov-line px-6 py-4">
+                <p className={`text-sm ${overBudget ? "text-destructive" : "text-ov-muted"}`}>
+                  Expected spend {formatMoney(wishlistSpend)} of{" "}
+                  {wishlistBudget == null ? "–" : formatMoney(wishlistBudget)} budget
+                </p>
+                <Link
+                  to="/karrierer/$id/marked"
+                  params={{ id }}
+                  className="text-sm text-ov-muted hover:text-ov-text"
+                >
+                  See full wishlist <ArrowRight className="inline h-3.5 w-3.5" aria-hidden />
+                </Link>
+              </div>
+            </>
+          )}
+        </section>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
