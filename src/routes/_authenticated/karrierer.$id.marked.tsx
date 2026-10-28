@@ -651,7 +651,7 @@ function MarketPage() {
                 {suggestions.length === 0 && (
                   <tr>
                     <td colSpan={6} className="px-5 py-8 text-center text-ov-muted">
-
+                      {suggestionResults.isFetching ? "Loading players…" : "No suitable players found."}
                     </td>
                   </tr>
                 )}
