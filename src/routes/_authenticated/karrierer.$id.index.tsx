@@ -2,6 +2,7 @@ import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
+import { CareerChallengeCard } from "@/components/career-challenge-card";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { careerDataQuery, youthQuery } from "@/lib/career-queries";
 import {
@@ -403,6 +404,8 @@ function CareerOverview() {
           </Link>
         )}
       </section>
+
+      <CareerChallengeCard careerId={id} club={data.career.club} seasonIndex={Math.max(1, seasons.findIndex((season) => season.id === activeSeasonId) + 1)} />
 
       <div className="grid gap-6 lg:grid-cols-[1.25fr_1fr] lg:items-start">
         <section className="overflow-hidden rounded-2xl border border-ov-border bg-ov-card">

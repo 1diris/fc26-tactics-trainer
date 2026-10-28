@@ -29,6 +29,13 @@
       "when": 1793137300779,
       "tag": "0003_challenge_atomic_progress",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793175787672,
+      "tag": "0004_challenge_career_link",
+      "breakpoints": true
     }
   ]
 }
