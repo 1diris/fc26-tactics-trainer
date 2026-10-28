@@ -490,13 +490,111 @@ function MarketPage() {
         </div>
       </div>
 
+      <section className="rounded-2xl border border-ov-border bg-ov-card">
+        <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-ov-line px-5 py-4">
+          <h2 className="font-tight text-lg font-semibold tracking-[-0.03em]">
+            Wishlist ({targets.data?.length ?? 0})
+          </h2>
+          <span className="text-xs text-ov-muted">
+            Expected spend {formatMoney(targetSpend)} of {budget == null ? "–" : formatMoney(budget)} budget
+          </span>
+        </div>
+        {(targets.data?.length ?? 0) === 0 ? (
+          <p className="px-5 py-8 text-center text-sm text-ov-muted">
+            Your wishlist is empty. Add players from the suggestions or the search below.
+          </p>
+        ) : (
+          <ul>
+            {(targets.data ?? []).map((target, index) => {
+              const p = target.fc_players;
+              if (!p) return null;
+              return (
+                <li
+                  key={target.id}
+                  className={`flex flex-wrap items-center gap-3 px-5 py-3 ${index > 0 ? "border-t border-[#141414]" : ""}`}
+                >
+                  <PlayerAvatar name={p.short_name} src={p.face_url} size="sm" />
+                  <div className="min-w-[140px] flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate font-medium">{p.short_name}</span>
+                      <span className="rounded-md border border-ov-control px-1.5 py-px text-[11px] text-ov-muted">
+                        {p.positions[0] ?? "–"}
+                      </span>
+                    </div>
+                    <div className="text-xs text-ov-muted">
+                      {p.age ?? "–"} yrs · <span className="font-tight font-semibold text-ov-text">{p.overall ?? "–"}</span>
+                      {" / "}
+                      <span className={(p.potential ?? 0) > (p.overall ?? 0) ? "text-ov-accent" : ""}>{p.potential ?? "–"}</span>
+                    </div>
+                  </div>
+                  <label className="flex items-center gap-1.5 text-xs text-ov-muted">
+                    Price
+                    <input
+                      key={`${target.id}-${target.expected_price ?? ""}`}
+                      defaultValue={target.expected_price == null ? "" : String(Math.round(Number(target.expected_price)))}
+                      inputMode="numeric"
+                      aria-label={`Expected price for ${p.short_name}`}
+                      className="h-8 w-28 rounded-lg border border-ov-control bg-transparent px-2 text-sm text-ov-text tabular-nums"
+                      onBlur={(e) => {
+                        const raw = e.target.value.trim();
+                        const next = raw === "" ? null : Number(raw.replace(/[^\d.]/g, ""));
+                        if (next != null && !Number.isFinite(next)) return;
+                        const current = target.expected_price == null ? null : Number(target.expected_price);
+                        if (next === current) return;
+                        editTarget.mutate({ targetId: target.id, expectedPrice: next });
+                      }}
+                    />
+                  </label>
+                  <Select
+                    value={String(target.priority)}
+                    onValueChange={(v) => editTarget.mutate({ targetId: target.id, priority: Number(v) })}
+                  >
+                    <SelectTrigger className="h-8 w-[110px] rounded-lg border-ov-control bg-transparent text-xs" aria-label="Priority">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3].map((n) => (
+                        <SelectItem key={n} value={String(n)}>
+                          {PRIORITY_LABELS[n]} priority
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <button type="button" onClick={() => setSigning(p)} className={`${OUTLINE} h-8 gap-1.5 text-xs`}>
+                    <UserPlus className="h-3.5 w-3.5" /> Sign
+                  </button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    disabled={removeWish.isPending}
+                    onClick={() => removeWish.mutate(p.id)}
+                    aria-label="Remove from wishlist"
+                  >
+                    <Star className="h-4 w-4 fill-ov-accent text-ov-accent" />
+                  </Button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         <div className="min-w-0 rounded-2xl border border-ov-border bg-ov-card">
-          <div className="flex items-baseline justify-between gap-3 border-b border-ov-line px-5 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ov-line px-5 py-4">
             <h2 className="font-tight text-lg font-semibold tracking-[-0.03em]">
-              Shortlist{shortlistPosition ? ` · ${shortlistPosition}` : ""}
+              {shortlistPosition ? `Suggested ${shortlistPosition} targets` : "Suggested targets"}
             </h2>
-            <span className="text-xs text-ov-muted">From the FC 26 database</span>
+            <label className="flex items-center gap-2 text-xs text-ov-muted">
+              <input
+                type="checkbox"
+                checked={suggestWithinBudget}
+                onChange={(e) => setSuggestWithinBudget(e.target.checked)}
+                className="h-4 w-4 accent-[var(--ov-accent)]"
+              />
+              Within budget
+            </label>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[560px] text-sm">
