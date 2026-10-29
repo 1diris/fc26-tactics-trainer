@@ -13,7 +13,10 @@ export function AppHeader({ children }: { children?: React.ReactNode }) {
   };
 
   return (
-    <header className="border-b border-border/60 bg-card/40">
+    <header
+      className="border-b border-border/60 bg-card/40"
+      style={{ paddingTop: "env(safe-area-inset-top)" }}
+    >
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-5 py-3">
         <Link
           to="/karrierer"
