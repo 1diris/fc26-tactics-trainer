@@ -1,15 +1,25 @@
-# Make challenges easier to find and link
+# Squad on iPhone: see names without sliding sideways
 
-## Why you can't see it now
-- The challenge card only appears inside one career's **Overview** page (open a career first). It is not on the "My careers" list you land on after signing in.
-- The challenge page itself has no "Link to career" button; linking only works from a career's Overview via "Add challenge".
-- Your preview is currently on the sign-in page, so nothing personal shows until you sign in.
+Today the Squad list on phone is a wide table, so you swipe right to see Age, OVR, Value and the rest, and the names slide out of view.
 
-## Changes
-1. **My careers list (dashboard):** each career card shows a small challenge line (title, points / 64, rank) when linked, or an "Add challenge" link that opens that career's Overview.
-2. **Challenge page:** when not linked, show "Link to career" with a dropdown of your careers (your matching club first) and a "Link" button. Starting a challenge also asks which career to link.
-3. **Career Overview:** move the challenge card higher so it is visible right under the stat strip.
+## What changes (phone only, under 768px)
+Each player becomes one compact card row instead of a wide table row:
+
+```text
+[ Lukas Brenner        CB ]   82  ↗88
+  24 yrs · €45m · €60k/w · 2027 •
+```
+
+- Line 1: full player name (never cut off) + position chip on the left; OVR (big) and POT (with the green "room to grow" arrow) on the right.
+- Line 2: Age, Value, Wage and Contract year in small grey text, with the orange dot if the contract expires this season.
+- Group headers (Goalkeepers, Defenders...) stay.
+- Tapping a row still opens the player profile, same as today.
+- A small "Sort by" dropdown above the list (Name, Age, OVR, POT, Value, Wage, Contract) replaces clicking the column headers, which are hidden on phone.
+
+## Unchanged
+- Desktop and tablet keep the current table exactly as it is.
+- No change to data, sorting logic, filters, search or the player profile.
 
 ## Technical details
-- Reuse `startChallenge({ careerId })` for linking; add a light `listCareerChallengeLinks` server fn (user's runs with career_id) for the careers list.
-- No database changes. Typecheck, tests and a signed-in browser check afterwards.
+- In `karrierer.$id.trup.tsx`: wrap the existing table in `hidden md:block`; add a `md:hidden` list rendering the same `grouped` rows with existing `ov-*` tokens; the mobile Sort select reuses `sortKey`/`asc`/`toggleSort` state.
+- Verify with Playwright at 393px width and run typecheck.
