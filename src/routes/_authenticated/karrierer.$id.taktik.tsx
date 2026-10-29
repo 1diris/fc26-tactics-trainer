@@ -487,8 +487,7 @@ function TacticsPage() {
             selectedId={activeSlot}
             onSelect={(slotId) => {
               setActiveSlot(slotId);
-              setTab("player");
-            }}
+                          }}
             onDropOnSlot={handleDropOnSlot}
           />
           <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-ov-muted">
@@ -524,8 +523,7 @@ function TacticsPage() {
                       key={d.slot.id}
                       onClick={() => {
                         setActiveSlot(d.slot.id);
-                        setTab("player");
-                      }}
+                                              }}
                       className="cursor-pointer border-t border-[#141414] first:border-0 hover:bg-[#111]"
                     >
                       <td className="px-5 py-2.5">
@@ -715,8 +713,7 @@ function TacticsPage() {
                       type="button"
                       onClick={() => {
                         setActiveSlot(hint.slotId);
-                        setTab("player");
-                      }}
+                                              }}
                       className="text-left hover:text-ov-text hover:underline"
                     >
                       {hint.text}
@@ -762,9 +759,8 @@ function TacticsPage() {
         <section className="space-y-6 lg:col-span-5">
           <div className="rounded-2xl border border-ov-border bg-ov-card p-4">
             <Tabs value={tab} onValueChange={setTab}>
-              <TabsList className="grid w-full grid-cols-3 bg-ov-bg">
+              <TabsList className="grid w-full grid-cols-2 bg-ov-bg">
                 <TabsTrigger value="team">Team tactics</TabsTrigger>
-                <TabsTrigger value="player">Player role</TabsTrigger>
                 <TabsTrigger value="export">Export</TabsTrigger>
               </TabsList>
 
@@ -871,32 +867,6 @@ function TacticsPage() {
                 </Field>
               </TabsContent>
 
-              <TabsContent value="player" className="mt-4 space-y-5">
-                {!activeSlotShape ? (
-                  <p className="text-sm text-ov-muted">
-                    Click a slot on the pitch to choose a player, role and focus.
-                  </p>
-                ) : (
-                  <>
-                    <RoleEditor
-                      slotPosition={activeSlotShape.position}
-                      value={roles[activeSlotShape.id] ?? null}
-                      onRoleChange={(roleId) =>
-                        setSlotRole(activeSlotShape.id, activeSlotShape.position, roleId)
-                      }
-                      onFocusChange={(focus) => setSlotFocus(activeSlotShape.id, focus)}
-                      onMasteryChange={(mastery) => setSlotMastery(activeSlotShape.id, mastery)}
-                    />
-                    <SlotPicker
-                      slotPosition={activeSlotShape.position}
-                      rows={rows}
-                      usedIds={usedIds}
-                      selectedId={lineup[activeSlotShape.id] ?? null}
-                      onPick={(playerId) => assign(activeSlotShape.id, playerId)}
-                    />
-                  </>
-                )}
-              </TabsContent>
 
               <TabsContent value="export" className="mt-4 space-y-5">
                 <Field label="Your tactic code">
