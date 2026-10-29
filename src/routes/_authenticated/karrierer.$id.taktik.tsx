@@ -744,7 +744,65 @@ function TacticsPage() {
             )}
           </div>
 
+          <div
+            className="rounded-2xl border border-ov-border bg-ov-card p-4"
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={handleDropOnBench}
+          >
+            <h3 className="text-sm font-semibold text-ov-text">Bench and rest of squad</h3>
+            <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+              <Input
+                value={benchSearch}
+                onChange={(event) => setBenchSearch(event.target.value)}
+                placeholder="Search players…"
+                className="h-9 border-ov-border bg-ov-bg"
+              />
+              <Select value={benchSort} onValueChange={(value) => setBenchSort(value as typeof benchSort)}>
+                <SelectTrigger className="h-9 w-full border-ov-border bg-ov-bg sm:w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="border-ov-border bg-ov-bg">
+                  <SelectItem value="ovr">OVR (highest first)</SelectItem>
+                  <SelectItem value="age">Age (youngest first)</SelectItem>
+                  <SelectItem value="position">Position (A–Z)</SelectItem>
+                  <SelectItem value="name">Name (A–Z)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <ul className="mt-2 max-h-72 space-y-1 overflow-y-auto text-sm">
+              {visibleBench.map((row) => (
+                <li
+                  key={row.player.id}
+                  draggable
+                  onDragStart={(event) => {
+                    event.dataTransfer.setData(
+                      "application/json",
+                      JSON.stringify({ playerId: row.player.id, sourceSlotId: null }),
+                    );
+                    event.dataTransfer.effectAllowed = "move";
+                  }}
+                  className="flex cursor-grab items-center justify-between gap-2 text-ov-text active:cursor-grabbing"
+                >
+                  <span className="flex min-w-0 items-center gap-2">
+                    <PlayerAvatar name={row.player.name} src={row.fc?.face_url} size="sm" />
+                    <span className="truncate">{row.player.name}</span>
+                  </span>
+                  <span className="shrink-0 text-ov-muted">
+                    {row.position ?? "–"} · {row.current?.overall ?? "–"}
+                  </span>
+                </li>
+              ))}
+              {bench.length === 0 && (
+                <li className="text-ov-muted">All players are in the starting lineup.</li>
+              )}
+              {bench.length > 0 && visibleBench.length === 0 && (
+                <li className="text-ov-muted">No players match your search.</li>
+              )}
+            </ul>
+          </div>
+
           {suggestion && (
+
             <div className={`${CARD} space-y-3`}>
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
