@@ -527,7 +527,7 @@ function SquadPage() {
           <p className="p-8 text-center text-sm text-ov-muted">No players match the filters.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm" style={{ minWidth: `${220 + (visibleCols.length - 1) * 90}px` }}>
+            <table className="w-full text-sm" style={{ minWidth: `${150 + (visibleCols.length - 1) * 80}px` }}>
               <thead>
                 <tr className="border-b border-ov-line text-xs text-ov-muted">
                   {visibleCols.map((column) => (
