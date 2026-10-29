@@ -1052,9 +1052,18 @@ function TacticsPage() {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  className = "",
+  children,
+}: {
+  label: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="space-y-1.5">
+    <div className={`space-y-1.5 ${className}`}>
+
       <p className="text-xs font-semibold uppercase tracking-wider text-ov-muted">{label}</p>
       {children}
     </div>
