@@ -778,14 +778,14 @@ function TacticsPage() {
 
         <section className="space-y-6 lg:col-span-5">
           <div className="rounded-2xl border border-ov-border bg-ov-card p-4">
-            <p className="mb-3 text-xs text-ov-muted">Click a slot on the pitch to edit it.</p>
             <Tabs value={tab} onValueChange={setTab}>
               <TabsList className="grid w-full grid-cols-2 bg-ov-bg">
                 <TabsTrigger value="team">Team tactics</TabsTrigger>
                 <TabsTrigger value="export">Export</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="team" className="mt-4 space-y-5">
+              <TabsContent value="team" className="mt-4 space-y-4">
+
                 <Field label="Tactical Vision">
                   <div className="flex flex-wrap gap-1.5">
                     {TACTICAL_VISIONS.map((vision) => (
