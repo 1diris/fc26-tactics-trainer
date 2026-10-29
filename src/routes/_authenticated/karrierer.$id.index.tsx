@@ -419,7 +419,7 @@ function CareerOverview() {
       <CareerChallengeCard careerId={id} club={data.career.club} seasonIndex={Math.max(1, seasons.findIndex((season) => season.id === activeSeasonId) + 1)} />
 
       <div className="grid gap-6 lg:grid-cols-[1.25fr_1fr] lg:items-start">
-        <section className="overflow-hidden rounded-2xl border border-ov-border bg-ov-card">
+        <section className="overflow-hidden rounded-2xl border border-ov-border bg-ov-card lg:col-start-1 lg:row-start-1">
           <div className="flex items-center justify-between gap-3 border-b border-ov-line px-6 py-5">
             <h2 className="font-tight text-lg font-semibold tracking-[-0.03em]">Top players</h2>
             <Link
@@ -473,7 +473,7 @@ function CareerOverview() {
           </table>
         </section>
 
-        <div className="space-y-6">
+        <div className="flex flex-col gap-6 lg:col-start-2 lg:row-start-1 lg:row-span-2">
         <section className="overflow-hidden rounded-2xl border border-ov-border bg-ov-card">
           <div className="flex items-center justify-between gap-3 border-b border-ov-line px-6 py-5">
             <h2 className="font-tight text-lg font-semibold tracking-[-0.03em]">Alerts</h2>
@@ -582,11 +582,8 @@ function CareerOverview() {
           )}
         </section>
         </div>
-      </div>
 
-      <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
-
-
+        <div className="flex flex-col gap-6 lg:col-start-1 lg:row-start-2">
         <Card>
           <SectionTitle>Squad Distribution</SectionTitle>
           <ul className="space-y-4">
@@ -698,6 +695,7 @@ function CareerOverview() {
             </ul>
           </Card>
         )}
+        </div>
       </div>
     </div>
   );
