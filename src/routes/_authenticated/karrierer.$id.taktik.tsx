@@ -803,6 +803,7 @@ function TacticsPage() {
 
           {suggestion && (
 
+
             <div className={`${CARD} space-y-3`}>
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
