@@ -771,7 +771,7 @@ function ImportPage() {
       )}
 
       {drafts && drafts.length > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-ov-border bg-ov-card/95 px-4 py-3 backdrop-blur">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-ov-border bg-ov-card/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pl-[calc(1rem+env(safe-area-inset-left))] pr-[calc(1rem+env(safe-area-inset-right))] backdrop-blur">
           <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-3">
             <span className="text-sm text-ov-muted">
               {squadDrafts.length} to the squad · {youthDrafts.length} to the academy — not saved yet

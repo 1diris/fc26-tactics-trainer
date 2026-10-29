@@ -110,7 +110,7 @@ function CareerLayout() {
       </main>
 
       <nav
-        className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-6 border-t border-white/[0.06] bg-dash-bg/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md sm:hidden"
+        className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-6 border-t border-white/[0.06] bg-dash-bg/90 pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] backdrop-blur-md sm:hidden"
         style={{ minHeight: "calc(3.5rem + env(safe-area-inset-bottom))" }}
       >
         {NAV_ITEMS.map((item) => (

@@ -60,7 +60,7 @@ function Landing() {
 
   return (
     <div className="landing-dark min-h-screen">
-      <header>
+      <header style={{ paddingTop: "env(safe-area-inset-top)" }}>
         <div className="mx-auto flex max-w-[1200px] items-center justify-between px-5 py-5">
           <Link to="/" className="flex items-center gap-2.5">
             <span className="h-2 w-2 rounded-full bg-primary" aria-hidden />
