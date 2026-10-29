@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PitchView, type PitchNode } from "@/components/tactics/pitch-view";
 import { PlayerAvatar } from "@/components/player-avatar";
@@ -80,6 +82,7 @@ function TacticsPage() {
   const [roles, setRoles] = useState<Record<string, SlotRole>>({});
   const [notes, setNotes] = useState("");
   const [activeSlot, setActiveSlot] = useState<string | null>(null);
+  const isMobile = useIsMobile();
   const [suggestion, setSuggestion] = useState<LineupSuggestion | null>(null);
   const [tab, setTab] = useState("team");
   const [activeVision, setActiveVision] = useState<string | null>(null);
@@ -487,8 +490,7 @@ function TacticsPage() {
             selectedId={activeSlot}
             onSelect={(slotId) => {
               setActiveSlot(slotId);
-              setTab("player");
-            }}
+                          }}
             onDropOnSlot={handleDropOnSlot}
           />
           <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-ov-muted">
@@ -524,8 +526,7 @@ function TacticsPage() {
                       key={d.slot.id}
                       onClick={() => {
                         setActiveSlot(d.slot.id);
-                        setTab("player");
-                      }}
+                                              }}
                       className="cursor-pointer border-t border-[#141414] first:border-0 hover:bg-[#111]"
                     >
                       <td className="px-5 py-2.5">
@@ -715,8 +716,7 @@ function TacticsPage() {
                       type="button"
                       onClick={() => {
                         setActiveSlot(hint.slotId);
-                        setTab("player");
-                      }}
+                                              }}
                       className="text-left hover:text-ov-text hover:underline"
                     >
                       {hint.text}
@@ -761,10 +761,10 @@ function TacticsPage() {
 
         <section className="space-y-6 lg:col-span-5">
           <div className="rounded-2xl border border-ov-border bg-ov-card p-4">
+            <p className="mb-3 text-xs text-ov-muted">Click a slot on the pitch to edit it.</p>
             <Tabs value={tab} onValueChange={setTab}>
-              <TabsList className="grid w-full grid-cols-3 bg-ov-bg">
+              <TabsList className="grid w-full grid-cols-2 bg-ov-bg">
                 <TabsTrigger value="team">Team tactics</TabsTrigger>
-                <TabsTrigger value="player">Player role</TabsTrigger>
                 <TabsTrigger value="export">Export</TabsTrigger>
               </TabsList>
 
@@ -871,32 +871,6 @@ function TacticsPage() {
                 </Field>
               </TabsContent>
 
-              <TabsContent value="player" className="mt-4 space-y-5">
-                {!activeSlotShape ? (
-                  <p className="text-sm text-ov-muted">
-                    Click a slot on the pitch to choose a player, role and focus.
-                  </p>
-                ) : (
-                  <>
-                    <RoleEditor
-                      slotPosition={activeSlotShape.position}
-                      value={roles[activeSlotShape.id] ?? null}
-                      onRoleChange={(roleId) =>
-                        setSlotRole(activeSlotShape.id, activeSlotShape.position, roleId)
-                      }
-                      onFocusChange={(focus) => setSlotFocus(activeSlotShape.id, focus)}
-                      onMasteryChange={(mastery) => setSlotMastery(activeSlotShape.id, mastery)}
-                    />
-                    <SlotPicker
-                      slotPosition={activeSlotShape.position}
-                      rows={rows}
-                      usedIds={usedIds}
-                      selectedId={lineup[activeSlotShape.id] ?? null}
-                      onPick={(playerId) => assign(activeSlotShape.id, playerId)}
-                    />
-                  </>
-                )}
-              </TabsContent>
 
               <TabsContent value="export" className="mt-4 space-y-5">
                 <Field label="Your tactic code">
@@ -1000,6 +974,62 @@ function TacticsPage() {
           </div>
         </section>
       </div>
+
+      <Sheet
+        open={!!activeSlotShape}
+        onOpenChange={(open) => {
+          if (!open) setActiveSlot(null);
+        }}
+      >
+        <SheetContent
+          side={isMobile ? "bottom" : "right"}
+          className={
+            isMobile
+              ? "flex max-h-[85vh] flex-col gap-0 rounded-t-2xl border-ov-border bg-ov-card p-0 text-ov-text"
+              : "flex w-full flex-col gap-0 border-ov-border bg-ov-card p-0 text-ov-text sm:max-w-[420px]"
+          }
+        >
+          {isMobile && <div className="mx-auto mt-2 h-1.5 w-12 shrink-0 rounded-full bg-ov-muted/40" />}
+          {activeSlotShape && (
+            <>
+              <SheetHeader className="border-b border-ov-border px-5 py-4 text-left">
+                <SheetTitle className="text-ov-text">
+                  {activeSlotShape.position}
+                  {(() => {
+                    const r = rowById.get(lineup[activeSlotShape.id] ?? "");
+                    return r ? ` · ${r.player.name}${r.current?.overall != null ? ` (${r.current.overall})` : ""}` : " · Empty";
+                  })()}
+                </SheetTitle>
+                <SheetDescription className="text-ov-muted">Choose player, role and focus.</SheetDescription>
+              </SheetHeader>
+              <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
+                <>
+                    <RoleEditor
+                      slotPosition={activeSlotShape.position}
+                      value={roles[activeSlotShape.id] ?? null}
+                      onRoleChange={(roleId) =>
+                        setSlotRole(activeSlotShape.id, activeSlotShape.position, roleId)
+                      }
+                      onFocusChange={(focus) => setSlotFocus(activeSlotShape.id, focus)}
+                      onMasteryChange={(mastery) => setSlotMastery(activeSlotShape.id, mastery)}
+                    />
+                    <SlotPicker
+                      slotPosition={activeSlotShape.position}
+                      rows={rows}
+                      usedIds={usedIds}
+                      selectedId={lineup[activeSlotShape.id] ?? null}
+                      onPick={(playerId) => assign(activeSlotShape.id, playerId)}
+                    />
+                  </>
+              </div>
+              <div className="border-t border-ov-border p-4" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
+                <Button className="w-full" onClick={() => setActiveSlot(null)}>Done</Button>
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
+
     </div>
   );
 }
