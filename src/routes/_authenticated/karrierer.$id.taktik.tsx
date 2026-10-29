@@ -600,35 +600,44 @@ function TacticsPage() {
             ))}
           </SelectContent>
         </Select>
-        <button
-          type="button"
-          className={SECONDARY}
-          onClick={() => {
-            setNewName("");
-            setNameDialog("new");
-          }}
-        >
-          Save as new
-        </button>
-        <button
-          type="button"
-          className={SECONDARY}
-          onClick={() => {
-            setRenameName(tacticName);
-            setNameDialog("rename");
-          }}
-          disabled={!activeTactic}
-        >
-          Rename
-        </button>
-        <button
-          type="button"
-          className={SECONDARY}
-          onClick={() => deleteMutation.mutate()}
-          disabled={!activeTactic || tacticList.length <= 1 || deleteMutation.isPending}
-        >
-          Delete
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            className="inline-flex h-10 w-10 items-center justify-center rounded-[10px] border border-ov-control text-ov-text transition hover:bg-[#111]"
+            aria-label="Tactic actions"
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="border-ov-border bg-ov-card text-ov-text">
+            <DropdownMenuItem
+              className="focus:bg-[#161616]"
+              onSelect={() => {
+                setNewName("");
+                setNameDialog("new");
+              }}
+            >
+              Save as new
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="focus:bg-[#161616]"
+              disabled={!activeTactic}
+              onSelect={() => {
+                setRenameName(tacticName);
+                setNameDialog("rename");
+              }}
+            >
+              Rename
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-ov-line" />
+            <DropdownMenuItem
+              className="text-ov-danger focus:bg-[#1c0f0f] focus:text-ov-danger"
+              disabled={!activeTactic || tacticList.length <= 1 || deleteMutation.isPending}
+              onSelect={() => deleteMutation.mutate()}
+            >
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <button type="button" className={SECONDARY} onClick={autoFill} disabled={rows.length === 0}>
           Suggest lineup
         </button>
