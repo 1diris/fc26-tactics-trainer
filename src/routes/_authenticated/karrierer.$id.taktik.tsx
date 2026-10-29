@@ -992,8 +992,8 @@ function TacticsPage() {
               </TabsContent>
             </Tabs>
           </div>
-
         </section>
+
       </div>
 
       <Sheet
