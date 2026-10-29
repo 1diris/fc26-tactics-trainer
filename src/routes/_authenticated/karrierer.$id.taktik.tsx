@@ -974,15 +974,6 @@ function TacticsPage() {
           </div>
         </section>
       </div>
-    </div>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-1.5">
-      <p className="text-xs font-semibold uppercase tracking-wider text-ov-muted">{label}</p>
-      {children}
 
       <Sheet
         open={!!activeSlotShape}
@@ -1039,6 +1030,15 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
         </SheetContent>
       </Sheet>
 
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-1.5">
+      <p className="text-xs font-semibold uppercase tracking-wider text-ov-muted">{label}</p>
+      {children}
     </div>
   );
 }
