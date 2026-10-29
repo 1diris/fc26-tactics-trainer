@@ -824,10 +824,11 @@ function TacticsPage() {
                     ))}
                   </TabsList>
                   {TACTIC_SETTING_GROUPS.map((group) => (
-                    <TabsContent key={group.key} value={group.key} className="space-y-4 pt-4">
+                    <TabsContent key={group.key} value={group.key} className="grid grid-cols-1 gap-x-5 gap-y-3 pt-3 lg:grid-cols-2">
                       {group.settings.map((item) =>
                         item.kind === "select" ? (
-                          <Field key={item.key} label={item.label}>
+                          <Field key={item.key} label={item.label} className="lg:col-span-2">
+
                             <Select
                               value={String(settings[item.key] ?? item.options[0]!)}
                               onValueChange={(value) =>
