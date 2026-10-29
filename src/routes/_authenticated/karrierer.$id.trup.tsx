@@ -1,7 +1,15 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Columns3 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { ArrowDownWideNarrow, ArrowLeft, ArrowUpNarrowWide, ArrowUpRight, Check, Search, SlidersHorizontal, TriangleAlert, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -194,6 +202,28 @@ function SquadPage() {
   const [matchTarget, setMatchTarget] = useState<SquadRow | null>(null);
   const [sellTarget, setSellTarget] = useState<SquadRow | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [hiddenCols, setHiddenCols] = useState<SortKey[]>([]);
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(COLS_STORAGE_KEY);
+      if (saved) setHiddenCols(JSON.parse(saved));
+      else if (window.innerWidth < 768) setHiddenCols(["age", "market_value", "wage", "contract"]);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+  const toggleCol = (key: SortKey) => {
+    setHiddenCols((prev) => {
+      const next = prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key];
+      try {
+        window.localStorage.setItem(COLS_STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  };
+  const show = (key: SortKey) => !hiddenCols.includes(key);
 
   const queryClient = useQueryClient();
   const runAutoMatch = useServerFn(autoMatchSquad);
@@ -353,6 +383,7 @@ function SquadPage() {
     { key: "wage", label: "Wage/wk" },
     { key: "contract", label: "Contract" },
   ];
+  const visibleCols = tableCols.filter((c) => show(c.key));
   const smallInput =
     "h-10 rounded-[10px] border border-ov-border bg-ov-bg px-3 text-sm text-ov-text placeholder:text-ov-muted outline-none focus:border-ov-control";
 
@@ -419,6 +450,31 @@ function SquadPage() {
           >
             <SlidersHorizontal className="h-4 w-4" /> Filters
           </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="inline-flex h-11 items-center gap-2 rounded-[10px] border border-ov-control px-3 text-sm text-ov-text"
+              >
+                <Columns3 className="h-4 w-4" /> Columns
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuLabel>Show columns</DropdownMenuLabel>
+              {tableCols
+                .filter((c) => c.key !== "name")
+                .map((c) => (
+                  <DropdownMenuCheckboxItem
+                    key={c.key}
+                    checked={show(c.key)}
+                    onSelect={(e) => e.preventDefault()}
+                    onCheckedChange={() => toggleCol(c.key)}
+                  >
+                    {c.label}
+                  </DropdownMenuCheckboxItem>
+                ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {filtersOpen && (
@@ -471,14 +527,14 @@ function SquadPage() {
           <p className="p-8 text-center text-sm text-ov-muted">No players match the filters.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[820px] text-sm">
+            <table className="w-full text-sm" style={{ minWidth: `${220 + (visibleCols.length - 1) * 90}px` }}>
               <thead>
                 <tr className="border-b border-ov-line text-xs text-ov-muted">
-                  {tableCols.map((column) => (
+                  {visibleCols.map((column) => (
                     <th
                       key={column.key}
                       scope="col"
-                      className={`px-5 py-3 font-medium ${column.key === "name" ? "text-left" : "text-right"}`}
+                      className={`px-5 py-3 font-medium ${column.key === "name" ? "sticky left-0 z-10 bg-ov-card text-left" : "text-right"}`}
                     >
                       <button type="button" className="hover:text-ov-text" onClick={() => toggleSort(column.key)}>
                         {column.label}
@@ -491,7 +547,7 @@ function SquadPage() {
               {grouped.map((g) => (
                 <tbody key={g.key}>
                   <tr>
-                    <td colSpan={7} className="px-5 pb-2 pt-5 text-[11px] font-semibold uppercase tracking-[0.12em] text-ov-muted">
+                    <td colSpan={visibleCols.length} className="px-5 pb-2 pt-5 text-[11px] font-semibold uppercase tracking-[0.12em] text-ov-muted">
                       {g.label}
                     </td>
                   </tr>
@@ -506,7 +562,7 @@ function SquadPage() {
                         onClick={() => setSelectedId(row.player.id)}
                         className="cursor-pointer border-t border-[#141414] hover:bg-[#111111]"
                       >
-                        <td className="px-5 py-3">
+                        <td className="sticky left-0 z-10 bg-ov-card px-5 py-3">
                           <div className="flex items-center gap-2.5">
                             <span className="font-medium">{row.player.name}</span>
                             <span className="rounded-md border border-ov-control px-1.5 py-0.5 text-[11px] text-ov-muted">
@@ -514,15 +570,15 @@ function SquadPage() {
                             </span>
                           </div>
                         </td>
-                        <td className="px-5 py-3 text-right tabular-nums text-ov-muted">{row.current?.age ?? "–"}</td>
-                        <td
+                        {show("age") && <td className="px-5 py-3 text-right tabular-nums text-ov-muted">{row.current?.age ?? "–"}</td>}
+                        {show("overall") && <td
                           className={`px-5 py-3 text-right font-tight text-[17px] font-semibold tabular-nums ${
                             ovr !== null && ovr === topOvr ? "text-ov-accent" : ""
                           }`}
                         >
                           {ovr ?? "–"}
-                        </td>
-                        <td className="px-5 py-3 text-right tabular-nums">
+                        </td>}
+                        {show("potential") && <td className="px-5 py-3 text-right tabular-nums">
                           {pot == null ? (
                             <span className="text-ov-muted">–</span>
                           ) : ovr !== null && pot > ovr ? (
@@ -533,15 +589,15 @@ function SquadPage() {
                           ) : (
                             <span className="text-ov-muted">{pot}</span>
                           )}
-                        </td>
-                        <td className="px-5 py-3 text-right tabular-nums">{formatMoney(row.estimatedValue)}</td>
-                        <td className="px-5 py-3 text-right tabular-nums text-ov-muted">{formatWage(row.current?.wage)}</td>
-                        <td className="px-5 py-3 text-right tabular-nums text-ov-muted">
+                        </td>}
+                        {show("market_value") && <td className="px-5 py-3 text-right tabular-nums">{formatMoney(row.estimatedValue)}</td>}
+                        {show("wage") && <td className="px-5 py-3 text-right tabular-nums text-ov-muted">{formatWage(row.current?.wage)}</td>}
+                        {show("contract") && <td className="px-5 py-3 text-right tabular-nums text-ov-muted">
                           <span className="inline-flex items-center gap-2">
                             {expiring && <span className="h-1.5 w-1.5 rounded-full bg-ov-warn" />}
                             {year ?? row.current?.contract_until ?? "–"}
                           </span>
-                        </td>
+                        </td>}
                       </tr>
                     );
                   })}
@@ -576,6 +632,8 @@ function SquadPage() {
     </div>
   );
 }
+
+const COLS_STORAGE_KEY = "cc-squad-hidden-cols";
 
 function PlayerDetailPanel({
   careerId,
