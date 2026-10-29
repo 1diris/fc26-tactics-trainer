@@ -1,25 +1,21 @@
-# Squad on iPhone: see names without sliding sideways
+# Squad on iPhone: keep the row, choose your columns
 
-Today the Squad list on phone is a wide table, so you swipe right to see Age, OVR, Value and the rest, and the names slide out of view.
+You keep today's one-row-per-player table, but decide which columns are shown, and the name never slides away.
 
-## What changes (phone only, under 768px)
-Each player becomes one compact card row instead of a wide table row:
-
-```text
-[ Lukas Brenner        CB ]   82  ↗88
-  24 yrs · €45m · €60k/w · 2027 •
-```
-
-- Line 1: full player name (never cut off) + position chip on the left; OVR (big) and POT (with the green "room to grow" arrow) on the right.
-- Line 2: Age, Value, Wage and Contract year in small grey text, with the orange dot if the contract expires this season.
-- Group headers (Goalkeepers, Defenders...) stay.
-- Tapping a row still opens the player profile, same as today.
-- A small "Sort by" dropdown above the list (Name, Age, OVR, POT, Value, Wage, Contract) replaces clicking the column headers, which are hidden on phone.
+## What changes
+1. **"Columns" button** next to the sort/filter controls. Tapping it opens a small checklist: Age, OVR, POT, Value, Wage, Contract. Untick what you don't need and it disappears from the table; tick it again to bring it back.
+2. **Remembered choice**: your selection is saved on the device, so the table looks the same next time you open Squad.
+3. **Phone default**: on iPhone the table starts with Name, OVR and POT shown so it fits without swiping. On computer all columns stay on by default.
+4. **Name stays pinned**: if you do turn on many columns and need to swipe, the name column stays fixed on the left so you always see who the row is.
+5. Tapping a row still opens the player profile with all details.
 
 ## Unchanged
-- Desktop and tablet keep the current table exactly as it is.
-- No change to data, sorting logic, filters, search or the player profile.
+- Sorting by tapping column headers, search, filters, grouping and the player profile.
+- No data or database changes.
 
 ## Technical details
-- In `karrierer.$id.trup.tsx`: wrap the existing table in `hidden md:block`; add a `md:hidden` list rendering the same `grouped` rows with existing `ov-*` tokens; the mobile Sort select reuses `sortKey`/`asc`/`toggleSort` state.
-- Verify with Playwright at 393px width and run typecheck.
+- `karrierer.$id.trup.tsx`: `visibleCols` state (name always included) persisted in localStorage, read in `useEffect` to avoid hydration mismatch; default depends on `useIsMobile`.
+- Filter `tableCols` and the matching `<td>` cells by `visibleCols`; table `min-w` computed from visible columns; group header `colSpan` follows the count.
+- Name `th`/`td` get `sticky left-0 z-10 bg-ov-card`.
+- Columns menu via shadcn `DropdownMenu` with checkbox items, existing `ov-*` styles.
+- Verify with Playwright at 393px and run typecheck.
