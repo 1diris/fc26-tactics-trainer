@@ -3,7 +3,7 @@ import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Copy, Download, Shield, Target, Users } from "lucide-react";
+import { Copy, Download, MoreHorizontal, Shield, Target, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,6 +18,14 @@ import { Slider } from "@/components/ui/slider";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 import { PitchView, type PitchNode } from "@/components/tactics/pitch-view";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { careerDataQuery } from "@/lib/career-queries";
@@ -592,35 +600,44 @@ function TacticsPage() {
             ))}
           </SelectContent>
         </Select>
-        <button
-          type="button"
-          className={SECONDARY}
-          onClick={() => {
-            setNewName("");
-            setNameDialog("new");
-          }}
-        >
-          Save as new
-        </button>
-        <button
-          type="button"
-          className={SECONDARY}
-          onClick={() => {
-            setRenameName(tacticName);
-            setNameDialog("rename");
-          }}
-          disabled={!activeTactic}
-        >
-          Rename
-        </button>
-        <button
-          type="button"
-          className={SECONDARY}
-          onClick={() => deleteMutation.mutate()}
-          disabled={!activeTactic || tacticList.length <= 1 || deleteMutation.isPending}
-        >
-          Delete
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            className="inline-flex h-10 w-10 items-center justify-center rounded-[10px] border border-ov-control text-ov-text transition hover:bg-[#111]"
+            aria-label="Tactic actions"
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="border-ov-border bg-ov-card text-ov-text">
+            <DropdownMenuItem
+              className="focus:bg-[#161616]"
+              onSelect={() => {
+                setNewName("");
+                setNameDialog("new");
+              }}
+            >
+              Save as new
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="focus:bg-[#161616]"
+              disabled={!activeTactic}
+              onSelect={() => {
+                setRenameName(tacticName);
+                setNameDialog("rename");
+              }}
+            >
+              Rename
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-ov-line" />
+            <DropdownMenuItem
+              className="text-ov-danger focus:bg-[#1c0f0f] focus:text-ov-danger"
+              disabled={!activeTactic || tacticList.length <= 1 || deleteMutation.isPending}
+              onSelect={() => deleteMutation.mutate()}
+            >
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <button type="button" className={SECONDARY} onClick={autoFill} disabled={rows.length === 0}>
           Suggest lineup
         </button>
@@ -727,7 +744,66 @@ function TacticsPage() {
             )}
           </div>
 
+          <div
+            className="rounded-2xl border border-ov-border bg-ov-card p-4"
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={handleDropOnBench}
+          >
+            <h3 className="text-sm font-semibold text-ov-text">Bench and rest of squad</h3>
+            <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+              <Input
+                value={benchSearch}
+                onChange={(event) => setBenchSearch(event.target.value)}
+                placeholder="Search players…"
+                className="h-9 border-ov-border bg-ov-bg"
+              />
+              <Select value={benchSort} onValueChange={(value) => setBenchSort(value as typeof benchSort)}>
+                <SelectTrigger className="h-9 w-full border-ov-border bg-ov-bg sm:w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="border-ov-border bg-ov-bg">
+                  <SelectItem value="ovr">OVR (highest first)</SelectItem>
+                  <SelectItem value="age">Age (youngest first)</SelectItem>
+                  <SelectItem value="position">Position (A–Z)</SelectItem>
+                  <SelectItem value="name">Name (A–Z)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <ul className="mt-2 max-h-72 space-y-1 overflow-y-auto text-sm">
+              {visibleBench.map((row) => (
+                <li
+                  key={row.player.id}
+                  draggable
+                  onDragStart={(event) => {
+                    event.dataTransfer.setData(
+                      "application/json",
+                      JSON.stringify({ playerId: row.player.id, sourceSlotId: null }),
+                    );
+                    event.dataTransfer.effectAllowed = "move";
+                  }}
+                  className="flex cursor-grab items-center justify-between gap-2 text-ov-text active:cursor-grabbing"
+                >
+                  <span className="flex min-w-0 items-center gap-2">
+                    <PlayerAvatar name={row.player.name} src={row.fc?.face_url} size="sm" />
+                    <span className="truncate">{row.player.name}</span>
+                  </span>
+                  <span className="shrink-0 text-ov-muted">
+                    {row.position ?? "–"} · {row.current?.overall ?? "–"}
+                  </span>
+                </li>
+              ))}
+              {bench.length === 0 && (
+                <li className="text-ov-muted">All players are in the starting lineup.</li>
+              )}
+              {bench.length > 0 && visibleBench.length === 0 && (
+                <li className="text-ov-muted">No players match your search.</li>
+              )}
+            </ul>
+          </div>
+
           {suggestion && (
+
+
             <div className={`${CARD} space-y-3`}>
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
@@ -761,14 +837,14 @@ function TacticsPage() {
 
         <section className="space-y-6 lg:col-span-5">
           <div className="rounded-2xl border border-ov-border bg-ov-card p-4">
-            <p className="mb-3 text-xs text-ov-muted">Click a slot on the pitch to edit it.</p>
             <Tabs value={tab} onValueChange={setTab}>
               <TabsList className="grid w-full grid-cols-2 bg-ov-bg">
                 <TabsTrigger value="team">Team tactics</TabsTrigger>
                 <TabsTrigger value="export">Export</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="team" className="mt-4 space-y-5">
+              <TabsContent value="team" className="mt-4 space-y-4">
+
                 <Field label="Tactical Vision">
                   <div className="flex flex-wrap gap-1.5">
                     {TACTICAL_VISIONS.map((vision) => (
@@ -807,10 +883,11 @@ function TacticsPage() {
                     ))}
                   </TabsList>
                   {TACTIC_SETTING_GROUPS.map((group) => (
-                    <TabsContent key={group.key} value={group.key} className="space-y-4 pt-4">
+                    <TabsContent key={group.key} value={group.key} className="grid grid-cols-1 gap-x-5 gap-y-3 pt-3 lg:grid-cols-2">
                       {group.settings.map((item) =>
                         item.kind === "select" ? (
-                          <Field key={item.key} label={item.label}>
+                          <Field key={item.key} label={item.label} className="lg:col-span-2">
+
                             <Select
                               value={String(settings[item.key] ?? item.options[0]!)}
                               onValueChange={(value) =>
@@ -915,64 +992,8 @@ function TacticsPage() {
               </TabsContent>
             </Tabs>
           </div>
-
-          <div
-            className="rounded-2xl border border-ov-border bg-ov-card p-4"
-            onDragOver={(event) => event.preventDefault()}
-            onDrop={handleDropOnBench}
-          >
-            <h3 className="text-sm font-semibold text-ov-text">Bench and rest of squad</h3>
-            <div className="mt-2 flex flex-col gap-2 sm:flex-row">
-              <Input
-                value={benchSearch}
-                onChange={(event) => setBenchSearch(event.target.value)}
-                placeholder="Search players…"
-                className="h-9 border-ov-border bg-ov-bg"
-              />
-              <Select value={benchSort} onValueChange={(value) => setBenchSort(value as typeof benchSort)}>
-                <SelectTrigger className="h-9 w-full border-ov-border bg-ov-bg sm:w-48">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="border-ov-border bg-ov-bg">
-                  <SelectItem value="ovr">OVR (highest first)</SelectItem>
-                  <SelectItem value="age">Age (youngest first)</SelectItem>
-                  <SelectItem value="position">Position (A–Z)</SelectItem>
-                  <SelectItem value="name">Name (A–Z)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <ul className="mt-2 max-h-72 space-y-1 overflow-y-auto text-sm">
-              {visibleBench.map((row) => (
-                <li
-                  key={row.player.id}
-                  draggable
-                  onDragStart={(event) => {
-                    event.dataTransfer.setData(
-                      "application/json",
-                      JSON.stringify({ playerId: row.player.id, sourceSlotId: null }),
-                    );
-                    event.dataTransfer.effectAllowed = "move";
-                  }}
-                  className="flex cursor-grab items-center justify-between gap-2 text-ov-text active:cursor-grabbing"
-                >
-                  <span className="flex min-w-0 items-center gap-2">
-                    <PlayerAvatar name={row.player.name} src={row.fc?.face_url} size="sm" />
-                    <span className="truncate">{row.player.name}</span>
-                  </span>
-                  <span className="shrink-0 text-ov-muted">
-                    {row.position ?? "–"} · {row.current?.overall ?? "–"}
-                  </span>
-                </li>
-              ))}
-              {bench.length === 0 && (
-                <li className="text-ov-muted">All players are in the starting lineup.</li>
-              )}
-              {bench.length > 0 && visibleBench.length === 0 && (
-                <li className="text-ov-muted">No players match your search.</li>
-              )}
-            </ul>
-          </div>
         </section>
+
       </div>
 
       <Sheet
@@ -1034,9 +1055,18 @@ function TacticsPage() {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  className = "",
+  children,
+}: {
+  label: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="space-y-1.5">
+    <div className={`space-y-1.5 ${className}`}>
+
       <p className="text-xs font-semibold uppercase tracking-wider text-ov-muted">{label}</p>
       {children}
     </div>

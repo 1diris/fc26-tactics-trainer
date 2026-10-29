@@ -24,6 +24,8 @@
   --color-ov-text: var(--ov-text);
   --color-ov-accent: var(--ov-accent);
   --color-ov-warn: var(--ov-warn);
+  --color-ov-danger: var(--ov-danger);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -88,6 +90,8 @@
   --ov-text: #ffffff;
   --ov-accent: #16a34a;
   --ov-warn: #f5a524;
+  --ov-danger: #ef4444;
+
   --background: oklch(0.16 0.012 250);
   --foreground: oklch(0.95 0.005 250);
   --card: oklch(0.21 0.014 250);
