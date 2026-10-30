@@ -31,7 +31,7 @@ export function AppHeader({ children }: { children?: React.ReactNode }) {
       const u = data.user;
       if (!u || cancelled) return;
       const meta = (u.user_metadata ?? {}) as Record<string, unknown>;
-      const name = (meta.full_name as string) || (meta.name as string) || (u.email?.split("@")[0] ?? "Player");
+      const name = (meta["full_name"] as string) || (meta["name"] as string) || (u.email?.split("@")[0] ?? "Player");
       setMe({ name, email: u.email ?? "" });
       const { count } = await supabase
         .from("challenge_progress")
