@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { youthAdvice } from "./youth-advice";
 
 const p = (age: number, overall: number, pot: number) => ({
