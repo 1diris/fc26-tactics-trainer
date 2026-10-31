@@ -1,4 +1,6 @@
 import { useMemo, useRef, useState } from "react";
+import { youthAdvice, type YouthAction } from "@/lib/youth-advice";
+import { YouthAdvicePill } from "@/components/youth-advice-pill";
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -76,38 +78,8 @@ const SORT_TEXT: Record<SortKey, string> = {
   name: "Name",
 };
 
-type Status = "Ready" | "Developing" | "Loan candidate";
-
-/** Display-only status derived from existing ratings. */
-function statusOf(row: YouthRow): Status {
-  const ovr = row.overall ?? 0;
-  if (ovr >= 70) return "Ready";
-  if (ovr < 60 && (row.age ?? 0) >= 17) return "Loan candidate";
-  return "Developing";
-}
-
 function potOf(row: YouthRow): number | null {
   return row.potential_max ?? row.potential_min ?? null;
-}
-
-function StatusPill({ status }: { status: Status }) {
-  if (status === "Ready")
-    return (
-      <span className="inline-flex rounded-full bg-ov-accent px-2.5 py-0.5 text-[11px] font-semibold text-black">
-        Ready
-      </span>
-    );
-  if (status === "Developing")
-    return (
-      <span className="inline-flex rounded-full border border-ov-control px-2.5 py-0.5 text-[11px] text-ov-text">
-        Developing
-      </span>
-    );
-  return (
-    <span className="inline-flex items-center gap-1.5 text-[12px] text-ov-muted">
-      <span className="h-1.5 w-1.5 rounded-full bg-ov-warn" /> Loan candidate
-    </span>
-  );
 }
 
 function Growth({ value }: { value: number }) {
@@ -146,8 +118,9 @@ function AcademyPage() {
   const [sortKey, setSortKey] = useState<SortKey>("potential");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [onlyRelease, setOnlyRelease] = useState(false);
 
-  const rows = useMemo(() => {
+  const allRows = useMemo(() => {
     const list = [...(youth.data ?? [])];
     list.sort((a, b) => {
       if (sortKey === "age") return (a.age ?? 99) - (b.age ?? 99);
@@ -157,13 +130,17 @@ function AcademyPage() {
     });
     return list;
   }, [youth.data, sortKey]);
+  const rows = onlyRelease
+    ? allRows.filter((r) => youthAdvice(r).action === "release")
+    : allRows;
 
-  const selected = rows.find((row) => row.id === selectedId) ?? null;
+  const selected = allRows.find((row) => row.id === selectedId) ?? null;
 
-  const pots = rows.map(potOf).filter((v): v is number => v != null);
+  const pots = allRows.map(potOf).filter((v): v is number => v != null);
   const avgPot = pots.length ? (pots.reduce((s, v) => s + v, 0) / pots.length).toFixed(1) : "–";
   const maxPot = pots.length ? Math.max(...pots) : null;
-  const readyCount = rows.filter((r) => statusOf(r) === "Ready").length;
+  const count = (a: YouthAction) => allRows.filter((r) => youthAdvice(r).action === a).length;
+  const releaseCount = count("release");
 
   const invalidate = () => {
     void queryClient.invalidateQueries({ queryKey: ["youth", id] });
@@ -192,10 +169,13 @@ function AcademyPage() {
   });
 
   const kpis: { label: string; value: string | number; green?: boolean }[] = [
-    { label: "Young players", value: rows.length },
+    { label: "Young players", value: allRows.length },
     { label: "Avg. POT", value: avgPot },
     { label: "Highest POT", value: maxPot ?? "–", green: maxPot != null },
-    { label: "Ready for first team", value: readyCount },
+    {
+      label: "Promote · Keep · Loan · Release",
+      value: `${count("promote")} · ${count("keep")} · ${count("loan")} · ${releaseCount}`,
+    },
   ];
 
   return (
@@ -236,7 +216,17 @@ function AcademyPage() {
 
       <div className="rounded-2xl border border-ov-border bg-ov-card">
         <div className="flex items-center justify-between gap-3 border-b border-ov-line px-5 py-4">
-          <h2 className="font-tight text-lg font-semibold tracking-[-0.03em]">Prospects</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="font-tight text-lg font-semibold tracking-[-0.03em]">Prospects</h2>
+            <button
+              type="button"
+              onClick={() => setOnlyRelease((v) => !v)}
+              aria-pressed={onlyRelease}
+              className={`inline-flex h-8 items-center rounded-full border px-3 text-xs ${onlyRelease ? "border-ov-danger bg-ov-danger/15 text-ov-danger" : "border-ov-control text-ov-muted hover:bg-ov-line"}`}
+            >
+              Get rid of ({releaseCount})
+            </button>
+          </div>
           <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
             <SelectTrigger className="h-9 w-36 rounded-[10px] border-ov-control bg-transparent text-sm">
               <span className="text-ov-muted">Sort:</span>
@@ -260,7 +250,7 @@ function AcademyPage() {
                 <th className="px-3 py-3 font-medium">OVR</th>
                 <th className="px-3 py-3 font-medium">POT</th>
                 <th className="px-3 py-3 font-medium">Growth</th>
-                <th className="px-5 py-3 font-medium">Status</th>
+                <th className="px-5 py-3 font-medium">Advice</th>
               </tr>
             </thead>
             <tbody>
@@ -311,7 +301,8 @@ function AcademyPage() {
                       <Growth value={0} />
                     </td>
                     <td className="px-5 py-3">
-                      <StatusPill status={statusOf(row)} />
+                      <YouthAdvicePill action={youthAdvice(row).action} />
+                      <div className="mt-1 text-[11px] text-ov-muted">{youthAdvice(row).reason}</div>
                     </td>
                   </tr>
                 );
@@ -333,6 +324,12 @@ function AcademyPage() {
             <DialogDescription>
               {selected?.position} · {selected?.age} yrs · OVR {selected?.overall ?? "–"}
             </DialogDescription>
+            {selected && (
+              <div className="flex items-center gap-2 pt-1">
+                <YouthAdvicePill action={youthAdvice(selected).action} />
+                <span className="text-xs text-ov-muted">{youthAdvice(selected).reason}</span>
+              </div>
+            )}
           </DialogHeader>
           <div className="grid gap-2">
             <Button

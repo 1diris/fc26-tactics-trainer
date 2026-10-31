@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { CareerChallengeCard } from "@/components/career-challenge-card";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { careerDataQuery, targetsQuery, youthQuery } from "@/lib/career-queries";
+import { youthAdvice } from "@/lib/youth-advice";
+import { YouthAdvicePill } from "@/components/youth-advice-pill";
 import {
   averageOf,
   buildSquad,
@@ -652,6 +654,7 @@ function CareerOverview() {
                     </span>
                   </div>
                   <div className="shrink-0 text-right">
+                    <YouthAdvicePill action={youthAdvice(talent).action} />
                     <p className="stat-number text-base font-semibold">{talent.overall ?? "–"}</p>
                     <p className="font-stat text-[11px] text-primary">
                       {talent.potential_min ?? "–"} – {talent.potential_max ?? "–"}
