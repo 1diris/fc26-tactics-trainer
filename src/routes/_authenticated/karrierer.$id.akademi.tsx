@@ -1,4 +1,6 @@
 import { useMemo, useRef, useState } from "react";
+import { youthAdvice, type YouthAction } from "@/lib/youth-advice";
+import { YouthAdvicePill } from "@/components/youth-advice-pill";
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
