@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { youthAdvice } from "./youth-advice";
 
-const p = (age: number, overall: number, pot: number) => ({
+const p = (age, overall, pot) => ({
   age,
   overall,
   potential_min: pot,
