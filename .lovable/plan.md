@@ -7,7 +7,8 @@ Today the Status column only says Ready / Developing / Loan candidate, based on 
 - **Promote** — OVR 70+, or OVR 65+ with potential 80+. Ready for the first team.
 - **Keep & develop** — potential 80+ but not ready yet. Keep in the academy.
 - **Loan out** — age 17+, OVR under 62, potential 75+. Needs match minutes elsewhere.
-- **Release** — potential under 70, or age 18+ with OVR under 58 and potential under 75. Frees a slot.
+- **Release / Sell** (red) — players to get rid of: potential under 70, or age 18+ with OVR under 58 and potential under 75. Frees an academy slot.
+- A **"Get rid of" filter chip** at the top shows only these players, so you can clear them out quickly.
 - **Keep watching** — everything else.
 
 Each pill gets a short reason under or next to it, e.g. "POT 85 · not ready yet" or "18 yrs, low ceiling".
