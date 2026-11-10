@@ -344,7 +344,8 @@ function ImportPage() {
   ) => (
     <Input
       type="number"
-      className="h-8 w-full rounded-lg border-ov-control bg-transparent text-right text-sm tabular-nums"
+      inputMode="numeric"
+      className="h-8 w-full min-w-14 rounded-lg border-ov-control bg-transparent px-2 text-right text-sm tabular-nums"
       value={draft[field] ?? ""}
       onChange={(event) =>
         patchDraft(index, {
@@ -694,7 +695,29 @@ function ImportPage() {
                         {changeBadge("overall", index)}
                       </td>
                       <td className={`px-3 py-1.5 ${cell("potential") ?? ""}`}>
-                        {numberField(index, "potential", draft)}
+                        {isYouth && (draft.potential_min != null || draft.potential_max != null) ? (
+                          <div className="flex items-center gap-1">
+                            {(["potential_min", "potential_max"] as const).map((key, i) => (
+                              <span key={key} className="flex items-center gap-1">
+                                {i === 1 && <span className="text-ov-muted">–</span>}
+                                <Input
+                                  type="number"
+                                  inputMode="numeric"
+                                  aria-label={i === 0 ? "POT min" : "POT max"}
+                                  className="h-8 w-14 rounded-lg border-ov-control bg-transparent px-2 text-right text-sm tabular-nums"
+                                  value={draft[key] ?? ""}
+                                  onChange={(event) =>
+                                    patchDraft(index, {
+                                      [key]: event.target.value === "" ? null : Number(event.target.value),
+                                    } as Partial<Draft>)
+                                  }
+                                />
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          numberField(index, "potential", draft)
+                        )}
                         {changeBadge("potential", index)}
                       </td>
                       <td className={`px-3 py-1.5 ${cell("age") ?? ""}`}>
