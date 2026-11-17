@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { challenges } from "@/lib/challenges/catalogue";
 
 export const Route = createFileRoute("/_authenticated/challenges/")({
+  staticData: { sitemap: false },
   head: () => ({ meta: [{ title: "Challenges — Career Chronicles" }, { name: "description", content: "Career Mode challenges with season goals, house rules and screenshot evidence." }, { property: "og:title", content: "Challenges — Career Chronicles" }, { property: "og:description", content: "Take on a five-season Career Mode challenge." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }),
   component: ChallengesPage,
 });

@@ -13,6 +13,7 @@ import { getChallengeProgress, startChallenge, updateChallenge, verifyChallengeG
 
 const progressQuery = (challengeId: string) => queryOptions({ queryKey: ["challenge", challengeId], queryFn: () => getChallengeProgress({ data: { challengeId } }), staleTime: 30_000 });
 export const Route = createFileRoute("/_authenticated/challenges/$challengeId")({
+  staticData: { sitemap: false },
   loader: ({ params, context }) => { if (!challenges.some((item) => item.id === params.challengeId)) throw notFound(); return context.queryClient.ensureQueryData(progressQuery(params.challengeId)); },
   head: ({ params }) => { const challenge = challenges.find((item) => item.id === params.challengeId); return { meta: [{ title: `${challenge?.title ?? "Challenge"} — Career Chronicles` }, { name: "description", content: challenge?.description ?? "Career Mode challenge" }, { property: "og:title", content: `${challenge?.title ?? "Challenge"} — Career Chronicles` }, { property: "og:description", content: challenge?.description ?? "Career Mode challenge" }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }; },
   component: ChallengePage,

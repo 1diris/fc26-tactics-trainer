@@ -35,6 +35,7 @@ import {
 } from "@/lib/youth.functions";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/akademi")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Youth academy — Career Chronicles" },

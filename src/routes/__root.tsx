@@ -77,6 +77,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -85,11 +86,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "theme-color", content: "#09090b" },
-      { title: "Career Chronicles — manage your FC 26 career" },
+      { title: "Career Chronicles — Career Mode assistant" },
       {
         name: "description",
         content:
-          "Save your squad from screenshots, track player growth and keep an overview of your football career season after season.",
+          "Turn Career Mode screenshots into an organised squad, track player growth, plan tactics and manage every season.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

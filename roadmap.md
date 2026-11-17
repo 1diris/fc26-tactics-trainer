@@ -13,3 +13,6 @@
   - [ ] AI-vejledning til taktik
   - [x] Flere gemte taktikker pr. karriere
 - [x] Overview: "Wishlist" card under Alerts (targets, spend vs. budget, link to Transfers)
+- [x] SEO: complete route-specific metadata defaults and sharing previews
+- [x] SEO: add a router-derived sitemap and reference it from robots.txt
+- [x] SEO: verify all public inclusions, private exclusions and record completed fixes

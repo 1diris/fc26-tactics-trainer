@@ -20,6 +20,7 @@ import { createCareer, deleteCareer } from "@/lib/career.functions";
 import { Plus, Trash2, Users } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/karrierer/")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "My careers — Career Chronicles" },

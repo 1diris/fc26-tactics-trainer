@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Career overview — Career Chronicles" },

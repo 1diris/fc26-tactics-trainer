@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as FcIqRouteImport } from './routes/fc-iq'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedChallengesIndexRouteImport } from './routes/_authenticated/challenges.index'
 import { Route as AuthenticatedChallengesChallengeIdRouteImport } from './routes/_authenticated/challenges.$challengeId'
@@ -50,6 +51,11 @@ const FcIqRoute = FcIqRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -134,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/fc-iq': typeof FcIqRoute
   '/privacy': typeof PrivacyRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/challenges/$challengeId': typeof AuthenticatedChallengesChallengeIdRoute
   '/karrierer/$id': typeof AuthenticatedKarriererIdRouteWithChildren
@@ -153,6 +160,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/fc-iq': typeof FcIqRoute
   '/privacy': typeof PrivacyRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/challenges/$challengeId': typeof AuthenticatedChallengesChallengeIdRoute
   '/api/public/player-face': typeof ApiPublicPlayerFaceRoute
@@ -173,6 +181,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/fc-iq': typeof FcIqRoute
   '/privacy': typeof PrivacyRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/_authenticated/challenges/$challengeId': typeof AuthenticatedChallengesChallengeIdRoute
   '/_authenticated/karrierer/$id': typeof AuthenticatedKarriererIdRouteWithChildren
@@ -194,6 +203,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/fc-iq'
     | '/privacy'
+    | '/sitemap.xml'
     | '/terms'
     | '/challenges/$challengeId'
     | '/karrierer/$id'
@@ -213,6 +223,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/fc-iq'
     | '/privacy'
+    | '/sitemap.xml'
     | '/terms'
     | '/challenges/$challengeId'
     | '/api/public/player-face'
@@ -232,6 +243,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/fc-iq'
     | '/privacy'
+    | '/sitemap.xml'
     | '/terms'
     | '/_authenticated/challenges/$challengeId'
     | '/_authenticated/karrierer/$id'
@@ -253,6 +265,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   FcIqRoute: typeof FcIqRoute
   PrivacyRoute: typeof PrivacyRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   ApiPublicPlayerFaceRoute: typeof ApiPublicPlayerFaceRoute
 }
@@ -292,6 +305,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -439,6 +459,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   FcIqRoute: FcIqRoute,
   PrivacyRoute: PrivacyRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   ApiPublicPlayerFaceRoute: ApiPublicPlayerFaceRoute,
 }

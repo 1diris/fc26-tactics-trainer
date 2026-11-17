@@ -9,6 +9,7 @@ import { lovable } from "@/integrations/lovable/index";
 import { BrandLogo } from "@/components/brand-logo";
 
 export const Route = createFileRoute("/auth")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Sign in — Career Chronicles" },

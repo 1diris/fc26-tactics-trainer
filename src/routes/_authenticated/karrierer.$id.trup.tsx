@@ -29,6 +29,7 @@ import { SellPlayerDialog } from "@/components/sell-player-dialog";
 import { PlayerAvatar } from "@/components/player-avatar";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/trup")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Squad — Career Chronicles" },

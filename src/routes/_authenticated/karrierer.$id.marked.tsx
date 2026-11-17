@@ -38,6 +38,7 @@ import { positionFit } from "@/lib/formations";
 import { POSITIONS, formatMoney, formatWage, normalizePosition, ovrTone } from "@/lib/football";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/marked")({
+  staticData: { sitemap: false },
   validateSearch: (search: Record<string, unknown>): { position?: string } => {
     const raw = typeof search["position"] === "string" ? search["position"] : undefined;
     const position = raw ? (normalizePosition(raw) ?? undefined) : undefined;

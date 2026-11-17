@@ -22,6 +22,17 @@ import { setCurrentSeason } from "@/lib/career.functions";
 import { sortedSeasons } from "@/lib/squad";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id")({
+  staticData: { sitemap: false },
+  head: () => ({
+    meta: [
+      { title: "Career dashboard — Career Chronicles" },
+      { name: "description", content: "Manage your saved Career Mode club, squad, tactics, academy and transfers." },
+      { property: "og:title", content: "Career dashboard — Career Chronicles" },
+      { property: "og:description", content: "Your club's Career Mode management workspace." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: CareerLayout,
 });
 

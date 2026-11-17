@@ -18,6 +18,7 @@ import { PositionSelect } from "@/components/position-select";
 import { ArrowLeft, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/spiller/$playerId")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Player profile — Career Chronicles" },

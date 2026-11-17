@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 const ALLOWED_HOSTS = new Set(["cdn.sofifa.net", "cdn.sofifa.com"]);
 
 export const Route = createFileRoute("/api/public/player-face")({
+  staticData: { sitemap: false },
   server: {
     handlers: {
       GET: async ({ request }) => {

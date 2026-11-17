@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 
 export const Route = createFileRoute("/fc-iq")({
+  staticData: { sitemap: true },
   component: FcIqPage,
   head: () => ({
     meta: [

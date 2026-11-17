@@ -18,6 +18,7 @@ import { PositionSelect } from "@/components/position-select";
 import { Check, Loader2, Trash2, UploadCloud } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/karrierer/$id/import")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Import screenshot — Career Chronicles" },
