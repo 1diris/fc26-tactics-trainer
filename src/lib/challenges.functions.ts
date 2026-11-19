@@ -3,6 +3,7 @@ import { getRequest } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { getChallenge, evaluate } from "./challenges/catalogue";
+import { isValidScreenshot } from "./screenshot-rules";
 import type { Json } from "@/integrations/supabase/types";
 
 const idSchema = z.object({ challengeId: z.string() });
@@ -74,7 +75,7 @@ export const verifyChallengeGoal = createServerFn({ method: "POST" }).middleware
     const images = await Promise.all(data.paths.map(async (path) => {
       const { data: blob, error } = await context.supabase.storage.from("challenge-screenshots").download(path);
       if (error || !blob) throw new Error(error?.message ?? "Could not read image.");
-      if (!["image/png", "image/jpeg", "image/webp"].includes(blob.type) || blob.size === 0 || blob.size > 10 * 1024 * 1024) throw new Error("Use PNG, JPG or WebP images under 10 MB.");
+      if (!isValidScreenshot(blob.type, blob.size, 10 * 1024 * 1024)) throw new Error("Use PNG, JPG or WebP images under 10 MB.");
       const bytes = new Uint8Array(await blob.arrayBuffer()); let binary = "";
       for (let offset = 0; offset < bytes.length; offset += 0x8000) binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
       return `data:${blob.type};base64,${btoa(binary)}`;

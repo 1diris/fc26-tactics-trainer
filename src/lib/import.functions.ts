@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { isValidScreenshot } from "./screenshot-rules";
 import type { Json } from "@/integrations/supabase/types";
 
 const BUCKET = "career-screenshots";
@@ -47,14 +48,17 @@ export const analyzeScreenshot = createServerFn({ method: "POST" })
         throw new Error(downloadError?.message ?? "Could not download the uploaded image.");
       }
 
+      if (!isValidScreenshot(file.type, file.size, 15 * 1024 * 1024)) {
+        throw new Error("Use a non-empty PNG, JPG or WebP image under 15 MB.");
+      }
+
       const bytes = new Uint8Array(await file.arrayBuffer());
-      if (bytes.byteLength === 0) throw new Error("The image is empty.");
       let binary = "";
       const chunkSize = 0x8000;
       for (let offset = 0; offset < bytes.length; offset += chunkSize) {
         binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
       }
-      const dataUrl = `data:${data.mimeType};base64,${btoa(binary)}`;
+      const dataUrl = `data:${file.type};base64,${btoa(binary)}`;
 
       const { extractPlayersFromImage } = await import("./ai-extract.server");
       const { players, raw } = await extractPlayersFromImage(dataUrl);

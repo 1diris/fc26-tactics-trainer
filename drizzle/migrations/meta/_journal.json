@@ -43,6 +43,13 @@
       "when": 1795076815735,
       "tag": "0005_fc_players_read_requires_user",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795082465784,
+      "tag": "0006_harden_challenge_verification_and_screenshots",
+      "breakpoints": true
     }
   ]
 }

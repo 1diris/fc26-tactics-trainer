@@ -16,3 +16,6 @@
 - [x] SEO: complete route-specific metadata defaults and sharing previews
 - [x] SEO: add a router-derived sitemap and reference it from robots.txt
 - [x] SEO: verify all public inclusions, private exclusions and record completed fixes
+- [ ] Sikkerhed: gennemgå challenge-funktionernes adgang og ejerskab
+- [ ] Sikkerhed: gennemgå oprettelse af nye brugerprofiler
+- [ ] Sikkerhed: gennemgå screenshot-lagerets adgangsregler og verificér rettelser
