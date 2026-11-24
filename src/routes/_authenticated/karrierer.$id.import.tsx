@@ -12,6 +12,7 @@ import { savePlayers, type PlayerInput } from "@/lib/career.functions";
 import { autoMatchSquad } from "@/lib/fc-match.functions";
 import { sortedSeasons } from "@/lib/squad";
 import { findMatchingPlayerIndex } from "@/lib/player-matching";
+import { missingFromImport } from "@/lib/missing-players";
 import { diffCounts, diffDrafts, type DiffField } from "@/lib/import-diff";
 import { formatMoney, formatWage } from "@/lib/football";
 import { PositionSelect } from "@/components/position-select";
@@ -83,6 +84,7 @@ function ImportPage() {
   const [dragActive, setDragActive] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [onlyChanges, setOnlyChanges] = useState(false);
+  const [removeIds, setRemoveIds] = useState<Set<string>>(new Set());
 
   const seasons = sortedSeasons(data.seasons);
   const activeSeason =
@@ -112,6 +114,14 @@ function ImportPage() {
   const diffs = diffDrafts(withTarget, data.players, data.snapshots, activeSeason?.id ?? null);
   const counts = diffCounts(diffs.filter((_, i) => withTarget[i]?.target !== "youth"));
   const hasExistingSquad = data.players.length > 0;
+  const missingPlayers = drafts ? missingFromImport(data.players, withTarget) : [];
+  const toggleRemove = (pid: string) =>
+    setRemoveIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(pid)) next.delete(pid);
+      else next.add(pid);
+      return next;
+    });
 
   const formatDiffValue = (field: DiffField, value: string | number | null) => {
     if (value === null || value === "") return "–";
@@ -261,13 +271,15 @@ function ImportPage() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!activeSeason || !drafts) throw new Error("No data to save.");
-      let squadResult = { created: 0, updated: 0 };
+      let squadResult = { created: 0, updated: 0, removed: 0 };
+      const removePlayerIds = missingPlayers.filter((p) => removeIds.has(p.id)).map((p) => p.id);
       if (squadDrafts.length > 0) {
         squadResult = await save({
           data: {
             careerId: id,
             seasonId: activeSeason.id,
             importId,
+            removePlayerIds,
             players: squadDrafts.map(
               ({
                 uncertain_fields: _u,
@@ -317,6 +329,8 @@ function ImportPage() {
       const youthTotal = result.youth.created + result.youth.updated;
       setDrafts(null);
       setImportId(null);
+      setRemoveIds(new Set());
+      if (result.squad.removed > 0) toast.success(`${result.squad.removed} players removed from the squad.`);
       toast.success(
         `Squad: ${result.squad.created} new, ${result.squad.updated} updated · Academy: ${result.youth.created} new, ${result.youth.updated} updated.`,
       );
@@ -602,6 +616,41 @@ function ImportPage() {
               </button>
             </div>
           </div>
+
+          {missingPlayers.length > 0 && (
+            <div className="border-b border-ov-line px-4 py-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="text-sm font-medium">Not in this upload ({missingPlayers.length})</p>
+                  <p className="text-xs text-ov-muted">
+                    Tick the players who have left the club. They are removed from the squad when you save.
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button type="button" className={OUTLINE} onClick={() => setRemoveIds(new Set(missingPlayers.map((p) => p.id)))}>
+                    Select all
+                  </button>
+                  <button type="button" className={OUTLINE} onClick={() => setRemoveIds(new Set())}>
+                    Clear
+                  </button>
+                </div>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {missingPlayers.map((player) => {
+                  const checked = removeIds.has(player.id);
+                  return (
+                    <label
+                      key={player.id}
+                      className={`inline-flex min-h-[36px] cursor-pointer items-center gap-2 rounded-[10px] border px-3 text-sm ${checked ? "border-destructive text-destructive" : "border-ov-line text-ov-text"}`}
+                    >
+                      <input type="checkbox" checked={checked} onChange={() => toggleRemove(player.id)} />
+                      {player.name}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] text-sm">

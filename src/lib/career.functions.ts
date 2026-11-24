@@ -345,6 +345,7 @@ export const savePlayers = createServerFn({ method: "POST" })
         seasonId: z.string().uuid(),
         importId: z.string().uuid().nullable().optional(),
         players: z.array(playerInput).min(1),
+        removePlayerIds: z.array(z.string().uuid()).max(100).optional(),
       })
       .parse(input),
   )
@@ -456,6 +457,35 @@ export const savePlayers = createServerFn({ method: "POST" })
 
     }
 
+    let removed = 0;
+    const removeIds = (data.removePlayerIds ?? []).filter((pid) =>
+      (existing ?? []).some((player) => player.id === pid),
+    );
+    if (removeIds.length > 0) {
+      const { data: tactics } = await supabase
+        .from("tactics")
+        .select("id, lineup")
+        .eq("career_id", data.careerId);
+      for (const tactic of tactics ?? []) {
+        const lineup = tactic.lineup;
+        if (!lineup || typeof lineup !== "object" || Array.isArray(lineup)) continue;
+        const entries = Object.entries(lineup as Record<string, unknown>);
+        const cleaned = entries.filter(([, value]) => !removeIds.includes(value as string));
+        if (cleaned.length === entries.length) continue;
+        await supabase
+          .from("tactics")
+          .update({ lineup: Object.fromEntries(cleaned) as Json })
+          .eq("id", tactic.id);
+      }
+      const { error: removeError } = await supabase
+        .from("players")
+        .delete()
+        .eq("career_id", data.careerId)
+        .in("id", removeIds);
+      if (removeError) throw new Error(removeError.message);
+      removed = removeIds.length;
+    }
+
     if (data.importId) {
       await supabase
         .from("screenshot_imports")
@@ -463,7 +493,7 @@ export const savePlayers = createServerFn({ method: "POST" })
         .eq("id", data.importId);
     }
 
-    return { created, updated };
+    return { created, updated, removed };
   });
 
 export const updatePlayer = createServerFn({ method: "POST" })

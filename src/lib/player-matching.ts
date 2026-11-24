@@ -1,6 +1,6 @@
 import { playerKey } from "@/lib/football";
 
-type MatchablePlayer = {
+export type MatchablePlayer = {
   name: string;
   shirt_number?: number | null | undefined;
 };
